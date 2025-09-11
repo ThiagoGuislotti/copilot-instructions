@@ -1,0 +1,15 @@
+---
+applyTo: ".github/instructions/*"
+---
+Instruction creation: no markdown formatting (no * # ' ` -); header must follow template exactly; semicolon-separated single-line paragraphs; internal blank lines allowed to separate rules and examples; maximum token economy; actionable information only; pattern [area].instructions.md; examples inline prefixed with "Example:".
+Content format: one paragraph per line; internal blank lines are allowed for readability; DO NOT leave a blank line at the end of the file; end file on last content character; precise technical terms; avoid filler; context before objective; measurable acceptance criteria.
+Instruction contents: include a concise project overview (elevator pitch); identify the tech stack (backend, frontend, database, APIs and testing suites); spell out coding guidelines such as naming conventions, formatting and test requirements; describe the project folder structure and note important subdirectories; list available resources like scripts, build or test tools and MCP servers; ensure each instruction is self contained and broadly applicable; avoid overly restrictive or stylistic mandates; revisit and improve the instructions as the project evolves; an imperfect file is better than none.
+Critical formatting: enforce only EOF rule (no trailing blank line/newline); forbid headings, lists and code fences; English only.
+applyTo globs: prefer specific folders and extensions; avoid **/* unless orchestrator with explicit rationale; prefer src/area/**/*.ext; validate coverage with validate-instructions.ps1; target real folders to optimize tokens.
+Logical structure: group related concepts; descending order of importance; frequent patterns first; document edge cases; note interoperability and dependency chains.
+Duplication rules: never repeat global rules; centralize globals in copilot-instructions.md; use explicit inheritance when applicable; ensure specialization without overlap; check for conflicts before adding.
+Naming: file name must be area.instructions.md; area must be specific and match project structure; update mapping in README.md; add reference in copilot-instructions.md.
+Maintenance: create versioned CHANGELOG entry; use git tags copilot-vX.Y.Z; collect feedback; perform periodic reviews; deprecate obsolete rules gradually.
+.github changes: any change under .github requires a versioned CHANGELOG entry; document impact and usage; use github-change-checklist-template.md.
+Effectiveness tests: validate with real use cases; measure before/after metrics; collect developer feedback; ensure coverage of critical scenarios; address knowledge gaps; adjust based on data; document lessons learned.
+System interaction: update copilot-instructions.md with the new reference; verify the inheritance hierarchy; confirm no conflicts.
