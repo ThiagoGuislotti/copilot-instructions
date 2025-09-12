@@ -1,4 +1,30 @@
-﻿# Repository Guidelines
+# Copilot Agents and Context Policy
+
+This file defines the available Copilot Chat participants (agents) and how they should be used in this repository.
+
+Agents
+- Workspace: code-first agent for this repo. Reads/edits files, runs searches, and proposes patches.
+- GitHub: PR/issue-centric agent. Summarizes, reviews, and changes GitHub artifacts.
+- Profiler: performance agent. Benchmarks, profiles, and optimizes hot paths.
+- VS: IDE helper. Settings, build/debug help, MSBuild/solution issues.
+
+Mandatory context files
+- Always include BOTH of these files first when selecting context for Copilot Chat:
+  1) .github/copilot-instructions.md
+  2) .github/AGENTS.md (this file)
+
+If context budget is tight, prefer dropping any other files before these. These two documents coordinate global rules and agent usage and must be loaded to avoid inconsistent answers.
+
+How to use in chat
+- Prefer the Workspace agent for code changes in this repo.
+- Switch to GitHub for PR/issue workflows.
+- Switch to Profiler for performance/benchmark tasks.
+- Switch to VS for IDE or build tooling questions.
+
+Auditability
+- When listing applied instructions in a response or PR body, reference both .github/copilot-instructions.md and .github/AGENTS.md when they influence the change.
+
+# Repository Guidelines
 
 ## Scope & References
 - Repo-wide; subfolder `AGENTS.md` may specialize. Direct prompts override.
