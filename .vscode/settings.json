@@ -73,7 +73,7 @@
     "workbench.editor.pinnedTabsOnSeparateRow": true,
     "workbench.iconTheme": "material-icon-theme",
     "workbench.activityBar.location": "default",
-    "workbench.settings.enableNaturalLanguageSearch": false,
+    "workbench.settings.enableNaturalLanguageSearch": true,
 
     // EXPLORER & FILES - File management and explorer
     // https://code.visualstudio.com/docs/getstarted/userinterface#_explorer
@@ -279,11 +279,13 @@
     "github.copilot.nextEditSuggestions.enabled": true,
     "github.copilot.chat.codeGeneration.useInstructionFiles": true,
 
-    // Copilot Chat custom instructions (see https://code.visualstudio.com/docs/copilot/customization/custom-instructions)
+    // Copilot Chat custom instructions
+    // https://code.visualstudio.com/docs/copilot/customization/custom-instructions
     "github.copilot.chat.reviewSelection.instructions": [
         { "file": "AGENTS.md" },
         { "file": "copilot-instructions.md" },
         { "file": "instructions/workflow-optimization.instructions.md" },
+        { "file": "instructions/ai-orchestration.instructions.md" },
         { "file": "instructions/powershell-execution.instructions.md" },
         { "file": "instructions/dotnet-csharp.instructions.md" },
         { "file": "instructions/clean-architecture-code.instructions.md" },
