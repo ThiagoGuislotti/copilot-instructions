@@ -1,0 +1,342 @@
+{
+    // EDITOR - Basic editor settings
+    // https://code.visualstudio.com/docs/getstarted/settings#_editor
+    "editor.fontFamily": "'Cascadia Code PL', Consolas, 'Courier New', monospace",
+    "editor.fontSize": 13,
+    "editor.formatOnSave": false,
+    "editor.stickyScroll.enabled": false,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.renderWhitespace": "none",
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": true,
+    "editor.minimap.enabled": true,
+    "editor.minimap.maxColumn": 120,
+    "editor.rulers": [
+        {
+            "column": 100,
+            "color": "#09ff0033",
+            "lineStyle": "dashed"
+        },
+        {
+            "column": 170,
+            "color": "#ff00004d",
+            "lineStyle": "dashed"
+        },
+        {
+            "column": 175,
+            "color": "#ffee0050",
+            "lineStyle": "dashed"
+        }
+    ],
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.wordWrapColumn": 160,
+    "editor.trimAutoWhitespace": true,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": true,
+    "editor.suggestSelection": "first",
+    "editor.acceptSuggestionOnCommitCharacter": false,
+    "editor.acceptSuggestionOnEnter": "on",
+    "editor.tabCompletion": "on",
+    "editor.parameterHints.enabled": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    },
+
+    // DIFF EDITOR - File diff editor
+    // https://code.visualstudio.com/docs/editor/versioncontrol#_viewing-diffs
+    "diffEditor.codeLens": true,
+    "diffEditor.ignoreTrimWhitespace": false,
+
+    // INTEGRATED TERMINAL - Internal terminal settings
+    // https://code.visualstudio.com/docs/terminal/basics
+    "terminal.integrated.shellIntegration.enabled": true,
+    "terminal.integrated.shellIntegration.decorationsEnabled": "both",
+    "terminal.integrated.shellIntegration.showCommandGuide": true,
+    "terminal.integrated.gpuAcceleration": "auto",
+    "terminal.integrated.cursorStyle": "block",
+    "terminal.integrated.fontSize": 12,
+    "terminal.integrated.fontFamily": "MesloLGM Nerd Font",
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "terminal.integrated.profiles.windows": {},
+    "terminal.integrated.defaultProfile.osx": "zsh",
+    "terminal.integrated.defaultProfile.linux": "zsh",
+    "terminal.integrated.profiles.linux": {
+        "zsh": {
+            "path": "/usr/bin/zsh",
+            "args": ["-l"]
+        }
+    },
+    "terminal.integrated.ignoreProcessNames": ["oh-my-posh", "bash", "zsh"],
+
+    // WORKBENCH - General VS Code interface
+    // https://code.visualstudio.com/docs/getstarted/userinterface
+    "workbench.editor.pinnedTabsOnSeparateRow": true,
+    "workbench.iconTheme": "material-icon-theme",
+    "workbench.activityBar.location": "default",
+    "workbench.settings.enableNaturalLanguageSearch": false,
+
+    // EXPLORER & FILES - File management and explorer
+    // https://code.visualstudio.com/docs/getstarted/userinterface#_explorer
+    "explorer.compactFolders": false,
+    "explorer.confirmDelete": false,
+    "explorer.confirmDragAndDrop": false,
+    "files.encoding": "utf8",
+    "files.eol": "\n",
+    "files.insertFinalNewline": false,
+    "files.associations": {
+        // Makefiles
+        "Makefile.*": "makefile",
+        // Markdown
+        "*.md*": "markdown",
+        // Configuração
+        "*.jsonc": "jsonc",
+        "*.json5": "jsonc",
+        "*.yml": "yaml",
+        "*.yaml": "yaml",
+        "*.toml": "toml",
+        // Linguagens de programação
+        "*.js": "javascript",
+        "*.jsx": "javascriptreact",
+        "*.ts": "typescript",
+        "*.tsx": "typescriptreact",
+        "*.go": "go",
+        "*.cs": "csharp",
+        "*.html": "html",
+        "*.css": "css",
+        "*.scss": "scss",
+        "*.less": "less",
+        "*.py": "python",
+        "*.rb": "ruby",
+        "*.java": "java",
+        "*.php": "php",
+        "*.rs": "rust",
+        "*.cpp": "cpp",
+        "*.c": "c",
+        "*.h": "cpp",
+        "*.hpp": "cpp",
+        "*.swift": "swift"
+    },
+
+    // PERFORMANCE - Performance optimizations and exclusions
+    // https://code.visualstudio.com/docs/setup/setup-overview#_advanced-functionality
+    "files.watcherExclude": {
+        "**/node_modules/**": true,
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/dist/**": true,
+        "**/build/**": true,
+        "**/.bloop": true,
+        "**/.metals": true,
+        "**/target/**": true,
+        "**/.next/**": true,
+        "**/bin/**": true,
+        "**/obj/**": true,
+        "**/.venv/**": true
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/build": true,
+        "**/.next": true,
+        "**/coverage": true,
+        "**/bin/**": true,
+        "**/obj/**": true,
+        "**/.venv/**": true
+    },
+
+    // VERSION CONTROL (GIT) - Integrated Git settings
+    // https://code.visualstudio.com/docs/sourcecontrol/overview
+    "git.enableSmartCommit": true,
+    "git.autofetch": true,
+    "git.openRepositoryInParentFolders": "always",
+    "git.confirmSync": false,
+    "git.decorations.enabled": true,
+    "git.showPushSuccessNotification": true,
+    "git.allowForcePush": false,
+    "git.branchProtection": ["main", "master", "develop"],
+    "git.detectWorktrees": true,
+
+    // GITHUB - GitHub integration
+    // https://code.visualstudio.com/docs/sourcecontrol/github
+    "github.gitProtocol": "ssh",
+    "githubPullRequests.createOnPublishBranch": "never",
+
+    // REMOTE DEVELOPMENT - SSH, WSL and Remote Development
+    // https://code.visualstudio.com/docs/remote/remote-overview
+    "remote.WSL.useShellEnvironment": true,
+    "remote.SSH.remotePlatform": {
+        "consiluxutils": "linux",
+        "lot9-curitiba": "linux",
+        "lot9-saopaulo": "linux"
+    },
+    "remote.autoForwardPortsSource": "hybrid",
+    "remote.extensionKind": {
+        "alefragnani.project-manager": ["workspace", "ui"],
+        "GitHub.copilot": ["workspace", "ui"],
+        "GitHub.copilot-chat": ["workspace", "ui"],
+        "GitHub.vscode-pull-request-github": ["workspace", "ui"],
+        "ms-vscode-remote.remote-ssh": ["ui"],
+        "esbenp.prettier-vscode": ["workspace"],
+        "ms-dotnettools.csharp": ["workspace"],
+        "golang.go": ["workspace"]
+    },
+
+    // EXTENSIONS - Extension management
+    // https://code.visualstudio.com/docs/editor/extension-marketplace
+    "extensions.autoUpdate": true,
+    "extensions.ignoreRecommendations": false,
+
+    // FORMATTERS - Specific formatter settings
+    // https://prettier.io/docs/en/configuration.html
+    "prettier.endOfLine": "lf",
+    "prettier.insertFinalNewline": false,
+    "prettier.trailingComma": "es5",
+    "prettier.config": {
+        "endOfLine": "lf",
+        "insertFinalNewline": false
+    },
+
+    // LANGUAGE SETTINGS - Formatters and specific behaviors
+    // https://code.visualstudio.com/docs/languages/overview
+
+    // Go
+    "go.toolsManagement.autoUpdate": true,
+    "[go]": {
+        "editor.insertSpaces": false,
+        "editor.formatOnSave": true,
+        "editor.tabSize": 4,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "always"
+        }
+    },
+    "gopls": {
+        "formatting.gofumpt": true
+    },
+
+    // C#
+    "csharp.preview.improvedLaunchExperience": true,
+    "[csharp]": {
+        "editor.defaultFormatter": "ms-dotnettools.csharp"
+    },
+
+    // JavaScript / TypeScript
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+
+    // Web Technologies
+    "[html]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[css]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[scss]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+
+    // Configuration Files
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[yaml]": {
+        "editor.defaultFormatter": "redhat.vscode-yaml",
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2
+    },
+
+    // Documentation
+    "[markdown]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.wordWrap": "wordWrapColumn",
+        "editor.wordWrapColumn": 160,
+        "files.insertFinalNewline": false,
+        "editor.formatOnSave": false
+    },
+
+    // DEVELOPMENT TOOLS - ESLint, Copilot, Makefile and other tools
+    // https://code.visualstudio.com/docs/languages/javascript#_linters
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact",
+        "typescript",
+        "typescriptreact",
+        "vue",
+        "html"
+    ],
+    "makefile.configureOnOpen": true,
+    "github.copilot.enable": {
+        "*": true,
+        "plaintext": false,
+        "markdown": true,
+        "scminput": false
+    },
+    "github.copilot.advanced": {},
+    "github.copilot.chat.localeOverride": "pt-br",
+    "github.copilot.nextEditSuggestions.enabled": true,
+    "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+
+    // Copilot Chat custom instructions (see https://code.visualstudio.com/docs/copilot/customization/custom-instructions)
+    "github.copilot.chat.reviewSelection.instructions": [
+        { "file": "AGENTS.md" },
+        { "file": "copilot-instructions.md" },
+        { "file": "instructions/workflow-optimization.instructions.md" },
+        { "file": "instructions/powershell-execution.instructions.md" },
+        { "file": "instructions/dotnet-csharp.instructions.md" },
+        { "file": "instructions/clean-architecture-code.instructions.md" },
+        { "file": "instructions/backend.instructions.md" },
+        { "file": "instructions/frontend.instructions.md" },
+        { "file": "instructions/vue-quasar.instructions.md" },
+        { "file": "instructions/ui-ux.instructions.md" },
+        { "file": "instructions/database.instructions.md" },
+        { "file": "instructions/orm.instructions.md" },
+        { "file": "instructions/microservices-performance.instructions.md" },
+        { "file": "instructions/static-analysis-sonarqube.instructions.md" },
+        { "file": "instructions/docker.instructions.md" },
+        { "file": "instructions/k8s.instructions.md" },
+        { "file": "instructions/e2e-testing.instructions.md" },
+        { "file": "instructions/readme.instructions.md" },
+        { "file": "instructions/feedback-changelog.instructions.md" },
+        { "text": "Code suggestions must follow Clean Architecture: separation of concerns, dependency inversion, maintainability, readability and simplicity." }
+    ],
+    "github.copilot.chat.commitMessageGeneration.instructions": [
+        { "file": "AGENTS.md" },
+        { "file": "copilot-instructions.md" },
+        { "file": "instructions/pr.instructions.md" },
+        { "file": "instructions/prompt-templates.instructions.md" },
+        { "file": "instructions/readme.instructions.md" },
+        { "file": "instructions/feedback-changelog.instructions.md" },
+        { "text": "Commit messages: Conventional Commits (feat, fix, docs, refactor, test, chore), English, imperative mood, max 72 chars." }
+    ],
+    "github.copilot.chat.pullRequestDescriptionGeneration.instructions": [
+        { "file": "AGENTS.md" },
+        { "file": "copilot-instructions.md" },
+        { "file": "instructions/pr.instructions.md" },
+        { "file": "instructions/readme.instructions.md" },
+        { "file": "instructions/feedback-changelog.instructions.md" },
+        { "text": "PR description must include: Context, Changes, Rationale, Risks, Testing, Docs, Breaking Changes, Migration." }
+    ],
+
+    // TELEMETRY & PRIVACY - Privacy and data collection settings
+    // https://code.visualstudio.com/docs/getstarted/telemetry
+    "telemetry.telemetryLevel": "off",
+    "redhat.telemetry.enabled": false,
+
+    // SPECIFIC EXTENSIONS - Installed extension settings
+    // https://code.visualstudio.com/docs/editor/extension-marketplace#_extension-details
+
+    // Bookmarks
+    "bookmarks.saveBookmarksInProject": true,
+
+    // Docker
+    "docker.extension.enableComposeLanguageServer": false,
+
+    // LLDB
+    "lldb.suppressUpdateNotifications": true,
+
+    // Database Client
+    "database-client.autoSync": true
+}

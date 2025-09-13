@@ -19,7 +19,6 @@ Workflow (how to use):
 
 MANDATORY (always applied):
 - .github/instructions/workflow-optimization.instructions.md
-- .github/instructions/ai-orchestration.instructions.md
 - .github/instructions/powershell-execution.instructions.md
 - .github/instructions/feedback-changelog.instructions.md
 - .github/AGENTS.md (agents and context policy)
