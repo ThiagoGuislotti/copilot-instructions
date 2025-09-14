@@ -27,6 +27,7 @@ This directory solves the problem of inconsistent AI responses and low productiv
 - [Contributing](#contributing)
 - [Dependencies](#dependencies)
 - [References](#references)
+- [License](#license)
 
 ---
 
@@ -49,7 +50,7 @@ To start using instructions in a .NET project:
 
 ```text
 1. Copy AGENTS.md and adapt for your solution
-2. Copy copilot-instructions.md for global rules  
+2. Copy copilot-instructions.md for global rules
 3. Copy files from instructions/ according to needed domains
 ```
 
@@ -60,14 +61,14 @@ To start using instructions in a .NET project:
 ### Example 1: Copilot Chat with Context
 
 ```text
-Select code snippet → "Ask Copilot" → request: 
+Select code snippet → "Ask Copilot" → request:
 "refactor to C# 12, sealed classes when appropriate and add XML docs following dotnet-csharp.instructions.md"
 ```
 
 ### Example 2: PR Review with GitHub Agent
 
 ```text
-In GitHub participant: 
+In GitHub participant:
 "Summarize this PR, check breaking changes and list 'Applied instructions'"
 ```
 
@@ -78,7 +79,7 @@ In GitHub participant:
 ### Key Files and Purpose
 
 - **AGENTS.md** — Agent policies and context selection rules
-- **copilot-instructions.md** — Global rules and domain mapping  
+- **copilot-instructions.md** — Global rules and domain mapping
 - **instructions/*.md** — Technical conventions (C#, backend, ORM, DevOps, tests, docs, etc.)
 - **templates/readme-template.md** — Standard README template
 
@@ -131,3 +132,11 @@ dotnet format --verify-no-changes
 - [copilot-instructions.md](copilot-instructions.md) - Global rules and mappings
 - [templates/readme-template.md](templates/readme-template.md) - README template
 - [GitHub Copilot Documentation](https://docs.github.com/en/copilot)
+
+---
+
+## License
+
+This project is licensed under the MIT License. See the LICENSE file at the repository root for details.
+
+---
