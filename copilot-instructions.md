@@ -1,6 +1,6 @@
 Language: EN for code/commits; pt-BR UI via i18n; EN database schema.
 
-Hierarchy and scope:
+HIERARCHY AND SCOPE:
 - Global rules live here and are always applied.
 - Domain instruction files extend these rules; do not duplicate globals.
 - Prefer the most specific domain rule when conflicts occur.
@@ -8,21 +8,21 @@ Hierarchy and scope:
 
 CONTEXT SELECTION (hard rule):
 - Always load these two files FIRST for any Copilot Chat session, patch proposal, PR summary, or code-gen in this repo:
-  1. .github/copilot-instructions.md
-  2. .github/AGENTS.md
+  1. .github/AGENTS.md
+  2. .github/copilot-instructions.md
 - If context budget is limited, drop any other files before these. Do not answer without these two when the workspace is available.
 
-Workflow (how to use):
+WORKFLOW (how to use):
 - Start with AGENTS.md for solution-specific details (stack, folders, commands).
 - Use this file for global rules and technology mappings.
 - Follow domain-specific files in .github/instructions/*.md for technical details.
 
 MANDATORY (always applied):
+- .github/AGENTS.md (agents and context policy)
 - .github/instructions/workflow-optimization.instructions.md
 - .github/instructions/ai-orchestration.instructions.md
 - .github/instructions/powershell-execution.instructions.md
 - .github/instructions/feedback-changelog.instructions.md
-- .github/AGENTS.md (agents and context policy)
 
 MANDATORY (only for .github changes):
 - .github/instructions/copilot-instruction-creation.instructions.md
@@ -51,3 +51,8 @@ CHANGELOG:
 - Project changes: main CHANGELOG.md
 - Process: .github/instructions/feedback-changelog.instructions.md
 - Mandatory versioning: every CHANGELOG entry must include semantic version [X.Y.Z] and date YYYY-MM-DD; no [Unreleased] accumulation; immediate versioning on changes.
+
+STYLE (EOF and whitespace):
+- Do not leave a trailing blank line at the end of files.
+- For files under `.github/instructions/*.md` and Copilot/Codex instruction outputs: do NOT include a final newline (consistent with AGENTS.md).
+- For other files, follow `.editorconfig` rules (final newline usually enforced); always avoid trailing whitespace.

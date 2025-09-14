@@ -1,3 +1,11 @@
+## [1.0.1] - 2025-09-14
+
+### Added
+- Updated `.github/copilot-instructions.md` with "STYLE (EOF and whitespace)" rules:
+  - Do not leave a trailing blank line at the end of files.
+  - For files under `.github/instructions/*.md` and Copilot/Codex instruction outputs: do NOT include a final newline (consistent with `AGENTS.md`).
+  - For other files, follow `.editorconfig` rules (final newline usually enforced); always avoid trailing whitespace.
+
 ## [1.0.0] - 2025-09-13
 
 ### Added
