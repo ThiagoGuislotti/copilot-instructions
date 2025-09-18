@@ -1,3 +1,19 @@
+## [1.0.2] - 2025-09-17
+
+### Added
+- Enhanced `templates/dotnet-class-template.cs` with comprehensive static members organization:
+  - Added `#region Constants` for constant fields (string and integer types)
+  - Added `#region Static Variables` for static readonly fields and Lazy dependencies
+  - Added `#region Static Properties` for static properties with custom getters/setters
+  - Updated usage comments with examples for all new placeholders
+  - Improved template documentation with clear separation between variables and properties
+
+### Changed
+- Updated template usage guide with new placeholder explanations:
+  - `[CONSTANT_NAME]`, `[CONSTANT_VALUE]`, `[CONSTANT_NAME_INT]`, `[CONSTANT_VALUE_INT]`
+  - `[STATIC_VARIABLE_DESCRIPTION]`, `[StaticVariableName]`, `[STATIC_VARIABLE_VALUE]`, `[staticDependencyName]`
+  - `[STATIC_PROPERTY_DESCRIPTION]`, `[StaticPropertyName]`, `[PropertyAccessor]`, `[PropertySetter]`, `[StaticBooleanProperty]`
+
 ## [1.0.1] - 2025-09-14
 
 ### Added

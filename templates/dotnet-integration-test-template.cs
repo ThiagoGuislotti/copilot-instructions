@@ -1,13 +1,9 @@
 // .NET Integration Test template (NUnit)
 // Use: [HANDLER_CLASS] = MotorcycleHandlerTest
 // Use: [ENTITY] = Motorcycle
+// Use: [METHOD_UNDER_TEST] = CRUD/Business Rules/Business Rules
 // Use: [CATEGORY] = Commands/Queries/Services
 
-using FluentAssertions;
-using NetToolsKit.Mediator;
-using Microsoft.Extensions.DependencyInjection;
-using NetToolsKit.Observability.Loggers.Extensions;
-using NUnit.Framework;
 using [NAMESPACE].Application.Cqrs.Commands;
 using [NAMESPACE].Application.Cqrs.Queries;
 using [NAMESPACE].IntegrationTests.Assets;
@@ -20,6 +16,13 @@ namespace [NAMESPACE].IntegrationTests.Tests.[CATEGORY]
     [Category("[CATEGORY]")]
     public class [HANDLER_CLASS]
     {
+        #region Nested types
+        private sealed class Dto
+        {
+            public string? Name { get; set; }
+        }
+        #endregion
+
         #region Variables
         private ConfigureServices _configureServices;
         private IMediator _mediator;
@@ -51,8 +54,7 @@ namespace [NAMESPACE].IntegrationTests.Tests.[CATEGORY]
         }
         #endregion
 
-        #region Test Methods - CRUD Operations
-
+        #region Test Methods - [METHOD_UNDER_TEST]
         [Test]
         [Order(1)]
         public async Task Create_[ENTITY]_ReturnSuccess()
@@ -150,11 +152,9 @@ namespace [NAMESPACE].IntegrationTests.Tests.[CATEGORY]
             // Assert
             result.IsSuccess.Should().BeTrue();
         }
-
         #endregion
 
-        #region Test Methods - Business Rules
-
+        #region Test Methods - [METHOD_UNDER_TEST]
         [Test]
         public async Task Create_[ENTITY]_WithInvalidData_ShouldFail()
         {
@@ -192,11 +192,9 @@ namespace [NAMESPACE].IntegrationTests.Tests.[CATEGORY]
             result.IsSuccess.Should().BeFalse();
             result.Errors.Should().Contain(e => e.Contains("duplicate") || e.Contains("exists"));
         }
-
         #endregion
 
-        #region Test Methods - Performance
-
+        #region Test Methods - [METHOD_UNDER_TEST]
         [Test]
         [Category("Performance")]
         public async Task GetAll_[ENTITY]_WithLargeDataset_ShouldComplete()
@@ -214,11 +212,9 @@ namespace [NAMESPACE].IntegrationTests.Tests.[CATEGORY]
             stopwatch.ElapsedMilliseconds.Should().BeLessThan(5000); // 5 seconds max
             ConsoleLogger.WriteLine($"Query executed in {stopwatch.ElapsedMilliseconds}ms");
         }
-
         #endregion
 
-        #region Private Helper Methods
-
+        #region Private Methods/Operators
         private async Task CreateTestEntity()
         {
             var command = new Create[ENTITY]Command
@@ -231,7 +227,6 @@ namespace [NAMESPACE].IntegrationTests.Tests.[CATEGORY]
             var result = await _mediator.Send(command).ConfigureAwait(false);
             result.IsSuccess.Should().BeTrue("Setup entity creation should succeed");
         }
-
         #endregion
     }
 }

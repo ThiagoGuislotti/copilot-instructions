@@ -3,17 +3,6 @@
 //#define UNIT_XUNIT
 //#define UNIT_NUNIT
 
-using System;
-
-using FluentAssertions;
-
-#if UNIT_XUNIT
-using Xunit;
-using Xunit.Abstractions;
-#elif UNIT_NUNIT
-using NUnit.Framework;
-#endif
-
 // Use: [NAMESPACE] = Project namespace
 // Use: [TEST_CLASS] = ClassUnderTestTests
 // Use: [METHOD_UNDER_TEST] = CreateMotorcycle
@@ -31,6 +20,13 @@ namespace [NAMESPACE].UnitTests.Tests.[CATEGORY]
 #endif
     public class [TEST_CLASS]
     {
+        #region Nested types
+        private sealed class Dto
+        {
+            public string? Name { get; set; }
+        }
+        #endregion
+
         #region Variables
 #if UNIT_XUNIT
         private readonly [DEPENDENCY_TYPE] _[dependencyName];
@@ -40,7 +36,7 @@ namespace [NAMESPACE].UnitTests.Tests.[CATEGORY]
 #endif
         #endregion
 
-        #region Setup / Ctor
+        #region SetUp Methods
 #if UNIT_XUNIT
         /// <summary>
         /// xUnit uses constructor for per-test setup and ITestOutputHelper for logs.
@@ -62,7 +58,7 @@ namespace [NAMESPACE].UnitTests.Tests.[CATEGORY]
 #endif
         #endregion
 
-        #region Test [METHOD_UNDER_TEST] Valid Cases
+        #region Test Methods - [METHOD_UNDER_TEST] Valid Cases
 #if UNIT_XUNIT
         [Theory]
         [InlineData([VALID_PARAMETERS])]
@@ -90,7 +86,7 @@ namespace [NAMESPACE].UnitTests.Tests.[CATEGORY]
         }
         #endregion
 
-#region Test [METHOD_UNDER_TEST] Invalid Cases
+        #region Test Methods - [METHOD_UNDER_TEST] Invalid Cases
 #if UNIT_XUNIT
         [Theory]
         [InlineData([INVALID_PARAMETERS])]
@@ -123,9 +119,9 @@ namespace [NAMESPACE].UnitTests.Tests.[CATEGORY]
             TestContext.WriteLine(result.ToString());
 #endif
         }
-#endregion
+        #endregion
 
-#region Test [METHOD_UNDER_TEST] Edge Cases
+        #region Test Methods - [METHOD_UNDER_TEST] Edge Cases
 #if UNIT_XUNIT
         [Fact]
 #elif UNIT_NUNIT
@@ -136,8 +132,8 @@ namespace [NAMESPACE].UnitTests.Tests.[CATEGORY]
             // Arrange
             var request = new [REQUEST_TYPE]
             {
-                        // Configure edge case
-                    };
+                // Configure edge case
+            };
 
             // Act
             var result = _[dependencyName].[METHOD_UNDER_TEST](request);
@@ -145,9 +141,9 @@ namespace [NAMESPACE].UnitTests.Tests.[CATEGORY]
             // Assert
             result.Should().NotBeNull();
         }
-#endregion
+        #endregion
 
-#region Test [METHOD_UNDER_TEST] Exception Cases
+        #region Test Methods - [METHOD_UNDER_TEST] Exception Cases
 #if UNIT_XUNIT
         [Fact]
 #elif UNIT_NUNIT

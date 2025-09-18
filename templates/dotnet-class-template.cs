@@ -3,6 +3,19 @@
 // Use: [CLASS_NAME] = class name
 // Use: [INTERFACE_NAME] = implemented interface (optional)
 // Use: [DEPENDENCY_TYPE] = injected dependency type
+// Use: [CONSTANT_NAME] = constant name (e.g., MaxRetries)
+// Use: [CONSTANT_VALUE] = constant value (e.g., "DefaultValue")
+// Use: [CONSTANT_NAME_INT] = integer constant name (e.g., DefaultTimeout)
+// Use: [CONSTANT_VALUE_INT] = integer constant value (e.g., 30)
+// Use: [STATIC_VARIABLE_DESCRIPTION] = description for static variable
+// Use: [StaticVariableName] = static variable name (e.g., GlobalConfig)
+// Use: [STATIC_VARIABLE_VALUE] = static variable value (e.g., "config")
+// Use: [staticDependencyName] = static dependency variable name (e.g., service)
+// Use: [STATIC_PROPERTY_DESCRIPTION] = description for static property
+// Use: [StaticPropertyName] = static property name (e.g., CurrentUser)
+// Use: [PropertyAccessor] = property accessor method (e.g., GetCurrentUser)
+// Use: [PropertySetter] = property setter method (e.g., SetCurrentUser)
+// Use: [StaticBooleanProperty] = static boolean property name (e.g., IsInitialized)
 
 //#define HAS_INTERFACE   // <- Descomente se a classe implementar [INTERFACE_NAME]
 
@@ -26,6 +39,46 @@ namespace [NAMESPACE]
     public class [CLASS_NAME]
 #endif
     {
+        #region Constants
+        /// <summary>
+        /// [CONSTANT_DESCRIPTION]
+        /// </summary>
+        public const string [CONSTANT_NAME] = "[CONSTANT_VALUE]";
+
+        /// <summary>
+        /// [CONSTANT_DESCRIPTION]
+        /// </summary>
+        public const int [CONSTANT_NAME_INT] = [CONSTANT_VALUE_INT];
+        #endregion
+
+        #region Static Variables
+        /// <summary>
+        /// [STATIC_VARIABLE_DESCRIPTION]
+        /// </summary>
+        public static readonly string [StaticVariableName] = "[STATIC_VARIABLE_VALUE]";
+
+        /// <summary>
+        /// [STATIC_VARIABLE_DESCRIPTION]
+        /// </summary>
+        private static readonly Lazy<[DEPENDENCY_TYPE]> _[staticDependencyName] = new(() => new [DEPENDENCY_TYPE]());
+        #endregion
+
+        #region Static Properties
+        /// <summary>
+        /// [STATIC_PROPERTY_DESCRIPTION]
+        /// </summary>
+        public static string [StaticPropertyName]
+        {
+            get => _[staticDependencyName].Value.[PropertyAccessor]();
+            set => _[staticDependencyName].Value.[PropertySetter](value);
+        }
+
+        /// <summary>
+        /// [STATIC_PROPERTY_DESCRIPTION]
+        /// </summary>
+        public static bool [StaticBooleanProperty] { get; set; } = true;
+        #endregion
+
         #region Variables
         /// <summary>
         /// [DEPENDENCY_DESCRIPTION]
@@ -38,24 +91,26 @@ namespace [NAMESPACE]
         private readonly ILogger<[CLASS_NAME]> _logger;
         #endregion
 
-        #region Public Properties
-        /// <summary>
-        /// [PROPERTY_DESCRIPTION]
-        /// </summary>
-        public string [PropertyName] { get; set; } = string.Empty;
-
-        /// <summary>
-        /// [PROPERTY_DESCRIPTION]
-        /// </summary>
-        [Required]
-        public int [AnotherProperty] { get; init; }
-        #endregion
-
         #region Protected Properties
         /// <summary>
         /// [BOOLEAN_COMPLETE_DESCRIPTION]
         /// </summary>
         protected bool [ProtectedProperty] { get; init; }
+        #endregion
+
+        #region Public Properties
+        /// <summary>
+        /// [PROPERTY_DESCRIPTION]
+        /// </summary>
+        public string[PropertyName]
+        { get; set; } = string.Empty;
+
+        /// <summary>
+        /// [PROPERTY_DESCRIPTION]
+        /// </summary>
+        [Required]
+        public int[AnotherProperty]
+        { get; init; }
         #endregion
 
         #region Constructors
@@ -68,7 +123,7 @@ namespace [NAMESPACE]
         /// Thrown when <paramref name="[dependencyName]"/> or <paramref name="logger"/> is <c>null</c>.
         /// </exception>
         public [CLASS_NAME] ([DEPENDENCY_TYPE] [dependencyName], ILogger<[CLASS_NAME]> logger)
-                {
+        {
             _[dependencyName] = [dependencyName] ?? throw new ArgumentNullException(nameof([dependencyName]));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -77,7 +132,7 @@ namespace [NAMESPACE]
         #region Public Methods/Operators
 
         #if HAS_INTERFACE
-                /// <inheritdoc/> // Implements interface method documentation
+        /// <inheritdoc/> // Implements interface method documentation
         #else
         /// <summary>
         /// [METHOD_DESCRIPTION]
