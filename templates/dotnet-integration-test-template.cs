@@ -1,20 +1,31 @@
+#if !IMPLICIT_USINGS
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using FluentAssertions;
+using NUnit.Framework;
+#endif
+using MediatR;
+using Microsoft.Extensions.DependencyInjection;
+
 // .NET Integration Test template (NUnit)
-// Use: [HANDLER_CLASS] = MotorcycleHandlerTest
-// Use: [ENTITY] = Motorcycle
-// Use: [METHOD_UNDER_TEST] = CRUD/Business Rules/Business Rules
-// Use: [CATEGORY] = Commands/Queries/Services
+// Use: [HandlerClass] = MotorcycleHandlerTest
+// Use: [Entity] = Motorcycle
+// Use: [MethodUnderTest] = CRUD/Business Rules/Business Rules
+// Use: [Category] = Commands/Queries/Services
 
-using [NAMESPACE].Application.Cqrs.Commands;
-using [NAMESPACE].Application.Cqrs.Queries;
-using [NAMESPACE].IntegrationTests.Assets;
+using [Namespace].Application.Cqrs.Commands;
+using [Namespace].Application.Cqrs.Queries;
+using [Namespace].IntegrationTests.Assets;
 
-namespace [NAMESPACE].IntegrationTests.Tests.[CATEGORY]
+namespace [Namespace].IntegrationTests.Tests.[Category]
 {
     [TestFixture]
     [RequiresThread]
     [SetCulture("pt-BR")]
-    [Category("[CATEGORY]")]
-    public class [HANDLER_CLASS]
+    [Category("[Category]")]
+    public class [HandlerClass]
     {
         #region Nested types
         private sealed class Dto
@@ -44,7 +55,7 @@ namespace [NAMESPACE].IntegrationTests.Tests.[CATEGORY]
             // Cleanup: remove test data if necessary
             try
             {
-                var deleteCommand = new Delete[ENTITY]Command { Id = _testEntityId };
+                var deleteCommand = new Delete[Entity]Command { Id = _testEntityId };
                 await _mediator.Send(deleteCommand).ConfigureAwait(false);
             }
             catch
@@ -54,17 +65,17 @@ namespace [NAMESPACE].IntegrationTests.Tests.[CATEGORY]
         }
         #endregion
 
-        #region Test Methods - [METHOD_UNDER_TEST]
+        #region Test Methods - [MethodUnderTest]
         [Test]
         [Order(1)]
-        public async Task Create_[ENTITY]_ReturnSuccess()
+        public async Task Create_[Entity]_ReturnSuccess()
         {
             // Arrange
-            var command = new Create[ENTITY]Command
+            var command = new Create[Entity]Command
             {
                 Id = _testEntityId,
                 // Configure required properties
-                [PROPERTY] = "[TEST_VALUE]",
+                [Property] = "[TestValue]",
             };
 
             // Act
@@ -78,15 +89,15 @@ namespace [NAMESPACE].IntegrationTests.Tests.[CATEGORY]
 
         [Test]
         [Order(2)]
-        public async Task Update_[ENTITY]_ReturnSuccess()
+        public async Task Update_[Entity]_ReturnSuccess()
         {
             // Arrange
             await CreateTestEntity();
-            var command = new Update[ENTITY]Command
+            var command = new Update[Entity]Command
             {
                 Id = _testEntityId,
                 // Properties for update
-                [PROPERTY] = "[NEW_VALUE]",
+                [Property] = "[NEW_VALUE]",
             };
 
             // Act
@@ -99,11 +110,11 @@ namespace [NAMESPACE].IntegrationTests.Tests.[CATEGORY]
 
         [Test]
         [Order(3)]
-        public async Task GetById_[ENTITY]_ReturnEntity()
+        public async Task GetById_[Entity]_ReturnEntity()
         {
             // Arrange
             await CreateTestEntity();
-            var query = new [ENTITY]Query
+            var query = new [Entity]Query
             {
                 Id = _testEntityId,
             };
@@ -119,11 +130,11 @@ namespace [NAMESPACE].IntegrationTests.Tests.[CATEGORY]
 
         [Test]
         [Order(4)]
-        public async Task GetAll_[ENTITY]_ReturnList()
+        public async Task GetAll_[Entity]_ReturnList()
         {
             // Arrange
             await CreateTestEntity();
-            var query = new [ENTITY]Query();
+            var query = new [Entity]Query();
 
             // Act
             var result = await _mediator.Send(query).ConfigureAwait(false);
@@ -136,11 +147,11 @@ namespace [NAMESPACE].IntegrationTests.Tests.[CATEGORY]
 
         [Test]
         [Order(5)]
-        public async Task Delete_[ENTITY]_ReturnSuccess()
+        public async Task Delete_[Entity]_ReturnSuccess()
         {
             // Arrange
             await CreateTestEntity();
-            var command = new Delete[ENTITY]Command
+            var command = new Delete[Entity]Command
             {
                 Id = _testEntityId,
             };
@@ -154,16 +165,16 @@ namespace [NAMESPACE].IntegrationTests.Tests.[CATEGORY]
         }
         #endregion
 
-        #region Test Methods - [METHOD_UNDER_TEST]
+        #region Test Methods - [MethodUnderTest]
         [Test]
-        public async Task Create_[ENTITY]_WithInvalidData_ShouldFail()
+        public async Task Create_[Entity]_WithInvalidData_ShouldFail()
         {
             // Arrange
-            var command = new Create[ENTITY]Command
+            var command = new Create[Entity]Command
             {
                 Id = _testEntityId,
                 // Invalid data to test validation
-                [PROPERTY] = "", // Invalid value
+                [Property] = "", // Invalid value
             };
 
             // Act
@@ -175,14 +186,14 @@ namespace [NAMESPACE].IntegrationTests.Tests.[CATEGORY]
         }
 
         [Test]
-        public async Task Create_[ENTITY]_WithDuplicateId_ShouldFail()
+        public async Task Create_[Entity]_WithDuplicateId_ShouldFail()
         {
             // Arrange
             await CreateTestEntity();
-            var duplicateCommand = new Create[ENTITY]Command
+            var duplicateCommand = new Create[Entity]Command
             {
                 Id = _testEntityId, // Same ID
-                [PROPERTY] = "[TEST_VALUE]",
+                [Property] = "[TestValue]",
             };
 
             // Act
@@ -194,14 +205,14 @@ namespace [NAMESPACE].IntegrationTests.Tests.[CATEGORY]
         }
         #endregion
 
-        #region Test Methods - [METHOD_UNDER_TEST]
+        #region Test Methods - [MethodUnderTest]
         [Test]
         [Category("Performance")]
-        public async Task GetAll_[ENTITY]_WithLargeDataset_ShouldComplete()
+        public async Task GetAll_[Entity]_WithLargeDataset_ShouldComplete()
         {
             // Arrange
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            var query = new [ENTITY]Query();
+            var query = new [Entity]Query();
 
             // Act
             var result = await _mediator.Send(query).ConfigureAwait(false);
@@ -217,10 +228,10 @@ namespace [NAMESPACE].IntegrationTests.Tests.[CATEGORY]
         #region Private Methods/Operators
         private async Task CreateTestEntity()
         {
-            var command = new Create[ENTITY]Command
+            var command = new Create[Entity]Command
             {
                 Id = _testEntityId,
-                [PROPERTY] = "[TEST_VALUE]",
+                [Property] = "[TestValue]",
                 // Other required properties
             };
 

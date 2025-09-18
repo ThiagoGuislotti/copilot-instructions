@@ -1,24 +1,68 @@
 ---
 applyTo: "**/*.{html,css,scss,js,ts,jsx,tsx}"
 ---
-Architecture: hooks/composables for reactive logic; presentational components using props and slots; services for pure HTTP requests.
-Example: const { rows } = useTablePaging(apiEndpoint); <UserCard :user="u" v-slot:actions><button>Edit</button></UserCard>
 
-Naming: prefix composables with use*; never use default exports; avoid side effects on import.
-Example: export function useAuth() { … } // not export default; import modules without executing code automatically
+Architecture:
+- Hooks/composables for reactive logic
+- Presentational components using props and slots
+- Services for pure HTTP requests
+```javascript
+const { rows } = useTablePaging(apiEndpoint);
+<UserCard :user="u" v-slot:actions><button>Edit</button></UserCard>
+```
 
-HTTP: implement interceptors for token and correlationId; timeout; retry with backoff; cancel with AbortController; standard error object {code,message,details?,correlationId}.
-Example: request interceptor adds Authorization: Bearer <token> and x-correlation-id; response retries on 502/503/504 with exponential backoff; timeout set to 10s
+Naming:
+- Prefix composables with use*
+- Never use default exports
+- Avoid side effects on import
+```javascript
+export function useAuth() { /* ... */ } // not export default
+// Import modules without executing code automatically
+```
 
-Performance: apply code-splitting by route or feature; debounce or throttle events; optimize images and fonts; maintain Lighthouse score >= 90.
-Example: const onSearch = useDebouncedSearch(query => api.get('/users', { params: { q: query } }), 300)
+HTTP:
+- Implement interceptors for token and correlationId
+- Timeout
+- Retry with backoff
+- Cancel with AbortController
+- Standard error object {code,message,details?,correlationId}
+```javascript
+// Request adds Authorization: Bearer <token> and x-correlation-id
+// Response applies exponential backoff retry on 502/503/504
+// Cancel via AbortController; timeout 10s
+```
 
-Forms: validate fields individually; show loading, error and success states clearly.
-Example: <input aria-describedby="email-error"> <span id="email-error">Invalid email format</span>; show spinner while submitting
+Performance:
+- Apply code-splitting by route or feature
+- Debounce or throttle events
+- Optimize images and fonts
+- Maintain Lighthouse score >= 90
+```javascript
+const onSearch = useDebouncedSearch(query => api.get('/users', { params: { q: query } }), 300)
+```
 
-Security: enforce strict CSP; enable HSTS; configure cookies SameSite and Secure at gateway or reverse proxy.
-Example: Content-Security-Policy: default-src 'self'; Strict-Transport-Security: max-age=31536000; Set-Cookie: session=...; Secure; SameSite=Strict
+Forms:
+- Validate fields individually
+- Show loading, error and success states clearly
+```html
+<input aria-describedby="email-error">
+<span id="email-error">Invalid email format</span>
+// Show spinner while submitting
+```
 
-Production: remove console.* and debugger; limit bundle size per route.
-Example: // eslint rule "no-console" and build analyzer to ensure < 200KB per route
-Example useApi/interceptors: request adds Authorization: Bearer <token> and x-correlation-id; response applies exponential backoff retry on 502/503/504; cancel via AbortController; timeout 10s
+Security:
+- Enforce strict CSP
+- Enable HSTS
+- Configure cookies SameSite and Secure at gateway or reverse proxy
+```http
+Content-Security-Policy: default-src 'self'
+Strict-Transport-Security: max-age=31536000
+Set-Cookie: session=...; Secure; SameSite=Strict
+```
+
+Production:
+- Remove console.* and debugger
+- Limit bundle size per route
+```javascript
+// eslint rule "no-console" and build analyzer to ensure < 200KB per route
+```

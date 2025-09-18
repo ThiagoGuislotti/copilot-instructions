@@ -1,22 +1,35 @@
+#if !IMPLICIT_USINGS
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using FluentAssertions;
+#if UNIT_XUNIT
+using Xunit;
+using Xunit.Abstractions;
+#elif UNIT_NUNIT
+using NUnit.Framework;
+#endif
+#endif
+
 // .NET Unit Test template (xUnit or NUnit in a single file)
 // Toggle the framework here:
 //#define UNIT_XUNIT
 //#define UNIT_NUNIT
 
-// Use: [NAMESPACE] = Project namespace
+// Use: [Namespace] = Project namespace
 // Use: [TEST_CLASS] = ClassUnderTestTests
-// Use: [METHOD_UNDER_TEST] = CreateMotorcycle
-// Use: [CATEGORY] = Commands/Queries/Services/Validators
-// Use: [ENTITY] = Motorcycle (or similar)
-// Use: [DEPENDENCY_TYPE] = Subject-under-test or Validator/Service/etc.
+// Use: [MethodUnderTest] = CreateMotorcycle
+// Use: [Category] = Commands/Queries/Services/Validators
+// Use: [Entity] = Motorcycle (or similar)
+// Use: [DependencyType] = Subject-under-test or Validator/Service/etc.
 
-namespace [NAMESPACE].UnitTests.Tests.[CATEGORY]
+namespace [Namespace].UnitTests.Tests.[Category]
 {
 #if UNIT_XUNIT
-    [Trait("[CATEGORY]", "[ENTITY]")]
+    [Trait("[Category]", "[Entity]")]
 #elif UNIT_NUNIT
     [TestFixture]
-    [Category("[CATEGORY]")]
+    [Category("[Category]")]
 #endif
     public class [TEST_CLASS]
     {
@@ -29,10 +42,10 @@ namespace [NAMESPACE].UnitTests.Tests.[CATEGORY]
 
         #region Variables
 #if UNIT_XUNIT
-        private readonly [DEPENDENCY_TYPE] _[dependencyName];
+        private readonly [DependencyType] _[DependencyName];
         private readonly ITestOutputHelper _output;
 #elif UNIT_NUNIT
-        private [DEPENDENCY_TYPE] _[dependencyName];
+        private [DependencyType] _[DependencyName];
 #endif
         #endregion
 
@@ -44,7 +57,7 @@ namespace [NAMESPACE].UnitTests.Tests.[CATEGORY]
         public [TEST_CLASS] (ITestOutputHelper output)
         {
             _output = output;
-            _[dependencyName] = new [DEPENDENCY_TYPE]();
+            _[DependencyName] = new [DependencyType]();
         }
 #elif UNIT_NUNIT
         /// <summary>
@@ -53,65 +66,65 @@ namespace [NAMESPACE].UnitTests.Tests.[CATEGORY]
         [SetUp]
         public void SetUp()
         {
-            _[dependencyName] = new [DEPENDENCY_TYPE]();
+            _[DependencyName] = new [DependencyType]();
         }
 #endif
         #endregion
 
-        #region Test Methods - [METHOD_UNDER_TEST] Valid Cases
+        #region Test Methods - [MethodUnderTest] Valid Cases
 #if UNIT_XUNIT
         [Theory]
-        [InlineData([VALID_PARAMETERS])]
-        [InlineData([OTHER_VALID_PARAMETERS])]
-        public void [METHOD_UNDER_TEST]_ValidData_ShouldBeValid([METHOD_PARAMETERS])
+        [InlineData([ValidParameters])]
+        [InlineData([OtherValidParameters])]
+        public void [MethodUnderTest]_ValidData_ShouldBeValid([MethodParameters])
 #elif UNIT_NUNIT
         [Test]
-        [TestCase([VALID_PARAMETERS])]
-        [TestCase([OTHER_VALID_PARAMETERS])]
-        public void [METHOD_UNDER_TEST]_ValidData_ShouldBeValid([METHOD_PARAMETERS])
+        [TestCase([ValidParameters])]
+        [TestCase([OtherValidParameters])]
+        public void [MethodUnderTest]_ValidData_ShouldBeValid([MethodParameters])
 #endif
         {
             // Arrange
             var request = new [REQUEST_TYPE]
             {
-                [PROPERTY] = [value],
+                [Property] = [value],
                 // ... other properties
             };
 
             // Act
-            var result = _[dependencyName].[METHOD_UNDER_TEST](request);
+            var result = _[DependencyName].[MethodUnderTest](request);
 
             // Assert
             result.IsValid.Should().BeTrue();
         }
         #endregion
 
-        #region Test Methods - [METHOD_UNDER_TEST] Invalid Cases
+        #region Test Methods - [MethodUnderTest] Invalid Cases
 #if UNIT_XUNIT
         [Theory]
-        [InlineData([INVALID_PARAMETERS])]
+        [InlineData([InvalidParameters])]
         [InlineData([OTHER_INVALID_PARAMETERS])]
-        public void [METHOD_UNDER_TEST]_InvalidData_ShouldBeInvalid([METHOD_PARAMETERS])
+        public void [MethodUnderTest]_InvalidData_ShouldBeInvalid([MethodParameters])
 #elif UNIT_NUNIT
         [Test]
-        [TestCase([INVALID_PARAMETERS])]
+        [TestCase([InvalidParameters])]
         [TestCase([OTHER_INVALID_PARAMETERS])]
-        public void [METHOD_UNDER_TEST]_InvalidData_ShouldBeInvalid([METHOD_PARAMETERS])
+        public void [MethodUnderTest]_InvalidData_ShouldBeInvalid([MethodParameters])
 #endif
         {
             // Arrange
             var request = new [REQUEST_TYPE]
             {
-                [PROPERTY] = [invalidValue],
+                [Property] = [invalidValue],
                 // ... other properties
             };
 
             // Act
-            var result = _[dependencyName].[METHOD_UNDER_TEST](request);
+            var result = _[DependencyName].[MethodUnderTest](request);
 
             // Assert + Output
             result.IsValid.Should().BeFalse();
-            result.Errors.Should().Contain(e => e.PropertyName == "[PROPERTY]");
+            result.Errors.Should().Contain(e => e.PropertyName == "[Property]");
 
 #if UNIT_XUNIT
             _output.WriteLine(result.ToString());
@@ -121,13 +134,13 @@ namespace [NAMESPACE].UnitTests.Tests.[CATEGORY]
         }
         #endregion
 
-        #region Test Methods - [METHOD_UNDER_TEST] Edge Cases
+        #region Test Methods - [MethodUnderTest] Edge Cases
 #if UNIT_XUNIT
         [Fact]
 #elif UNIT_NUNIT
         [Test]
 #endif
-        public void [METHOD_UNDER_TEST]_EdgeCase_ShouldHandleCorrectly()
+        public void [MethodUnderTest]_EdgeCase_ShouldHandleCorrectly()
         {
             // Arrange
             var request = new [REQUEST_TYPE]
@@ -136,30 +149,30 @@ namespace [NAMESPACE].UnitTests.Tests.[CATEGORY]
             };
 
             // Act
-            var result = _[dependencyName].[METHOD_UNDER_TEST](request);
+            var result = _[DependencyName].[MethodUnderTest](request);
 
             // Assert
             result.Should().NotBeNull();
         }
         #endregion
 
-        #region Test Methods - [METHOD_UNDER_TEST] Exception Cases
+        #region Test Methods - [MethodUnderTest] Exception Cases
 #if UNIT_XUNIT
         [Fact]
 #elif UNIT_NUNIT
         [Test]
 #endif
-        public void [METHOD_UNDER_TEST]_NullInput_ShouldThrowException()
+        public void [MethodUnderTest]_NullInput_ShouldThrowException()
         {
             // Arrange
             [REQUEST_TYPE] request = null;
 
             // Act & Assert
 #if UNIT_XUNIT
-            var ex = Assert.Throws<ArgumentNullException>(() => _[dependencyName].[METHOD_UNDER_TEST](request));
+            var ex = Assert.Throws<ArgumentNullException>(() => _[DependencyName].[MethodUnderTest](request));
             ex.ParamName.Should().Be("request");
 #elif UNIT_NUNIT
-            Assert.Throws<ArgumentNullException>(() => _[dependencyName].[METHOD_UNDER_TEST](request));
+            Assert.Throws<ArgumentNullException>(() => _[DependencyName].[MethodUnderTest](request));
 #endif
         }
         #endregion

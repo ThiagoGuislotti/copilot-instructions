@@ -1,35 +1,129 @@
 ---
 applyTo: "**/*.{html,css,scss,js,ts,jsx,tsx,vue}"
 ---
-Design system: base typography 14–16px; line-height 1.4–1.6; use clamp() for fluid sizing; avoid very thin fonts; spacing base 8px (4px for dense); consistent tokens.
-Example: body { font-size: clamp(14px, 1.5vw, 16px); line-height: 1.5; margin: 0; }
 
-Colors: WCAG AA contrast >= 4.5:1 (normal text) and >= 3:1 (headings >= 18px or semibold); never rely on color alone for states; include icon/text; validate light and dark mode.
-Example: error button in red with “!” icon and text “Save failed”
+Design system:
+- Base typography 14–16px
+- Line-height 1.4–1.6
+- Use clamp() for fluid sizing
+- Avoid very thin fonts
+- Spacing base 8px (4px for dense)
+- Consistent tokens
+```css
+body {
+  font-size: clamp(14px, 1.5vw, 16px);
+  line-height: 1.5;
+  margin: 0;
+}
+```
 
-Accessibility: semantic landmarks; skip-to-content link; DOM order reflects visual order; predictable focus order; focus never hidden; modal must trap focus and restore on close; aria-* and labels required.
-Example: <header><nav><main>…</main></nav></header>; skip link visible on tab focus
+Colors:
+- WCAG AA contrast >= 4.5:1 (normal text) and >= 3:1 (headings >= 18px or semibold)
+- Never rely on color alone for states
+- Include icon/text
+- Validate light and dark mode
+```css
+/* error button in red with “!” icon and text “Save failed” */
+```
 
-Responsiveness: mobile-first; minimum touch target 44x44; gap >= 8px between targets; adjustable density; layouts responsive via stack/scroll/cards.
-Example: .btn { min-width: 44px; min-height: 44px; margin-right: 8px; }
+Accessibility:
+- Semantic landmarks
+- Skip-to-content link
+- DOM order reflects visual order
+- Predictable focus order
+- Focus never hidden
+- Modal must trap focus and restore on close
+- Aria-* and labels required
+```html
+<header><nav><main>…</main></nav></header>
+// Skip link visible on tab focus
+```
 
-Content: actionable messages (“Correct the CPF” instead of “Invalid CPF”); avoid jargon; consistent terminology; placeholders never replace labels; dates/numbers localized; abbreviations with title/tooltip.
-Example: <label>Date of Birth</label> + placeholder “dd/mm/yyyy” + aria-describedby with format hint
+Responsiveness:
+- Mobile-first
+- Minimum touch target 44x44
+- Gap >= 8px between targets
+- Adjustable density
+- Layouts responsive via stack/scroll/cards
+```css
+.btn {
+  min-width: 44px;
+  min-height: 44px;
+  margin-right: 8px;
+}
+```
 
-Forms: per-field error with correction; aria-describedby for error message; required visible; optional fields labeled; masks only as helper; progressive validation without silent blocking.
-Example: <input aria-describedby="cpf-error"> <span id="cpf-error">Correct the CPF</span>; required fields marked with *
+Content:
+- Actionable messages (“Correct the CPF” instead of “Invalid CPF”)
+- Avoid jargon
+- Consistent terminology
+- Placeholders never replace labels
+- Dates/numbers localized
+- Abbreviations with title/tooltip
+```html
+<label>Date of Birth</label>
+<!-- Placeholder “dd/mm/yyyy” + aria-describedby with format hint -->
+```
 
-Media: meaningful alt (alt="" for decorative); use srcset/sizes; preserve aspect ratio; captions for complex charts; no autoplay with sound.
-Example: <img src="photo.jpg" srcset="photo@2x.jpg 2x" alt="Portrait of a smiling person">
+Forms:
+- Per-field error with correction
+- Aria-describedby for error message
+- Required visible
+- Optional fields labeled
+- Masks only as helper
+- Progressive validation without silent blocking
+```html
+<input aria-describedby="cpf-error">
+<span id="cpf-error">Correct the CPF</span>
+// Required fields marked with *
+```
 
-Motion: respect prefers-reduced-motion; animation durations 150–300ms; perceptible skeleton loading (no aggressive shimmer); critical toasts not auto-dismissing; aria-live for async feedback.
-Example: @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+Media:
+- Meaningful alt (alt="" for decorative)
+- Use srcset/sizes
+- Preserve aspect ratio
+- Captions for complex charts
+- No autoplay with sound
+```html
+<img src="photo.jpg" srcset="photo@2x.jpg 2x" alt="Portrait of a smiling person">
+```
 
-Tables: clear headers; responsive via stack/scroll/cards; no truncation without indicator; sorting and filters accessible; empty states must guide action.
-Example: <th scope="col">Name</th>; empty-state “No records found — click + to add”
+Motion:
+- Respect prefers-reduced-motion
+- Animation durations 150–300ms
+- Perceptible skeleton loading (no aggressive shimmer)
+- Critical toasts not auto-dismissing
+- Aria-live for async feedback
+```css
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; }
+}
+```
 
-Privacy: mask sensitive data by default; never show full identifiers (e.g., CPF).
-Example: CPF displayed as ***.456.***-00
+Tables:
+- Clear headers
+- Responsive via stack/scroll/cards
+- No truncation without indicator
+- Sorting and filters accessible
+- Empty states must guide action
+```html
+<th scope="col">Name</th>
+// Empty-state “No records found — click + to add”
+```
 
-Metrics: measure task time; success rate; errors per step; CLS/LCP metrics; log correlationId for relevant events.
-Example: log correlationId on “checkout_started” click event
+Privacy:
+- Mask sensitive data by default
+- Never show full identifiers (e.g., CPF)
+```html
+<!-- CPF displayed as ***.456.***-00 -->
+```
+
+Metrics:
+- Measure task time
+- Success rate
+- Errors per step
+- CLS/LCP metrics
+- Log correlationId for relevant events
+```javascript
+// log correlationId on “checkout_started” click event
+```

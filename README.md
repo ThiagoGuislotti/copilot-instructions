@@ -128,10 +128,19 @@ dotnet format --verify-no-changes
 
 ## References
 
+These prompts and practices are based on official documentation and expert articles:
+
 - [AGENTS.md](AGENTS.md) - Agent policies and context rules
 - [copilot-instructions.md](copilot-instructions.md) - Global rules and mappings
 - [templates/readme-template.md](templates/readme-template.md) - README template
 - [GitHub Copilot Documentation](https://docs.github.com/en/copilot)
+
+- [Microsoft DevBlogs – 5 Copilot Chat prompts .NET devs should steal today](https://devblogs.microsoft.com/dotnet/5-copilot-chat-prompts-dotnet-devs-should-steal-today/)
+- [VS Code Docs – Copilot tips and tricks](https://code.visualstudio.com/docs/copilot/copilot-tips-and-tricks)
+- [VS Code Docs – Prompt crafting](https://code.visualstudio.com/docs/copilot/chat/prompt-crafting)
+- [Dev.to – Supercharge VSCode Copilot using instructions and prompt files](https://dev.to/pwd9000/supercharge-vscode-github-copilot-using-instructions-and-prompt-files-2p5e)
+- [GitHub Docs – Troubleshooting Copilot and context issues](https://docs.github.com/copilot/troubleshooting-github-copilot/troubleshooting-common-issues-with-github-copilot)
+
 
 ---
 

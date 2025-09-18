@@ -1,3 +1,31 @@
+## [1.0.3] - 2025-09-18
+
+### Added
+- Enhanced VS Code workspace configuration with AI/Chat tools support:
+  - Added `chat.enable` and `chat.agent.maxRequests` settings in `.vscode/settings.json`
+  - Extended ChatGPT integration capabilities
+- Comprehensive `.gitignore` file with Visual Studio and .NET build artifacts exclusion patterns
+- Documentation completeness with expanded references section in `README.md`:
+  - Official Microsoft documentation links for GitHub Copilot
+  - Expert articles on prompt crafting and instruction optimization
+
+### Changed
+- Restructured instruction files with enhanced formatting and code examples:
+  - `backend.instructions.md` — improved organization for Clean Architecture, CQRS, Events, API design, Security, and Testing patterns
+  - `clean-architecture-code.instructions.md` — comprehensive examples for SOLID principles, domain modeling, dependency management, and testing strategies
+  - `database.instructions.md` — detailed SQL examples, performance tuning, security practices, and monitoring guidance
+  - `frontend.instructions.md` — clear sections for architecture, HTTP handling, performance optimization, and security practices
+  - `microservices-performance.instructions.md` — comprehensive sections covering service boundaries, resource efficiency, monitoring, and deployment
+  - `orm.instructions.md` — enhanced separation of domain, mapping, repositories, queries, and observability concerns
+  - `ui-ux.instructions.md` — improved accessibility guidelines, responsive design patterns, and UX best practices
+  - `vue-quasar.instructions.md` — specific examples for SFC, composables, routing, and performance optimization
+  - `dotnet-csharp.instructions.md` — enhanced code organization patterns, testing templates, and XML documentation guidelines
+- Updated template consistency and naming conventions:
+  - `dotnet-class-template.cs` — PascalCase placeholders and enhanced XML documentation structure
+  - `dotnet-interface-template.cs` — implicit usings support and cleaner namespace organization
+  - `dotnet-integration-test-template.cs` — FluentAssertions integration and comprehensive test scenarios
+  - `dotnet-unit-test-template.cs` — framework-agnostic design supporting both xUnit and NUnit
+
 ## [1.0.2] - 2025-09-17
 
 ### Added

@@ -340,5 +340,9 @@
     "lldb.suppressUpdateNotifications": true,
 
     // Database Client
-    "database-client.autoSync": true
+    "database-client.autoSync": true,
+
+    // ChatGPT / AI Tools
+    "chat.enable": true,
+    "chat.agent.maxRequests": 1000
 }

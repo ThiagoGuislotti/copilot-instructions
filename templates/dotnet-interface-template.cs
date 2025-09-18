@@ -1,22 +1,26 @@
+#if !IMPLICIT_USINGS
+using System.Threading;
+using System.Threading.Tasks;
+#endif
 // C# Interface template (Clean Architecture)
-// Use: [NAMESPACE] = project namespace
-// Use: [INTERFACE_NAME] = interface name
+// Use: [Namespace] = project namespace
+// Use: [InterfaceName] = interface name
 
-namespace [NAMESPACE]
+namespace [Namespace]
 {
     /// <summary>
-    /// [INTERFACE_DESCRIPTION]
+    /// [InterfaceDescription]
     /// </summary>
-    public interface [INTERFACE_NAME]
+    public interface [InterfaceName]
     {
         #region Public Methods/Operators
         /// <summary>
-        /// [METHOD_DESCRIPTION]
+        /// [MethodDescription]
         /// </summary>
-        /// <param name="[parameter]">[PARAMETER_DESCRIPTION]</param>
+        /// <param name="[ParameterName]">[ParameterDescription]</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        /// <returns>Task with [RETURN_TYPE_DESCRIPTION].</returns>
-        Task<[RETURN_TYPE]> [MethodName]Async([PARAMETER_TYPE] [parameter], CancellationToken cancellationToken = default);
+        /// <returns>Task with [ReturnTypeDescription].</returns>
+        Task<[ReturnType]> [MethodName]Async([ParameterType] [ParameterName], CancellationToken cancellationToken = default);
         #endregion
     }
 }

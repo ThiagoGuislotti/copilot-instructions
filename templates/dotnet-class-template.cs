@@ -1,8 +1,8 @@
 // C# Class template following Clean Architecture
-// Use: [NAMESPACE] = project namespace
-// Use: [CLASS_NAME] = class name
-// Use: [INTERFACE_NAME] = implemented interface (optional)
-// Use: [DEPENDENCY_TYPE] = injected dependency type
+// Use: [Namespace] = project namespace
+// Use: [ClassName] = class name
+// Use: [InterfaceName] = implemented interface (optional)
+// Use: [DependencyType] = injected dependency type
 // Use: [CONSTANT_NAME] = constant name (e.g., MaxRetries)
 // Use: [CONSTANT_VALUE] = constant value (e.g., "DefaultValue")
 // Use: [CONSTANT_NAME_INT] = integer constant name (e.g., DefaultTimeout)
@@ -10,14 +10,14 @@
 // Use: [STATIC_VARIABLE_DESCRIPTION] = description for static variable
 // Use: [StaticVariableName] = static variable name (e.g., GlobalConfig)
 // Use: [STATIC_VARIABLE_VALUE] = static variable value (e.g., "config")
-// Use: [staticDependencyName] = static dependency variable name (e.g., service)
+// Use: [StaticDependencyName] = static dependency variable name (e.g., service)
 // Use: [STATIC_PROPERTY_DESCRIPTION] = description for static property
 // Use: [StaticPropertyName] = static property name (e.g., CurrentUser)
 // Use: [PropertyAccessor] = property accessor method (e.g., GetCurrentUser)
 // Use: [PropertySetter] = property setter method (e.g., SetCurrentUser)
 // Use: [StaticBooleanProperty] = static boolean property name (e.g., IsInitialized)
 
-//#define HAS_INTERFACE   // <- Descomente se a classe implementar [INTERFACE_NAME]
+//#define HAS_INTERFACE   // <- Descomente se a classe implementar  [InterfaceName]
 
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -25,7 +25,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace [NAMESPACE]
+namespace [Namespace]
 {
     /// <summary>
     /// [CLASS_DESCRIPTION]
@@ -34,9 +34,9 @@ namespace [NAMESPACE]
     /// [ADDITIONAL_CLASS_INFORMATION]
     /// </remarks>
 #if HAS_INTERFACE
-    public class [CLASS_NAME] : [INTERFACE_NAME]
+    public class  [ClassName] : [InterfaceName]
 #else
-    public class [CLASS_NAME]
+    public class  [ClassName]
 #endif
     {
         #region Constants
@@ -60,7 +60,7 @@ namespace [NAMESPACE]
         /// <summary>
         /// [STATIC_VARIABLE_DESCRIPTION]
         /// </summary>
-        private static readonly Lazy<[DEPENDENCY_TYPE]> _[staticDependencyName] = new(() => new [DEPENDENCY_TYPE]());
+        private static readonly /* Avoid static singletons; prefer DI */ Lazy<[DependencyType]> _[StaticDependencyName] = new(() => new [DependencyType]());
         #endregion
 
         #region Static Properties
@@ -69,8 +69,8 @@ namespace [NAMESPACE]
         /// </summary>
         public static string [StaticPropertyName]
         {
-            get => _[staticDependencyName].Value.[PropertyAccessor]();
-            set => _[staticDependencyName].Value.[PropertySetter](value);
+            get => _[StaticDependencyName].Value.[PropertyAccessor]();
+            set => _[StaticDependencyName].Value.[PropertySetter](value);
         }
 
         /// <summary>
@@ -83,12 +83,12 @@ namespace [NAMESPACE]
         /// <summary>
         /// [DEPENDENCY_DESCRIPTION]
         /// </summary>
-        private readonly [DEPENDENCY_TYPE] _[dependencyName];
+        private readonly [DependencyType] _[DependencyName];
 
         /// <summary>
         /// Logger instance for this class.
         /// </summary>
-        private readonly ILogger<[CLASS_NAME]> _logger;
+        private readonly ILogger< [ClassName]> _logger;
         #endregion
 
         #region Protected Properties
@@ -102,7 +102,7 @@ namespace [NAMESPACE]
         /// <summary>
         /// [PROPERTY_DESCRIPTION]
         /// </summary>
-        public string[PropertyName]
+        public string [PropertyName]
         { get; set; } = string.Empty;
 
         /// <summary>
@@ -115,16 +115,16 @@ namespace [NAMESPACE]
 
         #region Constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="[CLASS_NAME]"/> class.
+        /// Initializes a new instance of the <see cref="[ClassName]"/> class.
         /// </summary>
-        /// <param name="[dependencyName]">[DEPENDENCY_DESCRIPTION]</param>
+        /// <param name="[DependencyName]">[DEPENDENCY_DESCRIPTION]</param>
         /// <param name="logger">The logger instance for structured logging.</param>
         /// <exception cref="ArgumentNullException">
-        /// Thrown when <paramref name="[dependencyName]"/> or <paramref name="logger"/> is <c>null</c>.
+        /// Thrown when <paramref name="[DependencyName]"/> or <paramref name="logger"/> is <c>null</c>.
         /// </exception>
-        public [CLASS_NAME] ([DEPENDENCY_TYPE] [dependencyName], ILogger<[CLASS_NAME]> logger)
+        public [ClassName] ([DependencyType] [DependencyName], ILogger< [ClassName]> logger)
         {
-            _[dependencyName] = [dependencyName] ?? throw new ArgumentNullException(nameof([dependencyName]));
+            _[DependencyName] = [DependencyName] ?? throw new ArgumentNullException(nameof([DependencyName]));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
         #endregion
@@ -135,80 +135,80 @@ namespace [NAMESPACE]
         /// <inheritdoc/> // Implements interface method documentation
         #else
         /// <summary>
-        /// [METHOD_DESCRIPTION]
+        /// [MethodDescription]
         /// </summary>
-        /// <param name="[parameter]">[PARAMETER_DESCRIPTION]</param>
+        /// <param name="[ParameterName]">[ParameterDescription]</param>
         /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>
         /// <returns>
         /// A <see cref="Task{TResult}"/> representing the asynchronous operation.
-        /// The task result contains [RETURN_TYPE_DESCRIPTION].
+        /// The task result contains [ReturnTypeDescription].
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        /// Thrown when <paramref name="[parameter]"/> is <c>null</c>.
+        /// Thrown when <paramref name="[ParameterName]"/> is <c>null</c>.
         /// </exception>
         /// <remarks>
         /// This method [METHOD_BEHAVIOR]. Uses ConfigureAwait(false) for library code.
         /// </remarks>
         #endif
-        public async Task<[RETURN_TYPE]> [MethodName] Async([PARAMETER_TYPE][parameter], CancellationToken cancellationToken = default)
+        public async Task<[ReturnType]> [MethodName]Async([ParameterType] [ParameterName], CancellationToken cancellationToken = default)
         {
-            ArgumentNullException.ThrowIfNull([parameter]);
+            ArgumentNullException.ThrowIfNull([ParameterName]);
 
             _logger.LogInformation("Starting {MethodName} with parameter: {Parameter}",
-                nameof([MethodName]Async), [parameter]);
+                nameof([MethodName]Async), [ParameterName]);
 
-            var result = await _[dependencyName].[DependencyMethod]([parameter], cancellationToken).ConfigureAwait(false);
+            var result = await _[DependencyName].[DependencyMethod]([ParameterName], cancellationToken).ConfigureAwait(false);
 
             _logger.LogInformation("Completed {MethodName} successfully", nameof([MethodName]Async));
             return result;
         }
 
         #if HAS_INTERFACE
-                /// <inheritdoc/> // Implements interface method documentation
+        /// <inheritdoc/> // Implements interface method documentation
         #else
         /// <summary>
         /// [METHOD_DESCRIPTION_SYNC]
         /// </summary>
-        /// <param name="[parameter]">[PARAMETER_DESCRIPTION]</param>
-        /// <returns>[RETURN_TYPE_DESCRIPTION]</returns>
+        /// <param name="[ParameterName]">[ParameterDescription]</param>
+        /// <returns>[ReturnTypeDescription]</returns>
         /// <exception cref="ArgumentNullException">
-        /// Thrown when <paramref name="[parameter]"/> is <c>null</c>.
+        /// Thrown when <paramref name="[ParameterName]"/> is <c>null</c>.
         /// </exception>
         /// <remarks>
         /// This method [METHOD_BEHAVIOR_SYNC].
         /// </remarks>
         #endif
-        public [RETURN_TYPE][MethodName] ([PARAMETER_TYPE][parameter])
+        public [ReturnType][MethodName] ([ParameterType] [ParameterName])
                 {
-            ArgumentNullException.ThrowIfNull([parameter]);
+            ArgumentNullException.ThrowIfNull([ParameterName]);
 
             _logger.LogDebug("Executing synchronous {MethodName}", nameof([MethodName]));
-            return _[dependencyName].[DependencyMethod]([parameter]);
+            return _[DependencyName].[DependencyMethod]([ParameterName]);
         }
 
         /// <summary>
         /// [STATIC_METHOD_DESCRIPTION]
         /// </summary>
-        /// <param name="[parameter]">[PARAMETER_DESCRIPTION]</param>
+        /// <param name="[ParameterName]">[ParameterDescription]</param>
         /// <returns>[RETURN_DESCRIPTION]</returns>
         /// <exception cref="ArgumentNullException">
-        /// Thrown when <paramref name="[parameter]"/> is <c>null</c>.
+        /// Thrown when <paramref name="[ParameterName]"/> is <c>null</c>.
         /// </exception>
         /// <remarks>
         /// This static utility method [STATIC_METHOD_BEHAVIOR].
         /// </remarks>
         /// <example>
         /// <code>
-        /// var result = [CLASS_NAME].[StaticMethod]("input");
+        /// var result = [ClassName].[StaticMethod]("input");
         /// Console.WriteLine($"Static result: {result}");
         /// </code>
         /// </example>
-        public static [RETURN_TYPE][StaticMethod] ([PARAMETER_TYPE][parameter])
+        public static [ReturnType][StaticMethod] ([ParameterType] [ParameterName])
         {
-            ArgumentNullException.ThrowIfNull([parameter]);
+            ArgumentNullException.ThrowIfNull([ParameterName]);
 
             // Static method implementation
-            return default([RETURN_TYPE]);
+            return default([ReturnType]);
         }
         #endregion
 
@@ -216,12 +216,12 @@ namespace [NAMESPACE]
         /// <summary>
         /// [PROTECTED_METHOD_DESCRIPTION]
         /// </summary>
-        /// <param name="[parameter]">[PARAMETER_DESCRIPTION]</param>
+        /// <param name="[ParameterName]">[ParameterDescription]</param>
         /// <returns>[RETURN_DESCRIPTION]</returns>
-        protected virtual [RETURN_TYPE][ProtectedMethodName] ([PARAMETER_TYPE][parameter])
+        protected virtual [ReturnType][ProtectedMethodName] ([ParameterType] [ParameterName])
                 {
             // Implementation
-            return default([RETURN_TYPE]);
+            return default([ReturnType]);
         }
         #endregion
 
@@ -229,12 +229,12 @@ namespace [NAMESPACE]
         /// <summary>
         /// [PRIVATE_METHOD_DESCRIPTION]
         /// </summary>
-        /// <param name="[parameter]">[PARAMETER_DESCRIPTION]</param>
+        /// <param name="[ParameterName]">[ParameterDescription]</param>
         /// <returns>[RETURN_DESCRIPTION]</returns>
-        private [RETURN_TYPE][PrivateMethodName] ([PARAMETER_TYPE][parameter])
+        private [ReturnType] [PrivateMethodName]([ParameterType]  [ParameterName])
                 {
             // Implementation
-            return default([RETURN_TYPE]);
+            return default([ReturnType]);
         }
         #endregion
     }
