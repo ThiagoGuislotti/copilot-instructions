@@ -34,7 +34,7 @@ Technical content with code blocks when needed
 # Primary Section (always use)
 Content for main topics
 
-## Secondary Section (use sparingly)  
+## Secondary Section (use sparingly)
 Content for important subdivisions
 
 ### Tertiary Section (last resort)
@@ -78,7 +78,7 @@ public class OrderService : IOrderService
 {
     // Follow repository patterns and dependency injection
     private readonly IOrderRepository _repository;
-    
+
     public async Task<Order> CreateAsync(CreateOrderDto dto)
     {
         // Business validation in domain layer
@@ -113,7 +113,7 @@ Incorrect: The `OrderService` class in `Domain` layer
 # Most Important Topic First
 Core concepts that apply broadly
 
-## Secondary Important Topic  
+## Secondary Important Topic
 Specialized scenarios and patterns
 
 ### Edge Cases and Exceptions
