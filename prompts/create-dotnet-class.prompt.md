@@ -1,12 +1,12 @@
 ---
-description: Create a new .NET class following repository templates and conventions
-mode: edit
-tools: ['codebase', 'readFile']
+description: Generate .NET classes following repository templates and Clean Architecture patterns
+mode: ask
+tools: ['codebase', 'search', 'findFiles']
 ---
 
 # Create .NET Class
 
-Generate a new .NET class following the repository's established patterns and Clean Architecture principles.
+Create a new .NET class following this repository's Clean Architecture standards and templates.
 
 ## Instructions
 
@@ -28,15 +28,16 @@ Create a new C# class based on:
 - Follow PascalCase for public members, camelCase for parameters
 - Include XML documentation for public APIs
 - Ensure namespace matches folder structure
+- Follow Clean Architecture dependency rules
 
 ### Architecture Compliance
 - Domain: Pure business logic, no external dependencies
 - Application: Orchestrates use cases, depends only on Domain
-- Infrastructure: External concerns, implements Domain interfaces
+- Infrastructure may reference Application and Domain layers
 
 ### Code Quality
 - Use appropriate async/await patterns
-- Include proper error handling
+- Implement proper error handling patterns
 - Follow dependency injection patterns
 - Add CancellationToken parameters for async methods
 

@@ -2,7 +2,8 @@
 applyTo: "**/*.{cs,js,ts,py,java,go,rs}"
 ---
 
-Clean:
+# Clean Architecture
+
 - Pure Domain rules
 - Application orchestrates
 - Infrastructure adapts
@@ -16,7 +17,8 @@ Clean:
 // API → OrdersController exposes endpoint
 ```
 
-CQRS:
+# CQRS
+
 - Separate read/write
 - Cohesive handlers
 - Idempotency when needed
@@ -26,7 +28,7 @@ CQRS:
 // Query → GetOrderByIdHandler
 ```
 
-Events:
+# Events
 - Domain/integration events + Outbox
 - Idempotent consumers
 - DLQ for queues
@@ -36,7 +38,7 @@ Events:
 // Consumer with retry + DLQ
 ```
 
-Contracts/Errors:
+# Contracts/Errors
 - Versioned REST
 - Consistent paging/filters
 - RFC 7807 (ProblemDetails) with correlationId
@@ -51,7 +53,7 @@ Contracts/Errors:
 }
 ```
 
-Resilience:
+# Resilience
 - HTTP with timeout, retry (jitter), circuit breaker, bulkhead
 - Always CancellationToken (or equivalent)
 - Implement gradually as needed
@@ -59,7 +61,7 @@ Resilience:
 // HttpClientFactory with Polly AddTransientHttpErrorPolicy → WaitAndRetryAsync with jitter
 ```
 
-Data:
+# Data
 - Transactions per use case
 - Repositories via interfaces
 - Projections
@@ -71,7 +73,7 @@ Data:
 // Redis cache with explicit expiration
 ```
 
-Security:
+# Security
 - Input validation
 - JWT/OIDC
 - Policies/roles
@@ -82,7 +84,7 @@ Security:
 // Secret loaded from AWS Secrets Manager or Azure Key Vault
 ```
 
-Observability:
+# Observability
 - OpenTelemetry (traces/metrics/logs)
 - Structured logs
 - Health checks
@@ -92,7 +94,7 @@ Observability:
 // HealthCheck endpoints "/health/ready" and "/health/live"
 ```
 
-Performance:
+# Performance
 - Async all the way
 - Pooling
 - Batch/bulk where it fits
@@ -103,7 +105,7 @@ Performance:
 // SqlBulkCopy for batch import
 ```
 
-API:
+# API
 - Rate limiting/quotas on sensitive endpoints
 ```http
 X-RateLimit-Limit:100
@@ -111,7 +113,7 @@ X-RateLimit-Remaining:42
 Retry-After:30
 ```
 
-Testing:
+# Testing
 - Domain (unit)
 - Integrations (DB/HTTP)
 - Contract (OpenAPI/Pact)
@@ -123,7 +125,7 @@ Testing:
 // Testcontainers for local SQL Server
 ```
 
-CI/CD:
+# CI/CD
 - Build/test/scan (SAST/secrets)
 - Immutable artifacts
 - Automatable migrations
@@ -134,7 +136,7 @@ CI/CD:
 # Apply EF Core migrations automatically on deploy
 ```
 
-Anti-patterns:
+# Anti-patterns
 - Avoid complex patterns without justification
 - YAGNI
 - Start simple and evolve

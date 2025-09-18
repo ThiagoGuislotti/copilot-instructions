@@ -2,7 +2,7 @@
 applyTo: "**/{db,database,data,migrations,sql,prisma}*/**/*.{sql,psql,pgsql,mysql,db,prisma,json,yaml,yml}"
 ---
 
-Schema design:
+# Schema design
 - Tables/columns/indexes/constraints in EN
 - PascalCase for tables
 - camelCase for columns
@@ -21,7 +21,7 @@ ALTER TABLE Orders ADD CONSTRAINT pk_Orders PRIMARY KEY (orderId);
 CREATE INDEX ix_Orders_CreatedAt ON Orders(createdAt);
 ```
 
-Normalization:
+# Normalization
 - 1NF atomic columns
 - 2NF full functional dependency
 - 3NF no transitive dependency
@@ -31,7 +31,7 @@ Normalization:
 -- 3NF - Separate Addresses from Users to avoid transitive dependency
 ```
 
-Cartesian explosion:
+# Cartesian explosion
 - Avoid JOINs without proper predicates
 - Prefer EXISTS over IN with subqueries
 - Filter before JOIN using CTEs/subqueries
@@ -43,7 +43,7 @@ WITH Filtered AS (SELECT * FROM Orders WHERE status = 'Active')
 SELECT * FROM Filtered JOIN Customers ON Filtered.customerId = Customers.id;
 ```
 
-Parameter sniffing:
+# Parameter sniffing
 - OPTION(OPTIMIZE FOR UNKNOWN) when applicable
 - Properly typed parameters
 - Avoid dynamic SQL when possible
@@ -54,7 +54,7 @@ Parameter sniffing:
 SELECT * FROM Orders WHERE status = @status OPTION (OPTIMIZE FOR UNKNOWN);
 ```
 
-Query performance:
+# Query performance
 - Avoid SELECT *
 - Appropriate indexes
 - SARGABLE predicates (avoid functions in WHERE)
@@ -69,7 +69,7 @@ WHERE (createdAt, id) > (@lastCreatedAt, @lastId)
 ORDER BY createdAt, id; -- Keyset pagination
 ```
 
-Indexes:
+# Indexes
 - Clustered on most queried keys
 - Non-clustered for FKs and filter columns
 - Composite with most selective first
@@ -83,7 +83,7 @@ CREATE INDEX ix_Orders_CustomerId_CreatedAt ON Orders(CustomerId, CreatedAt) INC
 -- Drop ix_Orders_Temp if unused per stats
 ```
 
-Transactions:
+# Transactions
 - ACID
 - Proper isolation levels (READ COMMITTED default)
 - Timeouts
@@ -100,7 +100,7 @@ COMMIT;
 -- Migrations add columns with default then backfill in batches; scripts re-entrant
 ```
 
-Security:
+# Security
 - Parameterized queries always
 - SQL injection prevention
 - Least privilege
@@ -115,7 +115,7 @@ Security:
 -- Enforce TLS; restrict DB user to required schemas only
 ```
 
-Concurrency:
+# Concurrency
 - Optimistic locking with rowversion/timestamp
 - Pessimistic only when needed
 - Retry policies for deadlocks
@@ -128,7 +128,7 @@ WHERE id = @id AND rowversion = @originalRowversion;
 -- Shard by CustomerId to avoid hot partitions
 ```
 
-ORM mapping:
+# ORM mapping
 - Mindful of N+1
 - Batch ops for bulk
 - Projection queries for readonly
@@ -141,7 +141,7 @@ ORM mapping:
 // Include only required navigation properties
 ```
 
-Data types:
+# Data types
 - Appropriate types
 - Proper decimal precision
 - Unicode considerations
@@ -153,7 +153,7 @@ Data types:
 decimal(18,2) for currency; datetimeoffset for timestamps; nvarchar for user text; BIGINT for high-volume surrogate keys
 ```
 
-Monitoring:
+# Monitoring
 - Enable slow query logs
 - Index usage stats
 - Analyze wait stats
@@ -180,7 +180,7 @@ Backup/Recovery:
 -- Document RTO 2h/RPO 15m with evidence
 ```
 
-Testing:
+# Testing
 - Integration tests on real DB
 - Testcontainers for isolation
 - Automated test data generation
@@ -194,7 +194,7 @@ Testing:
 -- Assert query plans stable and latency within budget
 ```
 
-NoSQL/Document:
+# NoSQL/Document
 - Access-pattern modeling with careful denormalization
 - Well-chosen partition keys
 - TTL when applicable

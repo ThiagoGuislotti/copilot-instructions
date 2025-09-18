@@ -2,7 +2,8 @@
 applyTo: "**/*.{cs,csproj,sln,slnf,props,targets}"
 ---
 
-Code organization:
+# Code Organization
+
 - #region structure (Fields, Properties, Constructors, Methods)
 - Use template .github/templates/dotnet-class-template.cs for classes
 - Use template .github/templates/dotnet-interface-template.cs for interfaces
@@ -22,7 +23,7 @@ public sealed class OrderService
 }
 ```
 
-Performance:
+# Performance
 - String interpolation vs concatenation
 - StringBuilder in loops
 - Span<T> for arrays
@@ -36,7 +37,7 @@ using var sb = new StringBuilder();
 foreach (var p in parts) sb.Append(p);
 ```
 
-Async patterns:
+# Async Patterns
 - Consistent async/await
 - ConfigureAwait(false) for libraries
 - CancellationToken on methods
@@ -50,7 +51,7 @@ public async Task<Order> GetAsync(Guid id, CancellationToken ct)
 }
 ```
 
-Error handling:
+# Error Handling
 - Structured exceptions
 - ProblemDetails for HTTP APIs
 - ILogger via DI
@@ -65,7 +66,7 @@ catch (SqlException ex)
 }
 ```
 
-Testing patterns:
+# Testing Patterns
 - AAA with minimal duplication
 - Prefer test data builders, isolated mocks and deterministic assertions
 - Unified templates to start fast and keep consistency: unit tests → .github/templates/dotnet-unit-test-template.cs (toggle xUnit or NUnit at the top)
@@ -87,7 +88,7 @@ public void Should_CreateOrder_When_RequestIsValid()
 }
 ```
 
-EF Core:
+# EF Core
 - Fluent API configuration
 - Scoped DbContext
 - NoTracking for reads
@@ -100,7 +101,7 @@ modelBuilder.Entity<Order>().HasIndex(x => x.Email).IsUnique();
 ctx.Orders.AsNoTracking();
 ```
 
-MediatR:
+# MediatR
 - CQRS command/query separation
 - Pipeline behaviors for cross-cutting
 - Request/response patterns
@@ -111,7 +112,7 @@ record CreateOrderCommand(string CustomerId) : IRequest<Order>;
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 ```
 
-Background Services:
+# Background Services
 - BackgroundService base
 - IHostedService
 - Template .github/templates/background-service-template.cs
@@ -126,7 +127,7 @@ public class Worker : BackgroundService
 }
 ```
 
-Dependency injection:
+# Dependency Injection
 - AddScoped for business logic
 - AddSingleton for config
 - AddTransient for stateless
@@ -139,7 +140,7 @@ services.AddSingleton<AppConfig>();
 services.AddTransient<IEmailSender, SmtpSender>();
 ```
 
-HTTP Client:
+# HTTP Client
 - HttpClientFactory
 - Typed/named clients
 - Polly retries
@@ -150,7 +151,7 @@ HTTP Client:
 services.AddHttpClient<IWeatherClient, WeatherClient>().AddTransientHttpErrorPolicy(p => p.WaitAndRetryAsync(3));
 ```
 
-Configuration:
+# Configuration
 - IOptions pattern
 - Strongly typed
 - Validation attributes
@@ -163,7 +164,7 @@ services.Configure<MyConfig>(configSection);
 public class MyConfig { [Required] public string ApiKey { get; set; } }
 ```
 
-Security:
+# Security
 - No hardcoded secrets
 - Encrypt sensitive data
 - HTTPS only
@@ -177,7 +178,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 builder.Services.AddCors(o => o.WithOrigins("https://myapp.com"));
 ```
 
-Logging:
+# Logging
 - Structured logging
 - Proper levels
 - Correlation IDs
@@ -189,7 +190,7 @@ Logging:
 logger.LogInformation("Order {OrderId} created {CorrelationId}", order.Id, cid);
 ```
 
-Metrics:
+# Metrics
 - Custom metrics
 - Performance counters
 - Health endpoints
@@ -201,7 +202,7 @@ Metrics:
 app.UseEndpoints(e => { e.MapMetrics(); e.MapHealthChecks("/health/ready"); });
 ```
 
-Code style:
+# Code Style
 - Use .github/templates/dotnet-class-template.cs and .github/templates/dotnet-interface-template.cs as reference
 - Nullable reference types enabled at project level
 - Block-scoped namespaces
@@ -216,7 +217,7 @@ namespace NetToolsKit.Core
 }
 ```
 
-XML docs C#:
+# XML Documentation
 - Use .github/templates/dotnet-class-template.cs and .github/templates/dotnet-interface-template.cs as reference
 - Summary for classes/methods/properties
 - Param/returns/exception

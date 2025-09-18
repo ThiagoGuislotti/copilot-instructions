@@ -1,12 +1,12 @@
 ---
-description: Generate comprehensive unit tests following repository testing patterns
-mode: edit
-tools: ['codebase', 'readFile', 'search']
+description: Generate comprehensive unit tests following repository standards and AAA pattern
+mode: ask
+tools: ['codebase', 'search', 'findFiles', 'readFile']
 ---
 
 # Generate Unit Tests
 
-Create comprehensive unit tests following the repository's testing conventions and templates.
+Generate comprehensive unit tests for .NET classes following this repository's testing standards.
 
 ## Instructions
 
@@ -15,10 +15,16 @@ Generate unit tests based on:
 - [dotnet-csharp.instructions.md](../instructions/dotnet-csharp.instructions.md)
 - Testing best practices for Clean Architecture
 
+Requirements:
+1. Follow AAA (Arrange, Act, Assert) pattern
+2. Use proper test categorization with `[Trait("Category", "Unit")]`
+3. Use appropriate mocking frameworks (NSubstitute preferred)
+4. Follow proper test naming conventions
+5. Include comprehensive scenario coverage
+
 ## Input Variables
 - `${input:className:Class under test}` - The class being tested
-- `${input:framework:Test framework (xUnit/NUnit)}` - Testing framework preference
-- `${input:category:Test category}` - Domain category (Commands/Queries/Services/Validators)
+- `${input:testFramework:Testing framework (xUnit/NUnit)}` - Framework to use
 - `${selection}` - Selected code to test
 
 ## Test Structure Requirements
@@ -45,7 +51,7 @@ Generate unit tests based on:
 - Valid inputs: Test successful execution paths
 - Invalid inputs: Test validation and error handling
 - Edge cases: Boundary conditions and special scenarios
-- Exceptions: Null inputs, invalid states
+- Exception scenarios: Test error handling
 
 ## Code Quality
 - Use meaningful test names: `MethodName_Scenario_ExpectedResult`

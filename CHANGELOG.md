@@ -1,3 +1,34 @@
+## [1.0.6] - 2025-09-18
+
+### Changed
+- Comprehensive markdown heading hierarchy standardization across all instruction files:
+  - Converted section headers from "Section:" format to "# Section" format for professional presentation
+  - Applied consistent heading structure (# for main sections, ## for subsections, ### for detailed breakdowns)
+  - Standardized formatting in `frontend.instructions.md`, `backend.instructions.md`, `database.instructions.md`, `docker.instructions.md`, and `ci-cd-devops.instructions.md`
+  - Enhanced readability and navigation consistency across entire instruction documentation system
+  - Maintained all technical content while improving structural organization and visual hierarchy
+
+## [1.0.5] - 2025-09-18
+
+### Changed
+- Simplified formatting across all VS Code customization files:
+  - Removed markdown title markers (hashtags) from custom chat modes and prompt files
+  - Cleaned formatting in all `.chatmode.md` and `.prompt.md` files for minimal, distraction-free content
+- Integrated context preservation guidelines into `AGENTS.md`:
+  - Added session continuity strategies and execution flow patterns
+  - Included quality gates and command usage patterns
+  - Consolidated context preservation rules directly into agent policy file
+  - Removed separate `context-preservation.instructions.md` file
+
+## [1.0.4] - 2025-09-18
+
+### Added
+- Context preservation instruction for AI assistants (`instructions/context-preservation.instructions.md`):
+  - Comprehensive execution patterns for maintaining architectural integrity
+  - Session continuity strategies inspired by GitHub's spec-kit methodology
+  - Quality gates and validation checklists for development workflows
+  - Integration with existing repository standards and Clean Architecture principles
+
 ## [1.0.3] - 2025-09-18
 
 ### Added

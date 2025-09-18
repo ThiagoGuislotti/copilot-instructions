@@ -2,27 +2,92 @@
 
 This file defines the available Copilot Chat participants (agents) and how they should be used in this repository.
 
-AGENTS
+# Agents
 - Workspace: code-first agent for this repo. Reads/edits files, runs searches, and proposes patches.
 - GitHub: PR/issue-centric agent. Summarizes, reviews, and changes GitHub artifacts.
 - Profiler: performance agent. Benchmarks, profiles, and optimizes hot paths.
 - VS: IDE helper. Settings, build/debug help, MSBuild/solution issues.
 
-MANDATORY CONTEXT FILES
+# Mandatory Context Files
 - Always include BOTH of these files first when selecting context for Copilot Chat:
   1. .github/AGENTS.md (this file)
   2. .github/copilot-instructions.md
 
 If context budget is tight, prefer dropping any other files before these. These two documents coordinate global rules and agent usage and must be loaded to avoid inconsistent answers.
 
-HOW TO USE IN CHAT
+# How to Use in Chat
 - Prefer the Workspace agent for code changes in this repo.
 - Switch to GitHub for PR/issue workflows.
 - Switch to Profiler for performance/benchmark tasks.
 - Switch to VS for IDE or build tooling questions.
 
-AUDITING & TRANSPARENCY
+# Auditing & Transparency
 - When listing applied instructions in a response or PR body, reference both .github/copilot-instructions.md and .github/AGENTS.md when they influence the change.
+
+# Context Preservation & Execution Patterns
+
+## Session Continuity
+- Load previous context at session start: review recent changes and current state
+- Maintain architectural patterns and decisions from earlier work
+- Preserve Clean Architecture boundaries and established abstractions
+- Respect previous technical choices unless explicitly changing approach
+
+## Execution Flow for Development Tasks
+1. Task Analysis: Load mandatory context files, identify domain, analyze scope
+2. Planning: Create execution plan for non-trivial tasks, validate architecture
+3. Implementation: Follow established templates and patterns, maintain standards
+4. Validation: Verify compilation, run tests, confirm architectural compliance
+
+### For Multi-Task Requests
+- Apply Task-Based Execution Methodology (see below)
+- Break complex requests into numbered, sequential tasks
+- Validate each task completion before proceeding
+- Maintain session continuity across task boundaries
+
+## Quality Gates
+Before generating code: Context loaded, patterns identified, approach validated
+During implementation: Templates followed, naming conventions applied, boundaries respected
+After changes: Code compiles, tests pass, architecture maintained, documentation updated
+
+## Command Usage Patterns
+- Use semantic_search for finding related patterns and implementations
+- Use grep_search for locating specific patterns across files
+- Use file_search for finding files by naming patterns
+- Always use create_file following templates and replace_string_in_file for targeted changes
+
+## Common Pitfalls to Avoid
+- Context loss: Forgetting architectural decisions from earlier in session
+- Pattern deviation: Creating new patterns instead of following established ones
+- Layer violations: Breaking Clean Architecture dependency rules
+- Standard drift: Not maintaining consistent coding standards
+
+# Task-Based Execution Methodology
+
+## Multi-Task Request Structure
+- Break complex requests into numbered, sequential tasks
+- Each task should have clear scope, dependencies, and success criteria
+- Use format: "Tarefas: 1- [task], 2- [task], 3- [task]"
+- Validate completion of each task before proceeding to next
+
+## Task Execution Pattern
+1. Task Analysis: Review all tasks, identify dependencies and execution order
+2. Task Planning: Confirm approach and tools needed for each task
+3. Sequential Execution: Complete tasks in order, validate each step
+4. Progress Tracking: Report completion status and any blockers
+5. Final Validation: Ensure all tasks completed successfully
+
+## Task Documentation
+- Document task completion in session context
+- Reference specific files/changes made per task
+- Note any deviations from original task specification
+- Provide rollback information if tasks need to be undone
+
+## Benefits of Task-Based Approach
+- Improved clarity and reduced ambiguity in complex requests
+- Better progress tracking and session continuity
+- Easier debugging when tasks fail or need modification
+- Enhanced collaboration between human and AI agents
+- Systematic approach aligned with Clean Architecture principles
 
 # Repository Guidelines
 
@@ -77,7 +142,7 @@ Monorepo of libraries, modules, and samples for robust .NET services using Clean
 ## Security & Changelog
 - No secrets in repo; use User Secrets/Azure Key Vault; typed options via `IOptions`.
 - CHANGELOG: `.github/CHANGELOG.md` for `.github`; root `CHANGELOG.md` for project; entries with `[X.Y.Z]` and `YYYY-MM-DD`.
- 
+
 ## Domain Instruction References
 - Development: `.github/instructions/clean-architecture-code.instructions.md`, `.github/instructions/dotnet-csharp.instructions.md`, `.github/instructions/backend.instructions.md`, `.github/instructions/frontend.instructions.md`, `.github/instructions/vue-quasar.instructions.md`, `.github/instructions/ui-ux.instructions.md`
 - Data: `.github/instructions/orm.instructions.md`, `.github/instructions/database.instructions.md`, `.github/instructions/microservices-performance.instructions.md`

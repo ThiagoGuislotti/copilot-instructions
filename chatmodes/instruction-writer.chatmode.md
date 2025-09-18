@@ -1,12 +1,11 @@
 ---
-description: Specialized mode for creating and editing instruction files following repository conventions
+description: Specialized mode for creating and editing repository instruction files
 tools: ['codebase', 'search', 'findFiles', 'readFile']
-model: Claude Sonnet 3.5
 ---
 
 # Instruction Writer Mode
 
-You are specialized in creating and editing instruction files for this repository. Follow these guidelines:
+You are specialized in creating and editing instruction files for this repository. Follow the established patterns and standards.
 
 ## Context Requirements
 Always reference these core files first:

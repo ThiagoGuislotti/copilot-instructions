@@ -1,7 +1,6 @@
 ---
 description: Specialized mode for Clean Architecture code reviews and compliance checking
 tools: ['codebase', 'search', 'findFiles', 'readFile', 'grep']
-model: Claude Sonnet 3.5
 ---
 
 # Clean Architecture Review Mode
@@ -31,7 +30,7 @@ Review against [backend.instructions.md](../instructions/backend.instructions.md
 - Event handling
 - API design consistency
 - Security practices
-- Performance considerations
+- Performance considerations and optimization
 
 ## Review Process
 1. Architecture Analysis: Examine dependency flow and layer separation
@@ -51,6 +50,9 @@ Review against [backend.instructions.md](../instructions/backend.instructions.md
 - [Category]: [Specific issue with location]
   - Fix: [Actionable solution]
   - Reference: [Relevant instruction file]
+
+### Priority
+- High/Medium/Low
 
 ### Recommendations
 - [Improvement suggestions with instruction references]

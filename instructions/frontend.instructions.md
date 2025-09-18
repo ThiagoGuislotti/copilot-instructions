@@ -2,7 +2,7 @@
 applyTo: "**/*.{html,css,scss,js,ts,jsx,tsx}"
 ---
 
-Architecture:
+# Architecture
 - Hooks/composables for reactive logic
 - Presentational components using props and slots
 - Services for pure HTTP requests
@@ -11,7 +11,7 @@ const { rows } = useTablePaging(apiEndpoint);
 <UserCard :user="u" v-slot:actions><button>Edit</button></UserCard>
 ```
 
-Naming:
+# Naming
 - Prefix composables with use*
 - Never use default exports
 - Avoid side effects on import
@@ -20,7 +20,7 @@ export function useAuth() { /* ... */ } // not export default
 // Import modules without executing code automatically
 ```
 
-HTTP:
+# HTTP
 - Implement interceptors for token and correlationId
 - Timeout
 - Retry with backoff
@@ -32,7 +32,7 @@ HTTP:
 // Cancel via AbortController; timeout 10s
 ```
 
-Performance:
+# Performance
 - Apply code-splitting by route or feature
 - Debounce or throttle events
 - Optimize images and fonts
@@ -41,7 +41,7 @@ Performance:
 const onSearch = useDebouncedSearch(query => api.get('/users', { params: { q: query } }), 300)
 ```
 
-Forms:
+# Forms
 - Validate fields individually
 - Show loading, error and success states clearly
 ```html
@@ -50,7 +50,7 @@ Forms:
 // Show spinner while submitting
 ```
 
-Security:
+# Security
 - Enforce strict CSP
 - Enable HSTS
 - Configure cookies SameSite and Secure at gateway or reverse proxy
@@ -60,7 +60,7 @@ Strict-Transport-Security: max-age=31536000
 Set-Cookie: session=...; Secure; SameSite=Strict
 ```
 
-Production:
+# Production
 - Remove console.* and debugger
 - Limit bundle size per route
 ```javascript
