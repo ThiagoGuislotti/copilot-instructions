@@ -344,5 +344,6 @@
 
     // ChatGPT / AI Tools
     "chat.enable": true,
-    "chat.agent.maxRequests": 1000
+    "chat.agent.maxRequests": 1000,
+    "chat.promptFiles": true
 }

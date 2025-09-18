@@ -8,8 +8,19 @@
 - Documentation completeness with expanded references section in `README.md`:
   - Official Microsoft documentation links for GitHub Copilot
   - Expert articles on prompt crafting and instruction optimization
+- Custom Chat Modes for specialized development workflows:
+  - `chatmodes/instruction-writer.chatmode.md` — specialized mode for creating/editing instruction files
+  - `chatmodes/clean-architecture-review.chatmode.md` — code review mode focused on Clean Architecture compliance
+- Reusable Prompt Files for common development tasks:
+  - `prompts/generate-changelog.prompt.md` — automated CHANGELOG entry generation
+  - `prompts/create-dotnet-class.prompt.md` — .NET class creation following repository templates
+  - `prompts/generate-unit-tests.prompt.md` — comprehensive unit test generation
 
 ### Changed
+- Updated `templates/changelog-entry-template.md` to reflect actual CHANGELOG writing patterns:
+  - Removed emoji-based categorization in favor of clean text format
+  - Added pattern guidelines and formatting rules
+  - Aligned with established repository conventions
 - Restructured instruction files with enhanced formatting and code examples:
   - `backend.instructions.md` — improved organization for Clean Architecture, CQRS, Events, API design, Security, and Testing patterns
   - `clean-architecture-code.instructions.md` — comprehensive examples for SOLID principles, domain modeling, dependency management, and testing strategies

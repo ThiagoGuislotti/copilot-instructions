@@ -1,28 +1,32 @@
 ## [X.Y.Z] - YYYY-MM-DD
 
-### 🔄 Changed
-- `.github/instructions/[AREA].instructions.md`
-  - `[METHOD/COMPONENT]()`: [CHANGE_DESCRIPTION]
-  - `[OTHER_ITEM]`: [OTHER_CHANGE]
+### Added
+- [NEW_FEATURE_OR_FILE]: [DESCRIPTION_OF_ADDITION]
+  - [SPECIFIC_DETAIL]: [DETAILED_DESCRIPTION]
+  - [ANOTHER_DETAIL]: [ANOTHER_DETAILED_DESCRIPTION]
+- [ANOTHER_NEW_ITEM]: [DESCRIPTION_WITH_TECHNICAL_DETAILS]
 
-### ✅ Added
-- `.github/instructions/[AREA].instructions.md`  
-  - `[NEW_PATTERN]`: [DESCRIPTION]
-  
-### 🐛 Fixed
-- `.github/instructions/[AREA].instructions.md`
-  - `[FIXED_ITEM]`: [APPLIED_CORRECTION]
+### Changed
+- [MODIFIED_AREA]: [DESCRIPTION_OF_CHANGES]
+  - `[specific-file.ext]` — [SPECIFIC_CHANGE_DESCRIPTION]
+  - `[another-file.ext]` — [ANOTHER_SPECIFIC_CHANGE]
+  - `[template-file.ext]` — [TEMPLATE_IMPROVEMENT_DESCRIPTION]
+- [ANOTHER_CHANGED_AREA]: [GENERAL_IMPROVEMENT_DESCRIPTION]
 
-### 🗑️ Removed
-- `.github/instructions/[AREA].instructions.md`
-  - `[REMOVED_PATTERN]`: [REMOVAL_REASON]
+### Fixed
+- [FIXED_ISSUE]: [DESCRIPTION_OF_FIX]
+- `[problematic-file.ext]` — [SPECIFIC_BUG_FIX_DESCRIPTION]
 
-### ⚠️ Breaking
-- `.github/instructions/[AREA].instructions.md`
-  - `[BREAKING_CHANGE]`: [MIGRATION_INSTRUCTIONS]
+### Removed
+- [REMOVED_ITEM]: [REASON_FOR_REMOVAL]
 
-### 💡 Feedback Integration
-**Issue context**: [GITHUB_ISSUE_LINK] (if applicable)  
-**Problem identified**: [COPILOT_INSTRUCTION_PROBLEM]  
-**Solution applied**: [SPECIFIC_FIX_IMPLEMENTED]  
-**Workspace impact**: [AFFECTED_PROJECTS]
+---
+
+### Pattern Guidelines:
+- Use past tense and be specific
+- Include file names with backticks for technical references
+- Group related changes under logical categories
+- Maintain consistent bullet point formatting
+- Use em dashes (—) for file-specific descriptions
+- Keep descriptions concise but informative
+- Follow chronological order (newest first)
