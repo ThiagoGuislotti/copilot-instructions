@@ -1,6 +1,7 @@
 ---
 applyTo: ".github/**"
 ---
+
 Pull Request goals: clear title with concise scope; English language for title/description; reference related issues (e.g., Fixes #123); small, focused changes; align with repository guidelines.
 
 Structure: Title [type: scope] short summary; Description with Context | Changes | Rationale | Risks | Testing | Docs | Breaking Changes | Migration; include Applied instructions section listing the instruction files actually followed.

@@ -2,7 +2,7 @@
 applyTo: "**/*.{cs,ts,js,go,rs,java,py}"
 ---
 
-Clean Architecture principles:
+# Clean Architecture principles
 - Domain-driven design with domain at the center
 - Application layer coordinates use cases
 - Infrastructure isolated from domain
@@ -16,7 +16,7 @@ Clean Architecture principles:
 // Presentation: controllers, views, CLI, APIs
 ```
 
-SOLID principles:
+# SOLID principles
 - Strict Single Responsibility
 - Open/Closed via abstractions
 - Liskov Substitution respected
@@ -27,7 +27,7 @@ SOLID principles:
 public interface IOrderValidator { bool IsValid(Order order); }
 ```
 
-Domain modeling:
+# Domain modeling
 - Entities with identity
 - Immutable value objects
 - Aggregates as consistency boundaries
@@ -45,7 +45,7 @@ public class Order : AggregateRoot
 }
 ```
 
-Use case design:
+# Use case design
 - Application services coordinate
 - Command/query separation
 - Input/output DTOs
@@ -59,7 +59,7 @@ public class CreateOrderUseCase
 }
 ```
 
-Dependency management:
+# Dependency management
 - Abstractions in domain
 - Implementations in infrastructure
 - Dependency injection container
@@ -71,7 +71,7 @@ Dependency management:
 services.AddScoped<IOrderRepository, SqlOrderRepository>();
 ```
 
-Testing strategy:
+# Testing strategy
 - Isolated unit tests for domain
 - Integration tests for infrastructure
 - Acceptance tests for use cases
@@ -91,7 +91,7 @@ public void Should_CreateOrder()
 }
 ```
 
-Error handling:
+# Error handling
 - Domain exceptions for business rules
 - Application exceptions for coordination
 - Wrap infrastructure exceptions
@@ -103,7 +103,7 @@ throw new DomainException("Invalid order status");
 logger.LogError("Error {CorrelationId}", correlationId);
 ```
 
-Data flow:
+# Data flow
 - Commands modify state
 - Queries return read models
 - Events communicate changes
@@ -114,7 +114,7 @@ Data flow:
 public class GetOrderQuery { public OrderDto Execute(Guid id) { /* ... */ } }
 ```
 
-Code organization:
+# Code organization
 - Feature-based folders when appropriate
 - Shared kernel for common concepts
 - Well-defined bounded contexts
@@ -126,7 +126,7 @@ Code organization:
 // SharedKernel/ValueObjects/Money.cs
 ```
 
-Performance:
+# Performance
 - Lazy loading when appropriate
 - Caching in infrastructure
 - Bulk operations
@@ -137,7 +137,7 @@ Performance:
 var cached = cache.GetOrCreate("key", entry => { /* load */ });
 ```
 
-Security:
+# Security
 - Separate authentication from authorization
 - Encryption in infrastructure
 - Input sanitization

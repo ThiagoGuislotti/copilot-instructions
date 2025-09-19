@@ -1,6 +1,7 @@
 ---
 applyTo: "**/*.*"
 ---
+
 Task breakdown: split large tasks into manageable steps; avoid hard token limits; split by functional domain when possible.
 Prioritization: critical config changes first; core validation logic second; template updates third; docs fourth; validation tests last; respect logical dependencies.
 Separation of concerns: keep single instruction files concise; group related files by domain; handle cross-cutting changes by layer (config, validation, templates); implement new features in phases (creation, integration, testing).

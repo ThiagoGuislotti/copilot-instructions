@@ -2,7 +2,7 @@
 applyTo: "**/*{Repository,Context,Entity,Mapping}*.{cs,ts,js,java,py,go,rs}"
 ---
 
-Domain:
+# Domain
 - Business rules in domain (not in repositories)
 - POCO classes without infra deps
 - Invariants in constructor/factories
@@ -17,7 +17,7 @@ Domain:
 // No EF attributes in Domain
 ```
 
-Mapping:
+# Mapping
 - Centralized mapping (per entity/aggregate)
 - Avoid persistence annotations in domain
 - No lazy loading
@@ -31,7 +31,7 @@ Mapping:
 // Use HasIndex(o => new { o.CustomerId, o.CreatedAt }).IncludeProperties(...)
 ```
 
-Repositories/use cases:
+# Repositories/use cases
 - Repositories per aggregate
 - No business rules in repositories
 - UoW/transactions in use case
@@ -42,7 +42,7 @@ Repositories/use cases:
 // Batch operations use bulk APIs
 ```
 
-Queries/DTOs:
+# Queries/DTOs
 - Never return entities to the API
 - Map to DTOs
 - Paginate large lists
@@ -53,7 +53,7 @@ Queries/DTOs:
 // Allow sort by CreatedAt only
 ```
 
-Security/observability:
+# Security/observability
 - No secrets in connection strings
 - Minimal DB roles
 - Structured logs with correlationId

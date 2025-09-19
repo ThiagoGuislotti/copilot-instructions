@@ -2,7 +2,7 @@
 applyTo: "**/*.{html,css,scss,js,ts,jsx,tsx,vue}"
 ---
 
-Design system:
+# Design system
 - Base typography 14–16px
 - Line-height 1.4–1.6
 - Use clamp() for fluid sizing
@@ -17,7 +17,7 @@ body {
 }
 ```
 
-Colors:
+# Colors
 - WCAG AA contrast >= 4.5:1 (normal text) and >= 3:1 (headings >= 18px or semibold)
 - Never rely on color alone for states
 - Include icon/text
@@ -26,7 +26,7 @@ Colors:
 /* error button in red with “!” icon and text “Save failed” */
 ```
 
-Accessibility:
+# Accessibility
 - Semantic landmarks
 - Skip-to-content link
 - DOM order reflects visual order
@@ -39,7 +39,7 @@ Accessibility:
 // Skip link visible on tab focus
 ```
 
-Responsiveness:
+# Responsiveness
 - Mobile-first
 - Minimum touch target 44x44
 - Gap >= 8px between targets
@@ -53,7 +53,7 @@ Responsiveness:
 }
 ```
 
-Content:
+# Content
 - Actionable messages (“Correct the CPF” instead of “Invalid CPF”)
 - Avoid jargon
 - Consistent terminology
@@ -65,7 +65,7 @@ Content:
 <!-- Placeholder “dd/mm/yyyy” + aria-describedby with format hint -->
 ```
 
-Forms:
+# Forms
 - Per-field error with correction
 - Aria-describedby for error message
 - Required visible
@@ -78,7 +78,7 @@ Forms:
 // Required fields marked with *
 ```
 
-Media:
+# Media
 - Meaningful alt (alt="" for decorative)
 - Use srcset/sizes
 - Preserve aspect ratio
@@ -88,7 +88,7 @@ Media:
 <img src="photo.jpg" srcset="photo@2x.jpg 2x" alt="Portrait of a smiling person">
 ```
 
-Motion:
+# Motion
 - Respect prefers-reduced-motion
 - Animation durations 150–300ms
 - Perceptible skeleton loading (no aggressive shimmer)
@@ -100,7 +100,7 @@ Motion:
 }
 ```
 
-Tables:
+# Tables
 - Clear headers
 - Responsive via stack/scroll/cards
 - No truncation without indicator
@@ -111,14 +111,14 @@ Tables:
 // Empty-state “No records found — click + to add”
 ```
 
-Privacy:
+# Privacy
 - Mask sensitive data by default
 - Never show full identifiers (e.g., CPF)
 ```html
 <!-- CPF displayed as ***.456.***-00 -->
 ```
 
-Metrics:
+# Metrics
 - Measure task time
 - Success rate
 - Errors per step

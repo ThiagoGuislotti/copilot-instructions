@@ -1,6 +1,7 @@
 ---
 applyTo: "**/*.ps1"
 ---
+
 MANDATORY: ALWAYS detect and navigate to solution root automatically in ALL PowerShell scripts; NEVER assume correct working directory; ALWAYS use Set-CorrectWorkingDirectory or similar.
 Working directory detection: check .sln files OR (src/ + .github/) combo to identify solution root; walk up to 5 levels; test common paths (../../, .., ../../../../); visual feedback on navigation.
 Path safety: ALWAYS use Test-Path before Set-Location; Resolve-Path to validate; Join-Path for building paths; avoid hardcoded absolute paths; use relative paths from solution root.

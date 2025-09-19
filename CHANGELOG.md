@@ -1,3 +1,13 @@
+## [1.0.7] - 2025-09-19
+
+### Changed
+- Complete section standardization across five instruction files:
+  - Converted all section headers from "Section:" format to "# Section" format
+  - Standardized all lists to use bullet points for improved readability
+  - Added comprehensive code examples in appropriate languages (C#, YAML, SQL, CSS, HTML, JavaScript, Vue)
+  - Enhanced formatting consistency and hierarchical structure
+  - Files updated: `clean-architecture-code.instructions.md`, `microservices-performance.instructions.md`, `orm.instructions.md`, `ui-ux.instructions.md`, `vue-quasar.instructions.md`
+
 ## [1.0.6] - 2025-09-18
 
 ### Changed

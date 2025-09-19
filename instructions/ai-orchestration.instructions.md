@@ -1,6 +1,7 @@
 ---
 applyTo: "**/*.*"
 ---
+
 AI Orchestration: single execution via Codex CLI; global instructions.
 
 Tool Selection Matrix: Always use Codex CLI to execute tasks, regardless of category or complexity.

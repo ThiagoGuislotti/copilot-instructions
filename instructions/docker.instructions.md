@@ -1,27 +1,169 @@
 ---
 applyTo: "**/Dockerfile*"
 ---
-Multi-stage builds: use template .github/templates/dotnet-dockerfile-template as base for .NET projects; stages build/publish/base/final; copy only required artifacts; fixed NetToolsKit layout (src/, samples/, eng/, .build/).
-Example: Use mcr.microsoft.com/dotnet/sdk:8.0 as build and mcr.microsoft.com/dotnet/aspnet:8.0-alpine as final; COPY only published output from /app/publish; ENTRYPOINT ["dotnet","Project.dll"]
 
-Security: mandatory non-root user (pattern unet:gnet); distroless images when possible; vulnerability scanning; secrets via environment variables only.
-Example: RUN adduser -D -u 1001 unet && addgroup -S gnet && adduser unet gnet; USER unet:gnet; scan image in CI with trivy
+# Multi-stage Builds
+- Use template .github/templates/dotnet-dockerfile-template as base for .NET projects
+- stages build/publish/base/final
+- copy only required artifacts
+- fixed NetToolsKit layout (src/, samples/, eng/, .build/)
+```dockerfile
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+COPY ["src/MyApp/MyApp.csproj", "src/MyApp/"]
+RUN dotnet restore "src/MyApp/MyApp.csproj"
+COPY . .
+WORKDIR "/src/src/MyApp"
+RUN dotnet build "MyApp.csproj" -c Release -o /app/build
 
-Performance: layer caching optimization; COPY order (dependencies first); .dockerignore for exclusions; minimize base image size.
-Example: COPY *.csproj and RUN dotnet restore first; .dockerignore excludes bin/ obj/ .git/ node_modules/; consolidate RUN layers
+# Publish stage
+FROM build AS publish
+RUN dotnet publish "MyApp.csproj" -c Release -o /app/publish
 
-Resource limits: memory/CPU constraints; health checks configured; appropriate restart policies; network security groups.
-Example: HEALTHCHECK CMD wget -qO- http://localhost/health/live || exit 1; set container memory limit 512m and cpus 1.0 in compose
+# Final stage
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "MyApp.dll"]
+```
 
-Production readiness: environment variables; logging config; monitoring endpoints; graceful shutdown.
-Example: configure ASPNETCORE_URLS and Serilog via env; expose /health/ready and /metrics; handle SIGTERM for graceful shutdown
+# Security
+- Mandatory non-root user (pattern unet:gnet)
+- distroless images when possible
+- vulnerability scanning
+- secrets via environment variables only
+```dockerfile
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS base
+RUN adduser -D -u 1001 unet && addgroup -S gnet && adduser unet gnet
+USER unet:gnet
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "MyApp.dll"]
+```
 
-Alpine variants: prefer alpine tags for smaller footprint; install needed dependencies; timezone configuration when required.
-Example: RUN apk add --no-cache icu-libs tzdata; set TZ=Etc/UTC; verify size reduction vs non-alpine
+# Performance
+- Layer caching optimization
+- COPY order (dependencies first)
+- .dockerignore for exclusions
+- minimize base image size
+```dockerfile
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+COPY ["src/MyApp/MyApp.csproj", "."]
+RUN dotnet restore
+COPY . .
+RUN dotnet build -c Release -o /app/build
+```
 
-Docker Compose: use template .github/templates/docker-compose-template.yml; strict order: image → hostname → container_name → restart → deploy → networks → command → healthcheck → ports → volumes → environment; naming [SERVICE_NAME]-[COMPONENT]-${COMPOSE_PROJECT_NAME}; network isolation; volumes for persistent data; env files; service dependencies with health checks.
-Orchestration: labels for metadata; resource reservations; deployment strategies; rolling updates configuration.
+# Resource Limits
+- Memory/CPU constraints
+- health checks configured
+- appropriate restart policies
+- network security groups
+```yaml
+version: '3.8'
+services:
+  myapp:
+    image: myapp:latest
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+```
 
-Example: com.company=NetToolsKit labels; update_config parallelism 1 delay 10s; deploy resources limits cpus 1.0 memory 512m
-Dev workflow: separate development Dockerfile; hot reload; debugging; volume mounts for development.
-Example: Dockerfile.dev uses dotnet watch; mount src volume; expose 9229 for debugger; disable trimming
+# Production Readiness
+- Environment variables
+- logging config
+- monitoring endpoints
+- graceful shutdown
+```dockerfile
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
+ENV ASPNETCORE_URLS=http://+:80
+ENV ASPNETCORE_ENVIRONMENT=Production
+EXPOSE 80
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "MyApp.dll"]
+```
+
+# Alpine Variants
+- Prefer alpine tags for smaller footprint
+- install needed dependencies
+- timezone configuration when required
+```dockerfile
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
+RUN apk add --no-cache icu-libs tzdata
+ENV TZ=Etc/UTC
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "MyApp.dll"]
+```
+
+# Docker Compose
+- Use template .github/templates/docker-compose-template.yml
+- strict order: image → hostname → container_name → restart → deploy → networks → command → healthcheck → ports → volumes → environment
+- naming [SERVICE_NAME]-[COMPONENT]-${COMPOSE_PROJECT_NAME}
+- network isolation
+- volumes for persistent data
+- env files
+- service dependencies with health checks
+See .github/templates/docker-compose-template.yml for full example.
+
+# Orchestration
+- Labels for metadata
+- resource reservations
+- deployment strategies
+- rolling updates configuration
+```yaml
+version: '3.8'
+services:
+  myapp:
+    image: myregistry/myapp:latest
+    deploy:
+      labels:
+        com.company: NetToolsKit
+        com.version: "1.0"
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+```
+
+# Dev Workflow
+- Separate development Dockerfile
+- hot reload
+- debugging
+- volume mounts for development
+```dockerfile
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS dev
+WORKDIR /src
+COPY ["src/MyApp/MyApp.csproj", "."]
+RUN dotnet restore
+COPY . .
+EXPOSE 5000 9229
+CMD ["dotnet", "watch", "run", "--urls", "http://+:5000"]
+```

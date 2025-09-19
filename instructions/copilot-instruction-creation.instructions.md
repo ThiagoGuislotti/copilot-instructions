@@ -41,6 +41,13 @@ Content for important subdivisions
 Content for detailed breakdowns
 ```
 
+## Code Examples
+- Use code blocks for examples to illustrate technical guidance
+- Specify language when possible (e.g., ```yaml, ```dockerfile, ```csharp)
+- Keep examples concise and actionable
+- Prefer real-world examples over placeholders
+- Ensure examples are self-contained and runnable where possible
+
 ## Content Structure
 - One paragraph per line for readability
 - Internal blank lines allowed to separate rule groups

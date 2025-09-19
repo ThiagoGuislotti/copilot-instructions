@@ -1,6 +1,7 @@
 ---
 applyTo: "**/README.md"
 ---
+
 Use template .github/templates/readme-template.md as base for standard structure.
 Required structure: Introduction, Table of Contents, Installation, Quick Start, Usage Examples, API Reference, Build and Tests, Contributing, Dependencies, References.
 Introduction: problem solved, context, technical approach; key features with checkmarks.

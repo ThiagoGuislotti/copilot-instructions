@@ -3,7 +3,6 @@ applyTo: "**/*.{cs,js,ts,py,java,go,rs}"
 ---
 
 # Clean Architecture
-
 - Pure Domain rules
 - Application orchestrates
 - Infrastructure adapts
@@ -18,7 +17,6 @@ applyTo: "**/*.{cs,js,ts,py,java,go,rs}"
 ```
 
 # CQRS
-
 - Separate read/write
 - Cohesive handlers
 - Idempotency when needed

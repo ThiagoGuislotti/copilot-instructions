@@ -1,6 +1,7 @@
 ---
 applyTo: "docs/**/effort-estimation*"
 ---
+
 Use template .github/templates/effort-estimation-poc-mvp-template.md as base.
 UCP (Use Case Points): requirements analysis and effort estimation for POC/MVP.
 Goal: define scope and estimate effort to evolve from POC to MVP using UCP.

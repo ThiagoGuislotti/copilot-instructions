@@ -1,6 +1,7 @@
 ---
 applyTo: "**/{CHANGELOG,changelog,feedback,issue}*"
 ---
+
 Feedback: use changelog-entry-template.md with feedback integration section; document issue + context + problem + solution in CHANGELOG format; semantic versioning with date; consolidate feedback tracking in version history.
 CHANGELOG: format [version] YYYY-MM-DD; Changed (existing modifications); Added (new rules); Fixed (corrections); Removed (discontinued); Breaking (compatibility break); use changelog-entry-template.md template.
 Workflow: Issue identification → modify instruction pattern → document CHANGELOG → git tag copilot-vX.Y.Z.

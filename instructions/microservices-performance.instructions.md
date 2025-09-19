@@ -2,7 +2,7 @@
 applyTo: "**/microservice*/**/*.{cs,ts,js,json,yml,yaml,config,dockerfile}"
 ---
 
-Service boundaries:
+# Service boundaries
 - Single responsibility
 - Domain-driven boundaries
 - Database per service
@@ -16,7 +16,7 @@ routes:
     service: order-service
 ```
 
-Performance:
+# Performance
 - Configured connection pooling
 - Consistent async/await
 - Bulk operations
@@ -29,7 +29,7 @@ var cache = ConnectionMultiplexer.Connect("redis");
 cache.GetDatabase().StringSet("key", value);
 ```
 
-Resource efficiency:
+# Resource efficiency
 - Minimal images
 - Multi-stage builds
 - Defined resource limits
@@ -46,7 +46,7 @@ resources:
     memory: "256Mi"
 ```
 
-Communication:
+# Communication
 - gRPC for service-to-service
 - REST for external APIs
 - Message queues for async
@@ -58,7 +58,7 @@ Communication:
 .AddPolicyHandler(Policy.Handle<Exception>().WaitAndRetryAsync(3, retry => TimeSpan.FromSeconds(Math.Pow(2, retry))))
 ```
 
-Consistency:
+# Consistency
 - Eventual consistency by default
 - CQRS when applicable
 - Event sourcing for audit
@@ -70,7 +70,7 @@ Consistency:
 public class OrderSaga { /* Orchestrate steps with compensation */ }
 ```
 
-Caching:
+# Caching
 - Application cache
 - Distributed cache
 - Cache-aside
@@ -83,7 +83,7 @@ Caching:
 var value = cache.Get("key") ?? LoadAndCache("key");
 ```
 
-Load balancing:
+# Load balancing
 - Round-robin default
 - Health-based routing
 - Session affinity when needed
@@ -100,7 +100,7 @@ spec:
   traffic: 10%
 ```
 
-Monitoring:
+# Monitoring
 - Structured logs
 - Correlation IDs
 - Metrics aggregation
@@ -114,7 +114,7 @@ Monitoring:
   metrics_path: /metrics
 ```
 
-Security performance:
+# Security performance
 - JWT validation
 - Optimized OAuth2 flows
 - Per-service rate limiting
@@ -134,7 +134,7 @@ spec:
     - podSelector: {}
 ```
 
-Database:
+# Database
 - Read replicas
 - Pooling
 - Query optimization
@@ -147,7 +147,7 @@ Database:
 CREATE INDEX idx_orders_status ON orders(status);
 ```
 
-Messaging:
+# Messaging
 - Batch processing
 - Parallel consumers
 - DLQ
@@ -159,7 +159,7 @@ Messaging:
 deadLetterQueue: enabled
 ```
 
-Memory:
+# Memory
 - Object pooling
 - Dispose patterns
 - Weak refs
@@ -172,7 +172,7 @@ Memory:
 using var pooled = ArrayPool<byte>.Shared.Rent(1024);
 ```
 
-Network:
+# Network
 - Connection reuse
 - Compression
 - Binary protocols
@@ -184,7 +184,7 @@ Network:
 Accept-Encoding: gzip
 ```
 
-Service discovery:
+# Service discovery
 - Health checks
 - Graceful shutdown
 - Registration
@@ -199,7 +199,7 @@ livenessProbe:
     port: 80
 ```
 
-Deployment:
+# Deployment
 - Rolling updates
 - Zero-downtime
 - Config management

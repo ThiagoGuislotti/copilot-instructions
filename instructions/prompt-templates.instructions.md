@@ -1,6 +1,7 @@
 ---
 applyTo: ".github/**"
 ---
+
 Prompt engineering: specific context before objective; clear actionable requirements; measurable acceptance criteria; well‑defined output.
 Chat workflow: open only files relevant to the task; separate threads by context; reference previous answer when asking to continue; request diffs only for direct patches.
 Prompt structure: Context (specific file/component) → Objective (what to do) → Requirements (how) → Acceptance criteria (done) → Expected output (result format).

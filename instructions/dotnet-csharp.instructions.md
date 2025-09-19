@@ -3,7 +3,6 @@ applyTo: "**/*.{cs,csproj,sln,slnf,props,targets}"
 ---
 
 # Code Organization
-
 - #region structure (Fields, Properties, Constructors, Methods)
 - Use template .github/templates/dotnet-class-template.cs for classes
 - Use template .github/templates/dotnet-interface-template.cs for interfaces

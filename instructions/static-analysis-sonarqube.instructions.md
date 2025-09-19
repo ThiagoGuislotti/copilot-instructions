@@ -1,6 +1,7 @@
 ---
 applyTo: "**/{sonar,sonarqube,analysis,quality,lint,static}*/**/*.{properties,yml,yaml,json,xml,config,cs,ts,js}"
 ---
+
 SonarQube setup: docker-compose with PostgreSQL; configured sonar-scanner-cli; quality gates set; 80%+ coverage threshold for new code; max duplication 3%; maintainability A; reliability/security A.
 Example: docker-compose up -d sonar+postgres locally; configure sonar-scanner in CI; set Quality Gate new code coverage >=80% and duplication <=3%
 

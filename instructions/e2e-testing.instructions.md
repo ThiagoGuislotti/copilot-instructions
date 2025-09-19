@@ -1,6 +1,7 @@
 ---
 applyTo: "**/{e2e,E2E,end-to-end,integration,spec,test}*/**/*.{cs,ts,js,json,yml,yaml,config}"
 ---
+
 Frameworks: prefer Playwright (web); Cypress as alternative; SpecFlow (BDD .NET); xUnit/NUnit for .NET integration; Jest/Vitest for JS; configure in docker‑compose for CI/CD; use Testcontainers when possible.
 Test structure: AAA pattern; isolated setup/teardown; test data factories; page object model for UI; reusable API clients; avoid inter‑test dependencies; appropriate timeouts.
 Environment: dedicated E2E environment; clean data per run; stage‑specific env vars; dynamic URLs; secure credentials via secrets; automated DB seeding; automatic rollback.
