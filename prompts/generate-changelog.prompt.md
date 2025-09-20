@@ -5,13 +5,10 @@ tools: ['codebase', 'search', 'findFiles']
 ---
 
 # CHANGELOG Entry Generator
-
 Generate a CHANGELOG entry following the repository's established pattern.
 
 ## Instructions
-
 Based on the provided changes or current git diff, create a CHANGELOG entry that:
-
 1. Analyze recent repository changes (files modified, additions, removals)
 2. Categorize changes using standard semantic versioning categories
 3. Follow the pattern established in existing CHANGELOG entries

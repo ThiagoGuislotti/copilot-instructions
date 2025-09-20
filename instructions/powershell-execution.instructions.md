@@ -2,15 +2,82 @@
 applyTo: "**/*.ps1"
 ---
 
+# Working Directory Detection
 MANDATORY: ALWAYS detect and navigate to solution root automatically in ALL PowerShell scripts; NEVER assume correct working directory; ALWAYS use Set-CorrectWorkingDirectory or similar.
-Working directory detection: check .sln files OR (src/ + .github/) combo to identify solution root; walk up to 5 levels; test common paths (../../, .., ../../../../); visual feedback on navigation.
-Path safety: ALWAYS use Test-Path before Set-Location; Resolve-Path to validate; Join-Path for building paths; avoid hardcoded absolute paths; use relative paths from solution root.
-Error handling: try/catch for critical ops; meaningful error messages; appropriate exit codes (0=success, 1=failure); Write-Error for critical; Write-Warning for warnings.
-AI guidance: include directory navigation notes in responses that involve PowerShell scripts; explain root detection briefly; do not assume user is in correct directory; show navigation commands when relevant.
-Script structure: param block first; helper functions for navigation; validation before execution; cleanup in finally blocks; structured output with colors.
-Execution policies: use -ExecutionPolicy Bypass when needed; document requirements; handle security restrictions; provide alternatives.
-Cross-platform: correct path separators; consider case sensitivity; handle different PS versions; test on Windows/Linux when applicable.
-Performance: avoid unnecessary Get-ChildItem -Recurse; use -ErrorAction SilentlyContinue; filter early; cache expensive ops; limit search scope.
-Development: debug output with -Verbose; structured logging; parameter validation; help comments; example usage; error scenarios.
-Security: do not log secrets; sanitize inputs; validate file paths; avoid eval/invoke-expression; least privilege.
-Example pattern: Set-CorrectWorkingDirectory at script start; verify .github structure; create directories if needed; relative paths from root; appropriate exit codes.
+- Check .sln files OR (src/ + .github/) combo to identify solution root
+- Walk up to 5 levels
+- Test common paths (../../, .., ../../../../)
+- Visual feedback on navigation
+```powershell
+function Set-CorrectWorkingDirectory {
+    $current = Get-Location
+    for ($i = 0; $i -lt 5; $i++) {
+        if (Test-Path "*.sln" -or (Test-Path "src" -and Test-Path ".github")) {
+            Write-Host "Solution root found: $PWD" -ForegroundColor Green
+            return
+        }
+        Set-Location ".."
+    }
+    throw "Could not find solution root"
+}
+```
+
+# Path Safety
+- ALWAYS use Test-Path before Set-Location
+- Resolve-Path to validate
+- Join-Path for building paths
+- Avoid hardcoded absolute paths
+- Use relative paths from solution root
+```powershell
+if (Test-Path $targetPath) {
+    $resolvedPath = Resolve-Path $targetPath
+    Set-Location $resolvedPath
+}
+```
+
+# Error Handling
+- try/catch for critical ops
+- Meaningful error messages
+- Appropriate exit codes (0=success, 1=failure)
+- Write-Error for critical
+- Write-Warning for warnings
+```powershell
+try {
+    Set-CorrectWorkingDirectory
+} catch {
+    Write-Error "Failed to find solution root: $_"
+    exit 1
+}
+```
+
+# AI Guidance
+Include directory navigation notes in responses that involve PowerShell scripts; explain root detection briefly; do not assume user is in correct directory; show navigation commands when relevant.
+
+# Script Structure
+- param block first
+- Helper functions for navigation
+- Validation before execution
+- Cleanup in finally blocks
+- Structured output with colors
+
+# Execution Policies
+Use -ExecutionPolicy Bypass when needed; document requirements; handle security restrictions; provide alternatives.
+
+# Cross-Platform
+Correct path separators; consider case sensitivity; handle different PS versions; test on Windows/Linux when applicable.
+
+# Performance
+Avoid unnecessary Get-ChildItem -Recurse; use -ErrorAction SilentlyContinue; filter early; cache expensive ops; limit search scope.
+
+# Development
+Debug output with -Verbose; structured logging; parameter validation; help comments; example usage; error scenarios.
+
+# Security
+- Do not log secrets
+- Sanitize inputs
+- Validate file paths
+- Avoid eval/invoke-expression
+- Least privilege
+
+# Example Pattern
+Set-CorrectWorkingDirectory at script start; verify .github structure; create directories if needed; relative paths from root; appropriate exit codes.

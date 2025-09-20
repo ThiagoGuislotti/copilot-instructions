@@ -4,7 +4,6 @@ tools: ['codebase', 'search', 'findFiles', 'readFile']
 ---
 
 # Instruction Writer Mode
-
 You are specialized in creating and editing instruction files for this repository. Follow the established patterns and standards.
 
 ## Context Requirements

@@ -3,7 +3,6 @@
 Language: EN for code/commits; pt-BR UI via i18n; EN database schema.
 
 # Hierarchy and Scope
-
 - Global rules live here and are always applied.
 - Domain instruction files extend these rules; do not duplicate globals.
 - Prefer the most specific domain rule when conflicts occur.
@@ -11,7 +10,7 @@ Language: EN for code/commits; pt-BR UI via i18n; EN database schema.
 
 # Context Selection
 
-**Hard rule:**
+## Hard rule
 - Always load these two files FIRST for any Copilot Chat session, patch proposal, PR summary, or code-gen in this repo:
   1. .github/AGENTS.md
   2. .github/copilot-instructions.md
@@ -19,7 +18,7 @@ Language: EN for code/commits; pt-BR UI via i18n; EN database schema.
 
 # Workflow
 
-**How to use:**
+## How to use
 - Start with AGENTS.md for solution-specific details (stack, folders, commands).
 - Use this file for global rules and technology mappings.
 - Follow domain-specific files in .github/instructions/*.md for technical details.
@@ -27,7 +26,6 @@ Language: EN for code/commits; pt-BR UI via i18n; EN database schema.
 # Mandatory Instructions
 
 ## Always Applied
-
 - .github/AGENTS.md (agents and context policy)
 - .github/instructions/workflow-optimization.instructions.md
 - .github/instructions/ai-orchestration.instructions.md
@@ -35,7 +33,6 @@ Language: EN for code/commits; pt-BR UI via i18n; EN database schema.
 - .github/instructions/feedback-changelog.instructions.md
 
 ## Only for .github Changes
-
 - .github/instructions/copilot-instruction-creation.instructions.md
 
 # Domain Instructions
@@ -56,24 +53,22 @@ Language: EN for code/commits; pt-BR UI via i18n; EN database schema.
 
 # Transparency
 
-**Pragmatic use:**
+## Pragmatic use
 - List applied instructions only when there are relevant actions (plans, command executions, patches/file changes).
 - Use a short preamble to indicate key instructions before tool/command calls; omit in purely informational answers.
 - For auditing, consolidate the full list of instructions in PR/commit body or CHANGELOG.md.
 - When requested, include an Applied instructions section with the actually used set.
 
 # Security
-
 - No secrets in repo; use User Secrets/Azure Key Vault; typed options via IOptions.
 
 # Changelog
-
 - .github changes: versioned CHANGELOG.md
 - Project changes: main CHANGELOG.md
 - Process: .github/instructions/feedback-changelog.instructions.md
 - Mandatory versioning: every CHANGELOG entry must include semantic version [X.Y.Z] and date YYYY-MM-DD; no [Unreleased] accumulation; immediate versioning on changes.
 
-STYLE (EOF and whitespace):
+# STYLE (EOF and whitespace)
 - Do not leave a trailing blank line at the end of files.
 - For files under `.github/instructions/*.md` and Copilot/Codex instruction outputs: do NOT include a final newline (consistent with AGENTS.md).
 - For other files, follow `.editorconfig` rules (final newline usually enforced); always avoid trailing whitespace.

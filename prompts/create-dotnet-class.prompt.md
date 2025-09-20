@@ -5,11 +5,9 @@ tools: ['codebase', 'search', 'findFiles']
 ---
 
 # Create .NET Class
-
 Create a new .NET class following this repository's Clean Architecture standards and templates.
 
 ## Instructions
-
 Create a new C# class based on:
 - [dotnet-class-template.cs](../templates/dotnet-class-template.cs)
 - [dotnet-csharp.instructions.md](../instructions/dotnet-csharp.instructions.md)

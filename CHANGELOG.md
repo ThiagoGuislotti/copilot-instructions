@@ -1,3 +1,13 @@
+## [1.0.8] - 2025-09-20
+
+### Changed
+- Complete formatting standardization across remaining instruction files:
+  - Applied # headers and bullet point formatting to 10 additional instruction files
+  - Added comprehensive code examples with appropriate language specifications
+  - Enhanced structural consistency and readability
+  - Files updated: `pr.instructions.md`, `powershell-execution.instructions.md`, `feedback-changelog.instructions.md`, `effort-estimation-ucp.instructions.md`, `e2e-testing.instructions.md`, `ai-orchestration.instructions.md`, `prompt-templates.instructions.md`, `readme.instructions.md`, `static-analysis-sonarqube.instructions.md`, `workflow-optimization.instructions.md`
+- All instruction files now follow consistent Markdown hierarchy and formatting standards
+
 ## [1.0.7] - 2025-09-19
 
 ### Changed

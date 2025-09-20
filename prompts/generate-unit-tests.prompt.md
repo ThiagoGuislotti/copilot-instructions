@@ -5,11 +5,9 @@ tools: ['codebase', 'search', 'findFiles', 'readFile']
 ---
 
 # Generate Unit Tests
-
 Generate comprehensive unit tests for .NET classes following this repository's testing standards.
 
 ## Instructions
-
 Generate unit tests based on:
 - [dotnet-unit-test-template.cs](../templates/dotnet-unit-test-template.cs)
 - [dotnet-csharp.instructions.md](../instructions/dotnet-csharp.instructions.md)
