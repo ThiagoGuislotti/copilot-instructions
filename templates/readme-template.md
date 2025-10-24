@@ -6,26 +6,34 @@
 
 ## Introduction
 
-[PROBLEM_CONTEXT_DESCRIPTION]. Briefly explain the technical or architectural approach adopted (ex.: [TECHNICAL_APPROACH]).
+[PROBLEM_CONTEXT_DESCRIPTION]. Briefly explain the technical or architectural approach adopted (e.g., [TECHNICAL_APPROACH]).
 
-**Main features:**
+---
+
+## Features
+
 - ✅ [FEATURE_1]
 - ✅ [FEATURE_2]
 - ✅ [FEATURE_3]
 
 ---
 
-## Table of Contents
+## Contents
 
 - [Introduction](#introduction)
+- [Features](#features)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Usage Examples](#usage-examples)
+    - [Example 1: MAIN_USE_CASE](#example-1-main_use_case)
+    - [Example 2: ADVANCED_USE_CASE](#example-2-advanced_use_case)
 - [API Reference](#api-reference)
-- [Build and Tests](#build-and-tests)
-- [Contributing](#contributing)
-- [Dependencies](#dependencies)
+    - [Main Types / Services](#main-types--services)
+    - [Extension Methods](#extension-methods)
+    - [Enums](#enums)
+    - [Data Shapes](#data-shapes)
 - [References](#references)
+- [License](#license)
 
 ---
 
@@ -45,7 +53,7 @@ dotnet add package [PACKAGE_NAME]
 
 ## Quick Start
 
-Minimal usage example in 3-5 lines of code:
+Minimal usage in 3–5 lines:
 
 ```csharp
 // [BASIC_EXAMPLE_DESCRIPTION]
@@ -56,6 +64,8 @@ var result = [VARIABLE].[MAIN_METHOD]([PARAMETERS]);
 ---
 
 ## Usage Examples
+
+_Aim for ≥ 70% coverage of key public APIs listed in the API Reference below._
 
 ### Example 1: [MAIN_USE_CASE]
 
@@ -73,7 +83,8 @@ var result = service.[PROCESS_METHOD]([INPUT_PARAMETER]);
 
 ```csharp
 // [COMPLEX_SCENARIO_DESCRIPTION]
-var [FILTER_VARIABLE] = new [FILTER_CLASS] {
+var [FILTER_VARIABLE] = new [FILTER_CLASS]
+{
     [PROPERTY_1] = "[VALUE_1]",
     [PROPERTY_2] = [ENUM_VALUE].[OPTION],
     [PROPERTY_3] = "[VALUE_3]"
@@ -86,7 +97,9 @@ var results = service.[SEARCH_METHOD]([FILTER_VARIABLE]);
 
 ## API Reference
 
-### Main Class
+_Use real names and signatures from the codebase; add only the APIs meant for consumer use._
+
+### Main Types / Services
 
 ```csharp
 public class [MAIN_CLASS]
@@ -94,12 +107,6 @@ public class [MAIN_CLASS]
     public [RETURN_TYPE] [IMPORTANT_METHOD]([PARAMETER_TYPE] [PARAMETER_NAME]);
 }
 ```
-
-**Parameters:**
-- `[PARAMETER_NAME]`: [PARAMETER_DESCRIPTION]
-
-**Returns:**
-- `[RETURN_TYPE]`: [RETURN_DESCRIPTION]
 
 ### Extension Methods
 
@@ -110,70 +117,42 @@ public static class [EXTENSIONS_CLASS]
 }
 ```
 
----
+### Enums
 
-## Build and Tests
+_Provide a table for each public enum exposed by the package._
 
-### Build
-```bash
-dotnet build -c Release
-```
+ExampleEnum
 
-### Run Tests
-```bash
-# All tests
-dotnet test -c Release
+| Value | Description |
+| --- | --- |
+| `FirstValue` | What it means |
+| `SecondValue` | What it means |
 
-# Unit tests only
-dotnet test -c Release --filter "Trait=Category=Unit"
+### Data Shapes
 
-# Tests with coverage
-dotnet test -c Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura
-```
+_Document key request/response payloads used in examples (schemas)._ Use a table with Field, Description, and Example.
 
-### Lint
-```bash
-dotnet format --verify-no-changes
-```
+Example Request
 
----
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/[FEATURE_NAME]`
-3. Commit your changes: `git commit -m 'feat: [CHANGE_DESCRIPTION]'`
-4. Push to the branch: `git push origin feature/[FEATURE_NAME]`
-5. Open a Pull Request
-
-**Guidelines:**
-- Follow project code standards
-- Include tests for new features
-- Update documentation when necessary
-- Use semantic commits (feat, fix, docs, etc.)
-
----
-
-## Dependencies
-
-### Runtime
-- [TARGET_FRAMEWORK] / .NET 6+ / .NET 8+
-- [MAIN_DEPENDENCY_1]
-- [MAIN_DEPENDENCY_2]
-
-### Development
-- [TEST_FRAMEWORK] (unit tests)
-- [COVERAGE_TOOL] (coverage)
-- [OTHER_DEV_DEPENDENCIES]
+| Field | Description | Example |
+| --- | --- | --- |
+| page | Page number (1-based) | `1` |
+| pageSize | Items per page | `20` |
 
 ---
 
 ## References
 
-- [Official .NET Documentation](https://docs.microsoft.com/dotnet/)
+- [Official .NET Documentation](https://learn.microsoft.com/dotnet/)
 - [TECHNICAL_REFERENCE_1](link)
 - [TECHNICAL_REFERENCE_2](link)
 - [TECHNICAL_REFERENCE_3](link)
-- [RELEVANT_ARTICLE]
-- [GitHub Issues]([ISSUES_LINK]) - To report bugs or suggest improvements
-- [Changelog](CHANGELOG.md) - Version history
+- [GitHub Issues]([ISSUES_LINK])
+
+---
+
+## License
+
+This project is licensed under the [LICENSE_TYPE] License. See the LICENSE file at the repository root for details.
+
+---

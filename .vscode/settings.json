@@ -81,6 +81,7 @@
     "explorer.confirmDelete": false,
     "explorer.confirmDragAndDrop": false,
     "files.encoding": "utf8",
+    "files.autoGuessEncoding": false,
     "files.eol": "\n",
     "files.insertFinalNewline": false,
     "files.associations": {
@@ -216,33 +217,41 @@
     // C#
     "csharp.preview.improvedLaunchExperience": true,
     "[csharp]": {
+        "files.encoding": "utf8",
         "editor.defaultFormatter": "ms-dotnettools.csharp"
     },
 
     // JavaScript / TypeScript
     "[javascript]": {
+        "files.encoding": "utf8",
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
     "[typescript]": {
+        "files.encoding": "utf8",
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
 
     // Web Technologies
     "[html]": {
+        "files.encoding": "utf8",
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
     "[css]": {
+        "files.encoding": "utf8",
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
     "[scss]": {
+        "files.encoding": "utf8",
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
 
     // Configuration Files
     "[json]": {
+        "files.encoding": "utf8",
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
     "[yaml]": {
+        "files.encoding": "utf8",
         "editor.defaultFormatter": "redhat.vscode-yaml",
         "editor.insertSpaces": true,
         "editor.tabSize": 2
@@ -250,6 +259,7 @@
 
     // Documentation
     "[markdown]": {
+        "files.encoding": "utf8",
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.wordWrap": "wordWrapColumn",
         "editor.wordWrapColumn": 160,
@@ -345,5 +355,9 @@
     // ChatGPT / AI Tools
     "chat.enable": true,
     "chat.agent.maxRequests": 1000,
-    "chat.promptFiles": true
+    "chat.promptFiles": true,
+
+    // Habilita o runner integrado para testes com POML (Python e JavaScript)
+    "poml.runners.python.enabled": true,
+    "poml.runners.javascript.enabled": false
 }

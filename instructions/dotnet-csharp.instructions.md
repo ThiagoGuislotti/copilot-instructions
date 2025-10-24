@@ -4,6 +4,7 @@ applyTo: "**/*.{cs,csproj,sln,slnf,props,targets}"
 
 # Code Organization
 - #region structure (Fields, Properties, Constructors, Methods)
+- Do not create empty regions. Only wrap members when there is at least one concrete member inside the region. If a type has no public methods, do not emit `#region Public Methods/Operators` at all.
 - Use template .github/templates/dotnet-class-template.cs for classes
 - Use template .github/templates/dotnet-interface-template.cs for interfaces
 - Small focused methods
@@ -203,6 +204,12 @@ app.UseEndpoints(e => { e.MapMetrics(); e.MapHealthChecks("/health/ready"); });
 
 # Code Style
 - Use .github/templates/dotnet-class-template.cs and .github/templates/dotnet-interface-template.cs as reference
+- New file header template for project descriptions (csproj <Description>): keep it short in EN with:
+    - One-line intro stating purpose
+    - 2–4 bullet Features lines
+    - One-line conclusion starting with "Ideal for ..."
+    Example:
+    "MyLib provides X for Y. Features: • A • B • C. Ideal for Z."
 - Nullable reference types enabled at project level
 - Block-scoped namespaces
 - Minimal/usings (prefer implicit usings where configured)
@@ -228,3 +235,22 @@ namespace NetToolsKit.Core
 /// <inheritdoc cref="IOrderService.GetAsync"/>
 public async Task<Order> GetAsync(Guid id, CancellationToken ct) { /* ... */ }
 ```
+
+# Multi-targeting (.NET 8/9) and conditional directives
+- Goal: keep code simple and compatible, using conditional directives only when unavoidable.
+- “Minimal #if” pattern:
+    - Prefer a single class/file and isolate `#if NET9_0_OR_GREATER` only in:
+        - specific usings (e.g., Microsoft.AspNetCore.OpenApi)
+        - method signatures (e.g., parameters that use .NET 9 types like `Action<OpenApiOptions>?`)
+        - body snippets that rely on .NET 9-only APIs (e.g., `services.AddOpenApi(...)`)
+    - Avoid wrapping the entire file with `#if` when possible.
+    - When a method cannot exist on older TFMs, keep a “cold plate” signature (object-shaped parameters) or throw NotSupportedException, and register an ApiCompat suppression when needed.
+- When wrapping the entire class:
+    - If the type implements interfaces/uses contexts that exist only on .NET 9 (e.g., `IOpenApiDocumentTransformer`, `IOpenApiOperationTransformer`, `IOpenApiSchemaTransformer`), keep the `#if` across the whole file to avoid breaking the .NET 8 build.
+    - Optional: add a comment at the top of the file explaining the reason (to prevent accidental removals later).
+    - Do not create conditional empty regions. If the whole block is conditional and there are no members on the older TFM, omit the region for that TFM.
+- Advanced alternatives (use sparingly):
+    - Split files per TFM (e.g., `ServiceCollectionExtensions.Net9.cs`) and include via conditions in the `.csproj`. Use only if the local `#if` complexity starts to grow.
+- Documentation guidelines:
+    - Do not use conditional directives inside XML comments (this causes errors). Use neutral descriptions instead (“supported only on .NET 9+”).
+    - If a feature exists only on .NET 9+, document it in the summary and add TFM-conditional tests, avoiding asserts that fail on earlier TFMs.
