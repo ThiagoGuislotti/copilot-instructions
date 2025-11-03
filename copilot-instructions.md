@@ -40,7 +40,7 @@ Language: EN for code/commits; pt-BR UI via i18n; EN database schema.
 ## Development
 - C#/.NET: .github/instructions/dotnet-csharp.instructions.md (e.g., namespaces, sealed classes, XML docs).
 - Architecture and backend: .github/instructions/clean-architecture-code.instructions.md; .github/instructions/backend.instructions.md (e.g., CQRS, mediator patterns).
-- Frontend and UI/UX: .github/instructions/frontend.instructions.md; .github/instructions/vue-quasar.instructions.md; .github/instructions/ui-ux.instructions.md (e.g., i18n pt-BR, responsive design).
+- Frontend and UI/UX: .github/instructions/frontend.instructions.md; .github/instructions/vue-quasar.instructions.md; .github/instructions/vue-quasar-architecture.instructions.md; .github/instructions/ui-ux.instructions.md (e.g., i18n pt-BR, responsive design, feature-first Clean Architecture).
 
 ## Data and Infrastructure
 - Data/ORM/Databases: .github/instructions/orm.instructions.md; .github/instructions/database.instructions.md (e.g., EF Core, migrations).

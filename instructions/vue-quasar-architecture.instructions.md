@@ -1,0 +1,349 @@
+---
+applyTo: frontend/**/*.{vue,ts,js}
+---
+
+# Vue + Quasar Clean Architecture
+
+Follow feature-first organization aligned with Clean Architecture layers.
+
+# Structure Overview
+
+```
+frontend/src/
+├── app/                    # Application composition (global)
+│   ├── router/            # Vue Router + guards
+│   ├── store/             # Pinia stores (global only)
+│   ├── i18n/              # Locales and messages
+│   ├── boot/              # Quasar boot files (axios, auth, sentry, dayjs)
+│   ├── styles/            # Global styles (quasar-variables.sass)
+│   └── plugins/           # Vue/Quasar plugins
+├── shared/                # Cross-cutting, independent of features
+│   ├── domain/            # Pure types, value objects, errors
+│   ├── application/       # Generic use cases, validators, ports
+│   ├── infrastructure/    # HTTP clients, storage, logger, gateways
+│   ├── presentation/      # Reusable UI components (atoms/molecules), icons
+│   ├── utils/             # Pure helpers
+│   ├── constants/
+│   └── dtos/
+├── modules/               # Feature-first modules (isolated by layers)
+│   └── <feature>/
+│       ├── domain/        # Entities, Value Objects, repository contracts
+│       ├── application/   # Feature use cases (services), ports
+│       ├── infrastructure/# Adapters to APIs, mappers, repositories
+│       └── presentation/  # Vue + Quasar pages/components
+│           ├── pages/
+│           ├── components/
+│           └── forms/
+├── layouts/               # Global Quasar layouts
+├── pages/                 # Truly global pages (404, login)
+├── assets/                # Images, fonts
+└── components/            # Global generic components only
+```
+
+# Layer Rules
+
+## Domain Layer
+- Pure TypeScript models and business rules
+- No Vue/Quasar imports
+- No external dependencies (except utility types)
+- Contains: Entities, Value Objects, Domain Errors, Repository Interfaces
+- Example: `Invoice.ts`, `Money.ts`, `InvoiceRepo.ts` (interface)
+
+## Application Layer
+- Use cases and orchestration
+- Depends on domain and ports (interfaces)
+- No Vue/Quasar imports
+- Contains: Services, Use Cases, Application Errors, Port Definitions
+- Example: `CreateInvoice.ts`, `ListInvoices.ts`
+
+## Infrastructure Layer
+- Implements ports using concrete adapters
+- Uses axios/fetch, localStorage, IndexedDB, WebSockets
+- Contains: HTTP repositories, Mappers, DTOs, API clients
+- Maps backend DTOs to domain entities
+- Example: `HttpInvoiceRepo.ts` implements `InvoiceRepo`
+
+## Presentation Layer
+- Vue + Quasar components, pages, composables
+- Can import from application and domain
+- Contains: Pages, Components, Forms, Composables, Local State
+- Example: `BillingListPage.vue`, `InvoiceTable.vue`, `useInvoiceForm.ts`
+
+# Import Boundaries
+
+## MUST FOLLOW
+```typescript
+// ✅ Allowed
+presentation → application, domain
+application → domain, ports
+infrastructure → domain, ports
+
+// ❌ Forbidden
+application → presentation
+domain → application, infrastructure, presentation
+infrastructure → presentation (optional restriction)
+```
+
+## Import Aliases
+```typescript
+// Use these aliases consistently
+import { Invoice } from '@shared/domain/Invoice'
+import { CreateInvoice } from '@modules/billing/application/CreateInvoice'
+import { HttpInvoiceRepo } from '@modules/billing/infrastructure/HttpInvoiceRepo'
+import { InvoiceTable } from '@modules/billing/presentation/components/InvoiceTable.vue'
+```
+
+# Module Example: billing
+
+```
+modules/billing/
+├── domain/
+│   ├── Invoice.ts              # Entity
+│   ├── Money.ts                # Value Object
+│   └── InvoiceRepo.ts          # Port (interface)
+├── application/
+│   ├── CreateInvoice.ts        # Use case
+│   ├── ListInvoices.ts         # Use case
+│   └── types.ts
+├── infrastructure/
+│   ├── HttpInvoiceRepo.ts      # Implements InvoiceRepo
+│   ├── mappers/
+│   │   └── invoice.mapper.ts
+│   └── dto/
+│       └── invoice.dto.ts
+├── presentation/
+│   ├── pages/
+│   │   ├── BillingListPage.vue
+│   │   └── BillingCreatePage.vue
+│   ├── components/
+│   │   ├── InvoiceTable.vue
+│   │   └── InvoiceForm.vue
+│   └── forms/
+│       └── useInvoiceForm.ts   # Composable
+└── index.ts                    # Barrel export
+```
+
+# Stores (Pinia)
+
+## Feature Stores
+Place feature stores inside the feature module:
+- `modules/<feature>/application/<Feature>Store.ts` (business logic)
+- `modules/<feature>/presentation/store.ts` (UI-coupled state)
+
+## Global Stores
+Keep truly global stores in:
+- `app/store/authStore.ts`
+- `app/store/settingsStore.ts`
+
+# Routing
+
+## Feature Routes
+Each module exports its routes:
+```typescript
+// modules/billing/presentation/routes.ts
+export const billingRoutes = [
+  {
+    path: '/billing',
+    component: () => import('./pages/BillingListPage.vue'),
+    meta: { requiresAuth: true }
+  }
+]
+```
+
+## Root Router
+Aggregate all feature routes:
+```typescript
+// app/router/index.ts
+import { billingRoutes } from '@modules/billing/presentation/routes'
+
+const routes = [
+  ...billingRoutes,
+  // ... other modules
+]
+```
+
+# Quasar Integration
+
+## Boot Files
+Configure integrations in `app/boot/`:
+- `axios.ts` - HTTP client setup
+- `auth.ts` - Authentication
+- `sentry.ts` - Error tracking
+- `dayjs.ts` - Date utilities
+
+## Global Styles
+Keep in `app/styles/`:
+- `quasar-variables.sass` - Quasar variable overrides
+- `global.scss` - Global CSS
+
+# Composables
+
+## Feature Composables
+Place inside module's presentation:
+```typescript
+// modules/billing/presentation/forms/useInvoiceForm.ts
+export function useInvoiceForm() {
+  // Feature-specific form logic
+}
+```
+
+## Generic Composables
+Place in shared:
+```typescript
+// shared/presentation/composables/useDebounce.ts
+export function useDebounce<T>(value: Ref<T>, delay: number) {
+  // Generic reusable logic
+}
+```
+
+# Testing
+
+## Unit Tests
+- Domain: Pure and fast
+- Application: Mock ports
+- Infrastructure: MSW/axios-mock
+- Presentation: @vue/test-utils
+
+## Test Location
+```
+tests/
+├── unit/
+│   ├── domain/
+│   ├── application/
+│   ├── infrastructure/
+│   └── presentation/
+└── e2e/
+    └── billing/
+```
+
+# Best Practices
+
+## 1. Feature Isolation
+Keep features self-contained in modules/. Avoid cross-feature dependencies.
+
+## 2. Barrel Exports
+Use index.ts to control public API:
+```typescript
+// modules/billing/index.ts
+export { CreateInvoice } from './application/CreateInvoice'
+export { InvoiceTable } from './presentation/components/InvoiceTable.vue'
+// Don't export internal implementation details
+```
+
+## 3. DTO Mapping
+Always map DTOs in infrastructure layer:
+```typescript
+// infrastructure/mappers/invoice.mapper.ts
+export class InvoiceMapper {
+  static toDomain(dto: InvoiceDTO): Invoice {
+    return new Invoice(dto.id, new Money(dto.amount, dto.currency))
+  }
+  
+  static toDTO(invoice: Invoice): InvoiceDTO {
+    return {
+      id: invoice.id,
+      amount: invoice.money.amount,
+      currency: invoice.money.currency
+    }
+  }
+}
+```
+
+## 4. Prevent Layer Violations
+Use ESLint plugin-boundaries or import/no-restricted-paths:
+```javascript
+// .eslintrc.cjs
+rules: {
+  'boundaries/element-types': ['error', {
+    rules: [
+      { from: 'application', disallow: ['presentation'] },
+      { from: 'domain', disallow: ['application','infrastructure','presentation'] }
+    ]
+  }]
+}
+```
+
+## 5. Pure Domain
+Domain layer must be framework-agnostic:
+```typescript
+// ✅ Good - Pure domain
+export class Invoice {
+  constructor(
+    public readonly id: string,
+    public readonly money: Money
+  ) {}
+}
+
+// ❌ Bad - Framework coupled
+import { Ref } from 'vue'
+export class Invoice {
+  public readonly amount: Ref<number>
+}
+```
+
+# Migration Strategy
+
+When refactoring existing code to this architecture:
+
+1. **Create module structure** for new features
+2. **Move domain models** to domain/ folder
+3. **Extract use cases** to application/ folder
+4. **Move API calls** to infrastructure/ folder
+5. **Keep Vue components** in presentation/ folder
+6. **Update imports** to use aliases
+7. **Add barrel exports** (index.ts)
+
+# Common Patterns
+
+## Repository Pattern
+```typescript
+// domain/InvoiceRepo.ts (interface)
+export interface InvoiceRepo {
+  findById(id: string): Promise<Invoice>
+  save(invoice: Invoice): Promise<void>
+}
+
+// infrastructure/HttpInvoiceRepo.ts (implementation)
+export class HttpInvoiceRepo implements InvoiceRepo {
+  async findById(id: string): Promise<Invoice> {
+    const dto = await api.get(`/invoices/${id}`)
+    return InvoiceMapper.toDomain(dto)
+  }
+}
+```
+
+## Use Case Pattern
+```typescript
+// application/CreateInvoice.ts
+export class CreateInvoice {
+  constructor(private repo: InvoiceRepo) {}
+  
+  async execute(data: CreateInvoiceData): Promise<Invoice> {
+    const invoice = Invoice.create(data)
+    await this.repo.save(invoice)
+    return invoice
+  }
+}
+```
+
+## Composable Pattern
+```typescript
+// presentation/forms/useInvoiceForm.ts
+import { CreateInvoice } from '../../application/CreateInvoice'
+import { HttpInvoiceRepo } from '../../infrastructure/HttpInvoiceRepo'
+
+export function useInvoiceForm() {
+  const repo = new HttpInvoiceRepo()
+  const createInvoice = new CreateInvoice(repo)
+  
+  const submit = async (data: FormData) => {
+    await createInvoice.execute(data)
+  }
+  
+  return { submit }
+}
+```
+
+# Reference
+
+Full documentation: `.docs/frontend/vue-quasar-clean-architecture-structure.md`
