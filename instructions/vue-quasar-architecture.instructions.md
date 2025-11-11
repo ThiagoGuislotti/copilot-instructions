@@ -13,32 +13,48 @@ frontend/src/
 ├── app/                    # Application composition (global)
 │   ├── router/            # Vue Router + guards
 │   ├── store/             # Pinia stores (global only)
-│   ├── i18n/              # Locales and messages
 │   ├── boot/              # Quasar boot files (axios, auth, sentry, dayjs)
 │   ├── styles/            # Global styles (quasar-variables.sass)
 │   └── plugins/           # Vue/Quasar plugins
+├── i18n/                  # Internationalization (global)
+│   ├── index.ts           # vue-i18n configuration
+│   └── locales/           # Translation files (pt-BR.ts, en-US.ts)
 ├── shared/                # Cross-cutting, independent of features
 │   ├── domain/            # Pure types, value objects, errors
 │   ├── application/       # Generic use cases, validators, ports
+│   │   └── services/      # Shared services (NotificationService, FilterService)
 │   ├── infrastructure/    # HTTP clients, storage, logger, gateways
+│   │   └── adapters/      # Shared adapters (QuasarNotificationAdapter)
 │   ├── presentation/      # Reusable UI components (atoms/molecules), icons
+│   │   ├── components/    # Shared components (BaseInput, BaseButton, MetricCard)
+│   │   └── composables/   # Shared composables (useNotification, useFormRules)
 │   ├── utils/             # Pure helpers
-│   ├── constants/
-│   └── dtos/
+│   ├── constants/         # Shared constants
+│   └── dtos/              # Data Transfer Objects
 ├── modules/               # Feature-first modules (isolated by layers)
 │   └── <feature>/
 │       ├── domain/        # Entities, Value Objects, repository contracts
 │       ├── application/   # Feature use cases (services), ports
 │       ├── infrastructure/# Adapters to APIs, mappers, repositories
 │       └── presentation/  # Vue + Quasar pages/components
-│           ├── pages/
-│           ├── components/
-│           └── forms/
-├── layouts/               # Global Quasar layouts
-├── pages/                 # Truly global pages (404, login)
-├── assets/                # Images, fonts
-└── components/            # Global generic components only
+│           ├── pages/     # Feature pages
+│           ├── components/# Feature-specific components
+│           ├── composables/# Feature-specific composables
+│           ├── forms/     # Feature-specific form logic
+│           └── routes.ts  # Feature routes
+├── layouts/               # Global Quasar layouts (MainLayout.vue)
+├── App.vue                # Root component
+└── main.ts                # Application entry point
 ```
+
+## ❌ FORBIDDEN Structures (DO NOT CREATE)
+
+These folders should NOT exist in `frontend/src/`:
+- ❌ `src/pages/` → Pages belong in `modules/<feature>/presentation/pages/`
+- ❌ `src/components/` → Components belong in `shared/presentation/components/` or `modules/<feature>/presentation/components/`
+- ❌ `src/presentation/` → Presentation layer must be inside `shared/` or `modules/`
+- ❌ `src/app/i18n/` → Internationalization is in `src/i18n/` (not inside app/)
+- ❌ `src/composables/` → Composables belong in `shared/presentation/composables/` or feature presentation layer
 
 # Layer Rules
 
@@ -93,34 +109,57 @@ import { HttpInvoiceRepo } from '@modules/billing/infrastructure/HttpInvoiceRepo
 import { InvoiceTable } from '@modules/billing/presentation/components/InvoiceTable.vue'
 ```
 
-# Module Example: billing
+# Module Example: demo
 
 ```
-modules/billing/
+modules/demo/
 ├── domain/
-│   ├── Invoice.ts              # Entity
-│   ├── Money.ts                # Value Object
-│   └── InvoiceRepo.ts          # Port (interface)
+│   ├── DemoEntity.ts           # Entity (if needed)
+│   └── types.ts                # Domain types
 ├── application/
-│   ├── CreateInvoice.ts        # Use case
-│   ├── ListInvoices.ts         # Use case
-│   └── types.ts
+│   ├── DemoService.ts          # Use case/Service
+│   └── types.ts                # Application types
 ├── infrastructure/
-│   ├── HttpInvoiceRepo.ts      # Implements InvoiceRepo
+│   ├── HttpDemoRepo.ts         # Repository implementation
 │   ├── mappers/
-│   │   └── invoice.mapper.ts
+│   │   └── demo.mapper.ts      # DTO ↔ Domain mapping
 │   └── dto/
-│       └── invoice.dto.ts
+│       └── demo.dto.ts         # Backend DTOs
 ├── presentation/
 │   ├── pages/
-│   │   ├── BillingListPage.vue
-│   │   └── BillingCreatePage.vue
+│   │   └── DemoPage.vue        # Feature page
 │   ├── components/
-│   │   ├── InvoiceTable.vue
-│   │   └── InvoiceForm.vue
-│   └── forms/
-│       └── useInvoiceForm.ts   # Composable
+│   │   ├── MetricCard.vue      # Feature-specific component
+│   │   └── DataTable.vue
+│   ├── composables/
+│   │   └── useDemoData.ts      # Feature-specific composable
+│   └── routes.ts               # Feature routes
 └── index.ts                    # Barrel export
+```
+
+## Shared Components Example
+
+```
+shared/presentation/
+├── components/
+│   ├── ui/
+│   │   ├── BaseButton.vue      # Generic button
+│   │   ├── BaseCard.vue        # Generic card
+│   │   ├── MetricCard.vue      # Reusable metric card
+│   │   ├── InfoCard.vue        # Reusable info card
+│   │   ├── ChartCard.vue       # Reusable chart card
+│   │   └── SectionHeader.vue   # Section headers
+│   └── form/
+│       ├── BaseInput.vue       # Generic input
+│       ├── BaseSelect.vue      # Generic select
+│       ├── BaseTextarea.vue    # Generic textarea
+│       ├── BaseDatePicker.vue  # Date picker
+│       └── BaseTimePicker.vue  # Time picker
+└── composables/
+    ├── useNotification.ts      # Wrapper for NotificationService
+    ├── useFormRules.ts         # Wrapper for FormValidationService
+    ├── useFilters.ts           # Wrapper for FilterService
+    └── useDebounce.ts          # Generic utilities
 ```
 
 # Stores (Pinia)
