@@ -25,6 +25,9 @@ test('user can login', async ({ page }) => {
 - **Act**: Execute ONE operation being tested
 - **Assert**: Verify ONE logical outcome (multiple assertions OK if related)
 - **Comments**: Add explanatory note below AAA marker ONLY for critical/complex logic
+  - Simple operations: NO extra comments needed
+  - Complex logic: Add brief explanation of WHY or WHAT makes it critical
+  - Avoid: Redundant descriptions of obvious operations
 
 ```csharp
 // C# Example
