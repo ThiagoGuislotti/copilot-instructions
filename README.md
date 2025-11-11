@@ -18,7 +18,7 @@ This directory solves the problem of inconsistent AI responses and low productiv
 
 ---
 
-## Table of Contents
+## Contents
 
 - [Introduction](#introduction)
 - [Installation](#installation)
