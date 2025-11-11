@@ -18,22 +18,58 @@ test('user can login', async ({ page }) => {
 ```
 
 # Test Structure
-AAA pattern; isolated setup/teardown; test data factories; page object model for UI; reusable API clients; avoid inter‑test dependencies; appropriate timeouts.
+**MANDATORY AAA Pattern**: All tests MUST follow Arrange-Act-Assert pattern for clarity and maintainability.
+
+**AAA Rules (Universal - All Languages)**:
+- **Arrange**: Setup test data, mocks, preconditions, and initial state
+- **Act**: Execute ONE operation being tested
+- **Assert**: Verify ONE logical outcome (multiple assertions OK if related)
+- **Comments**: Add explanatory note below AAA marker ONLY for critical/complex logic
+
 ```csharp
+// C# Example
 [Test]
 public async Task Should_CreateOrder()
 {
     // Arrange
+    // Setup: prepare API client and valid order
     var client = _factory.CreateClient();
     var order = OrderFactory.CreateValid();
 
     // Act
+    // Execute: send POST request
     var response = await client.PostAsJsonAsync("/orders", order);
 
     // Assert
+    // Verify: successful creation with correct status
     response.StatusCode.Should().Be(HttpStatusCode.Created);
+    var created = await response.Content.ReadAsAsync<Order>();
+    created.Id.Should().BeGreaterThan(0);
 }
 ```
+
+```typescript
+// TypeScript/Playwright Example
+test('user can complete checkout', async ({ page }) => {
+  // Arrange
+  // Setup: login and add items to cart
+  await loginAsUser(page, 'customer@test.com');
+  await addItemToCart(page, 'product-123');
+
+  // Act
+  // Execute: complete checkout process
+  await page.click('[data-testid="checkout-btn"]');
+  await fillPaymentDetails(page);
+  await page.click('[data-testid="place-order"]');
+
+  // Assert
+  // Critical: verify order confirmation and inventory update
+  await expect(page.locator('[data-testid="order-success"]')).toBeVisible();
+  await expect(page).toHaveURL(/\/orders\/\d+/);
+});
+```
+
+**Additional Requirements**: Isolated setup/teardown; test data factories; page object model for UI; reusable API clients; avoid inter‑test dependencies; appropriate timeouts.
 
 # Environment
 Dedicated E2E environment; clean data per run; stage‑specific env vars; dynamic URLs; secure credentials via secrets; automated DB seeding; automatic rollback.

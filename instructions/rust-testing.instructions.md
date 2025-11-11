@@ -106,30 +106,77 @@ use crate::{Module, Types};
 use std::...;
 ```
 
-### Test Groups
-Organize tests into logical groups with comments:
+### Test Groups and AAA Pattern
+
+**MANDATORY**: All tests MUST use AAA (Arrange, Act, Assert) pattern with Rust idiomatic style:
+
 ```rust
-// ============================================================================
 // Happy Path Tests
-// ============================================================================
 
 #[test]
-fn test_function_success() { }
+fn test_function_success() {
+    // Arrange
+    // Setup: prepare test data, mocks, and initial state
+    let input = "test";
+    let expected = "expected_result";
 
-// ============================================================================
+    // Act
+    // Execute: run the code under test
+    let result = function(input);
+
+    // Assert
+    // Verify: check the results match expectations
+    assert_eq!(result, expected);
+}
+
 // Error Handling Tests
-// ============================================================================
 
 #[test]
-fn test_function_invalid_input() { }
+fn test_function_invalid_input() {
+    // Arrange
+    let invalid_input = "";
 
-// ============================================================================
+    // Act
+    let result = function(invalid_input);
+
+    // Assert
+    // Critical: must return specific error type
+    assert!(result.is_err());
+    assert!(matches!(result.unwrap_err(), Error::InvalidInput));
+}
+
 // Edge Cases
-// ============================================================================
 
 #[test]
-fn test_function_empty_input() { }
+fn test_function_boundary_condition() {
+    // Arrange
+    // Critical: test maximum allowed value
+    let boundary_value = usize::MAX;
+
+    // Act
+    let result = function(boundary_value);
+
+    // Assert
+    assert!(result.is_ok());
+}
 ```
+
+**AAA Pattern Rules**:
+1. **Arrange**: Setup all test data, mocks, and preconditions
+2. **Act**: Execute ONE operation (the code being tested)
+3. **Assert**: Verify ONE logical concept (may have multiple assert statements)
+4. **Comments**: Add explanatory comment below AAA marker ONLY when:
+   - Critical business logic requires explanation
+   - Complex setup needs clarification
+   - Non-obvious assertion logic
+   - Security or data integrity concerns
+
+**Style Guidelines**:
+- ✅ Use simple comment separators (e.g., `// Happy Path Tests`)
+- ❌ NO decorative separators (e.g., `// ============`)
+- ✅ Blank line between AAA sections for readability
+- ✅ One blank line between tests
+- ✅ Group related tests under descriptive section comments
 
 ## Critical Test Coverage
 
@@ -137,23 +184,40 @@ fn test_function_empty_input() { }
 ```rust
 #[test]
 fn test_error_display_[variant]() {
+    // Arrange
     let error = Error::Variant("detail".to_string());
-    assert_eq!(error.to_string(), "expected message");
+
+    // Act
+    let display = error.to_string();
+
+    // Assert
+    assert_eq!(display, "expected message");
 }
 
 #[test]
 fn test_error_from_[source_type]() {
+    // Arrange
     let source = SourceError::new();
+
+    // Act
     let error = Error::from(source);
+
+    // Assert
     assert!(matches!(error, Error::Variant(_)));
 }
 
 #[test]
 fn test_error_propagation() {
+    // Arrange
     fn fail() -> Result<()> {
         Err(Error::Variant("test".to_string()))
     }
-    assert!(fail().is_err());
+
+    // Act
+    let result = fail();
+
+    // Assert
+    assert!(result.is_err());
 }
 ```
 
@@ -161,14 +225,19 @@ fn test_error_propagation() {
 ```rust
 #[tokio::test]
 async fn test_async_operation_success() {
+    // Act
     let result = async_function().await;
+
+    // Assert
     assert!(result.is_ok());
 }
 
 #[tokio::test]
 async fn test_async_operation_timeout() {
+    // Arrange
     use tokio::time::{timeout, Duration};
 
+    // Act
     let result = timeout(
         Duration::from_millis(10),
         slow_operation()
