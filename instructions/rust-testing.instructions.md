@@ -39,7 +39,7 @@ Every crate MUST have `tests/error_tests.rs` testing:
 - Error propagation with `?` operator
 - Result type alias (if exists)
 
-**Template:** `.github/templates/error_tests_template.rs`
+**Template:** `.github/templates/rust-error-tests-template.rs`
 
 ### 2. integration_tests.rs (RECOMMENDED)
 For crates with multi-component workflows:
@@ -48,7 +48,7 @@ For crates with multi-component workflows:
 - Real dependency usage (filesystem, network)
 - Idempotency tests
 
-**Template:** `.github/templates/integration_tests_template.rs`
+**Template:** `.github/templates/rust-integration-tests-template.rs`
 
 ### 3. [module]_tests.rs (REQUIRED)
 One test file per public module testing:
@@ -58,7 +58,7 @@ One test file per public module testing:
 - Edge cases (empty, boundary, unicode, special chars)
 - Trait implementations (Debug, Clone, PartialEq)
 
-**Template:** `.github/templates/unit_tests_template.rs`
+**Template:** `.github/templates/rust-unit-tests-template.rs`
 
 ### 4. Async Tests (when applicable)
 For async code:
@@ -68,7 +68,7 @@ For async code:
 - Test cancellation
 - Test concurrent execution
 
-**Template:** `.github/templates/async_tests_template.rs`
+**Template:** `.github/templates/rust-async-tests-template.rs`
 
 ## Naming Conventions
 

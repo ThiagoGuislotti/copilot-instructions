@@ -74,12 +74,17 @@
     "workbench.iconTheme": "material-icon-theme",
     "workbench.activityBar.location": "default",
     "workbench.settings.enableNaturalLanguageSearch": true,
+    "workbench.tree.renderIndentGuides": "always",
+    "workbench.tree.indent": 20,
 
     // EXPLORER & FILES - File management and explorer
     // https://code.visualstudio.com/docs/getstarted/userinterface#_explorer
     "explorer.compactFolders": false,
     "explorer.confirmDelete": false,
     "explorer.confirmDragAndDrop": false,
+    "explorer.sortOrder": "type",
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.expand": false,
     "files.encoding": "utf8",
     "files.autoGuessEncoding": false,
     "files.eol": "\n",
@@ -116,6 +121,9 @@
         "*.h": "cpp",
         "*.hpp": "cpp",
         "*.swift": "swift"
+    },
+    "files.exclude": {
+        "**/.git": false
     },
 
     // PERFORMANCE - Performance optimizations and exclusions
@@ -156,6 +164,16 @@
     "git.allowForcePush": false,
     "git.branchProtection": ["main", "master", "develop"],
     "git.detectWorktrees": true,
+    "git.enabled": true,
+    "git.autorefresh": true,
+    "git.detectSubmodules": true,
+    "git.detectSubmodulesLimit": 10,
+    "scm.repositories.visible": 10,
+    "scm.defaultViewMode": "tree",
+    "scm.defaultViewSortKey": "name",
+    "scm.repositories.sortOrder": "discovery time",
+    "scm.providerViewMode": "tree",
+    "scm.alwaysShowProviders": true,
 
     // GITHUB - GitHub integration
     // https://code.visualstudio.com/docs/sourcecontrol/github

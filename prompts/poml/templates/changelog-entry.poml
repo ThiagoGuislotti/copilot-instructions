@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Template: CHANGELOG Entry Generator (POML)
+  Purpose: Generate semantic versioning compliant CHANGELOG entries
+  Version: 1.0.0
+  Owner: DevOps Team
+  Updated: 2025-11-15
+-->
+<prompt>
+  <meta
+    version="1.0.0"
+    owner="devops-team"
+    updated="2025-11-15"
+    llm="gpt-4"
+    temperature="0.2"
+    maxTokens="1000"
+    costTarget="0.01"
+    latencyTarget="3s"
+  />
+
+  <use style="../styles/enterprise.poml" />
+
+  <role>Technical documentation specialist with expertise in semantic versioning and changelog best practices.</role>
+
+  <task>
+    Generate a CHANGELOG entry following Keep a Changelog 1.1.0 format and Semantic Versioning 2.0.0.
+    Analyze provided changes and categorize them appropriately.
+  </task>
+
+  <context>
+    <documents>
+      <variable name="gitDiff" type="string" required="true" />
+      <variable name="version" type="string" required="true" pattern="^\d+\.\d+\.\d+$" />
+      <variable name="existingChangelog" type="string" required="false" />
+    </documents>
+  </context>
+
+  <constraints>
+    <item>Follow Keep a Changelog format strictly</item>
+    <item>Use only standard categories: Added, Changed, Deprecated, Removed, Fixed, Security</item>
+    <item>Reference specific files with backticks when relevant</item>
+    <item>Use imperative mood for descriptions</item>
+    <item>Group related changes logically</item>
+    <item>Maintain consistency with existing changelog entries</item>
+    <item>Use ISO 8601 date format (YYYY-MM-DD)</item>
+    <item>Be concise but technically accurate</item>
+  </constraints>
+
+  <output format="markdown">
+## [{{version}}] - {{date}}
+
+### Added
+- {{item}}
+
+### Changed
+- {{item}}
+
+### Deprecated
+- {{item}}
+
+### Removed
+- {{item}}
+
+### Fixed
+- {{item}}
+
+### Security
+- {{item}}
+  </output>
+
+  <examples>
+    <example>
+      <input>
+        <version>1.2.0</version>
+        <gitDiff>
+          + Added new DynamicFilterBuilder class in src/NetToolsKit.DynamicQuery/
+          + Added support for complex nested filters
+          ~ Updated FilterOperator enum with new IN and NOT_IN operators
+          - Removed deprecated StringFilter class
+          * Fixed null reference exception in QueryBuilder.Build()
+        </gitDiff>
+      </input>
+      <output>
+## [1.2.0] - 2025-11-15
+
+### Added
+- New `DynamicFilterBuilder` class for fluent filter construction
+- Support for complex nested filters with AND/OR logic
+- `IN` and `NOT_IN` operators to `FilterOperator` enum
+
+### Changed
+- Updated `FilterOperator` enum with additional comparison operators
+
+### Removed
+- Deprecated `StringFilter` class (use `DynamicFilterBuilder` instead)
+
+### Fixed
+- Null reference exception in `QueryBuilder.Build()` method
+      </output>
+    </example>
+
+    <example>
+      <input>
+        <version>0.1.5</version>
+        <gitDiff>
+          * Fixed authentication middleware timeout issue
+          * Fixed CORS policy not applying to API endpoints
+        </gitDiff>
+      </input>
+      <output>
+## [0.1.5] - 2025-11-15
+
+### Fixed
+- Authentication middleware timeout causing session invalidation
+- CORS policy not applying correctly to API endpoints
+      </output>
+    </example>
+  </examples>
+
+  <notes>
+    This template follows:
+    - Keep a Changelog 1.1.0: https://keepachangelog.com/
+    - Semantic Versioning 2.0.0: https://semver.org/
+    - Repository conventions in .github/instructions/feedback-changelog.instructions.md
+
+    Categories usage:
+    - Added: New features, capabilities, or files
+    - Changed: Modifications to existing functionality
+    - Deprecated: Features marked for removal (with migration path)
+    - Removed: Deleted features or files
+    - Fixed: Bug fixes and corrections
+    - Security: Vulnerability fixes and security improvements
+
+    Omit empty categories from output.
+  </notes>
+</prompt>

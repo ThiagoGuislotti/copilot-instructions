@@ -2,7 +2,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
 #if UNIT_XUNIT
 using Xunit;
 using Xunit.Abstractions;
