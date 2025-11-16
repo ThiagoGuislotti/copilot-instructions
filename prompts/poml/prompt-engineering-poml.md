@@ -1,4 +1,4 @@
-# Prompt Engineering for Developers + POML (Practical Guide)
+<!-- # Prompt Engineering for Developers + POML (Practical Guide) -->
 
 ## 1) Objective
 Deliver a straightforward usage manual for designing, versioning, and operating prompts in products. Focus: CoT, SoT, ToT, Self-Consistency, and POML.
