@@ -55,6 +55,7 @@ These folders should NOT exist in `frontend/src/`:
 - ❌ `src/presentation/` → Presentation layer must be inside `shared/` or `modules/`
 - ❌ `src/app/i18n/` → Internationalization is in `src/i18n/` (not inside app/)
 - ❌ `src/composables/` → Composables belong in `shared/presentation/composables/` or feature presentation layer
+- ❌ `src/samples/` → Demo/sample code should not duplicate `shared/` or module code. Remove immediately if found.
 
 # Layer Rules
 
@@ -140,14 +141,20 @@ modules/demo/
 ## Shared Components Example
 
 ```
-shared/presentation/
-├── components/
-│   ├── ui/
-│   │   ├── BaseButton.vue      # Generic button
-│   │   ├── BaseCard.vue        # Generic card
-│   │   ├── MetricCard.vue      # Reusable metric card
-│   │   ├── InfoCard.vue        # Reusable info card
-│   │   ├── ChartCard.vue       # Reusable chart card
+shared/
+├── src/
+│   └── styles/
+│       ├── design-system.scss  # CSS variables, design tokens, utility classes
+│       ├── global.scss         # Global base styles, reset, typography
+│       └── quasar-variables.scss # Quasar customization
+├── presentation/
+│   ├── components/
+│   │   ├── ui/
+│   │   │   ├── BaseButton.vue      # Generic button
+│   │   │   ├── BaseCard.vue        # Generic card
+│   │   │   ├── MetricCard.vue      # Reusable metric card
+│   │   │   ├── InfoCard.vue        # Reusable info card
+│   │   │   ├── ChartCard.vue       # Reusable chart card
 │   │   └── SectionHeader.vue   # Section headers
 │   └── form/
 │       ├── BaseInput.vue       # Generic input
@@ -257,6 +264,14 @@ tests/
 
 # Best Practices
 
+## 0. CSS Organization
+- **Always prefer Quasar utility classes** (`row`, `column`, `items-center`, `q-gutter-md`) over custom CSS
+- Keep component-specific CSS in `<style scoped>` within .vue files (Vue 3 best practice)
+- Separate files only for: design tokens (design-system.scss), global resets (global.scss), Quasar variables
+- Add utility classes to design-system.scss sparingly - prefer Quasar classes first
+- Before writing custom CSS, check if Quasar provides the functionality
+- Document why custom CSS is needed with comments in the code
+
 ## 1. Feature Isolation
 Keep features self-contained in modules/. Avoid cross-feature dependencies.
 
@@ -331,6 +346,9 @@ When refactoring existing code to this architecture:
 5. **Keep Vue components** in presentation/ folder
 6. **Update imports** to use aliases
 7. **Add barrel exports** (index.ts)
+8. **Remove code duplication**: Check for duplicate directories (e.g., `samples/` duplicating `shared/`)
+9. **Refactor CSS**: Replace custom flexbox with Quasar classes, keep scoped styles in .vue files
+10. **Add design system utilities**: Create reusable utilities in design-system.scss only when Quasar doesn't provide them
 
 # Common Patterns
 

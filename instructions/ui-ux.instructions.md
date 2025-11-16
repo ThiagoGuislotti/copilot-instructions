@@ -8,8 +8,22 @@ applyTo: "**/*.{html,css,scss,js,ts,jsx,tsx,vue}"
 - Use clamp() for fluid sizing
 - Avoid very thin fonts
 - Spacing base 8px (4px for dense)
-- Consistent tokens
+- Consistent tokens in `design-system.scss`
+- **CSS variables for colors, spacing, typography** - centralize in design-system.scss
+- **Quasar utility classes first** - prefer built-in classes over custom CSS
 ```css
+/* design-system.scss - CSS Variables */
+:root {
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  
+  --text-dark: #1a1a1a;
+  --text-light: #6b7280;
+  --bg-white: #ffffff;
+}
+
 body {
   font-size: clamp(14px, 1.5vw, 16px);
   line-height: 1.5;
@@ -20,10 +34,26 @@ body {
 # Colors
 - WCAG AA contrast >= 4.5:1 (normal text) and >= 3:1 (headings >= 18px or semibold)
 - Never rely on color alone for states
-- Include icon/text
+- Include icon/text for visual clarity
 - Validate light and dark mode
-```css
-/* error button in red with “!” icon and text “Save failed” */
+- **Use Quasar color props** when possible: `color="primary"`, `color="warning"`, `color="negative"`
+- **Custom colors via CSS variables** for brand-specific needs
+```vue
+<!-- ✅ Quasar color props -->
+<q-btn label="Clear" color="warning" />
+<q-btn label="Save" color="primary" />
+
+<!-- ✅ Custom colors with CSS variables + icons -->
+<q-btn label="Delete" class="btn-danger">
+  <q-icon name="delete" /> Delete
+</q-btn>
+
+<style scoped>
+.btn-danger {
+  background-color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+</style>
 ```
 
 # Accessibility
@@ -40,17 +70,26 @@ body {
 ```
 
 # Responsiveness
-- Mobile-first
+- Mobile-first approach
 - Minimum touch target 44x44
-- Gap >= 8px between targets
+- Gap >= 8px between targets (use `q-gutter-sm` or larger)
 - Adjustable density
 - Layouts responsive via stack/scroll/cards
-```css
-.btn {
-  min-width: 44px;
-  min-height: 44px;
-  margin-right: 8px;
-}
+- **Use Quasar responsive utilities**: `col`, `col-md-6`, `col-xs-12`
+- **Use Quasar spacing**: `q-gutter-sm`, `q-gutter-md`, `q-mb-lg`, `q-pa-md`
+```vue
+<!-- ✅ Quasar responsive grid + spacing -->
+<div class="row q-gutter-md">
+  <div class="col-xs-12 col-md-6">
+    <q-btn label="Action" class="full-width" />
+  </div>
+  <div class="col-xs-12 col-md-6">
+    <q-btn label="Cancel" class="full-width" />
+  </div>
+</div>
+
+<!-- ✅ Minimum touch target with Quasar -->
+<q-btn size="md" style="min-width: 44px; min-height: 44px;" />
 ```
 
 # Content
