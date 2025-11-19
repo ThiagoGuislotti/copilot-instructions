@@ -17,6 +17,8 @@ All code must follow these testing standards to ensure quality and maintainabili
 
 ## File Organization
 
+**MANDATORY PATTERN**: All crates MUST use `test_suite.rs` as the entry point.
+
 ```
 crates/my-crate/
 ├── src/
@@ -24,10 +26,40 @@ crates/my-crate/
 │   ├── module.rs          # May have inline tests for private functions
 │   └── error.rs
 └── tests/
+    ├── test_suite.rs      # REQUIRED: Main test entry point
     ├── error_tests.rs     # REQUIRED for all crates
     ├── module_tests.rs    # Unit tests for public API
     └── integration_tests.rs
 ```
+
+### test_suite.rs Structure (REQUIRED)
+
+Every crate MUST have `tests/test_suite.rs` as the single test entry point:
+
+```rust
+//! [Crate Name] Test Suite Entry Point
+//!
+//! Main test suite aggregator for [crate-name] crate.
+//! All module tests are organized to mirror the src/ directory structure.
+
+// Module-specific test suites
+mod error_tests;
+mod module_tests;
+mod integration_tests;
+
+// For subdirectories, use #[path] attribute:
+#[path = "subdir/mod.rs"]
+mod subdir;
+```
+
+**Critical Rules**:
+1. ✅ **ALWAYS** use `test_suite.rs` as the entry point
+2. ✅ Import all test modules in test_suite.rs
+3. ✅ Mirror src/ structure in tests/
+4. ✅ Use `#[path]` for subdirectories
+5. ❌ **NEVER** use `lib.rs` in tests/
+6. ❌ **NEVER** use individual test files without test_suite.rs
+7. ❌ **NEVER** use Cargo.toml `[[test]]` sections (except for special cases)
 
 ## Required Test Files
 
@@ -386,6 +418,49 @@ fn test_public_api_contract() {
     // Testing observable behavior
 }
 ```
+
+## Critical: Cargo test discovery rules
+
+**WARNING**: Cargo treats ANY `.rs` file in `tests/` as an independent integration test binary!
+
+### ❌ WRONG - Cargo runs each file independently
+```
+tests/
+├── error_tests.rs    # ❌ Treated as separate test binary
+├── module_tests.rs   # ❌ Treated as separate test binary
+└── common/
+    └── mod.rs        # ✅ OK - subdirectory not treated as test
+```
+
+### ✅ CORRECT - Use test_suite.rs as entry point
+```
+tests/
+├── test_suite.rs     # ✅ ONLY test binary
+├── common/
+│   └── mod.rs        # ✅ Helper module
+└── modules/
+    ├── errors.rs     # ✅ Imported by test_suite.rs
+    └── module.rs     # ✅ Imported by test_suite.rs
+```
+
+**Key Rules**:
+1. Only `test_suite.rs` should be at tests/ root level
+2. All other `.rs` files MUST be in subdirectories
+3. Use `pub mod` in test_suite.rs for subdirectories
+4. Never use `[[test]]` sections in Cargo.toml (except special cases)
+5. Files in subdirectories are treated as modules, not test binaries
+
+## Verification Checklist
+
+Before completing ANY test-related work, verify:
+
+- [ ] `tests/test_suite.rs` exists and is the ONLY .rs file at root level
+- [ ] All test modules are in `tests/modules/` or similar subdirectory
+- [ ] test_suite.rs imports ALL test modules (no orphaned files)
+- [ ] Shared utilities in `tests/common/` or similar
+- [ ] No `[[test]]` sections in Cargo.toml
+- [ ] Run `cargo test --package <crate>` to confirm all tests execute
+- [ ] Verify test count matches expected (no missing tests)
 
 ## Resources
 
