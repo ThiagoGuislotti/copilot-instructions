@@ -1,6 +1,12 @@
 # Global Instructions
 
-Language: EN for code/commits; pt-BR UI via i18n; EN database schema.
+Language: pt-BR for chat; EN for code/commits/docs/UI/database; pt-BR i18n output.
+
+# Language Policy
+- Chat/Conversation: pt-BR (Portuguese) - all responses to user in chat
+- Code/Commits/Docs: EN (English) - all technical content
+- UI: EN (English) keys/structure; pt-BR translations via i18n for end users
+- Database: EN (English) - schema, table names, column names
 
 # Hierarchy and Scope
 - Global rules live here and are always applied.
