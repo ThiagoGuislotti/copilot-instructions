@@ -1,16 +1,16 @@
 # Copilot Instructions
 
-Structured AI agent guidelines for .NET projects using Clean Architecture and CQRS patterns. Eliminates inconsistent AI responses and boosts productivity through hierarchical instruction files, domain-specific conventions, and reusable prompt templates.
+Structured AI agent guidelines for software projects covering .NET, Rust, Vue.js, and DevOps. Eliminates inconsistent AI responses and boosts productivity through hierarchical instruction files, domain-specific conventions, and reusable prompt templates.
 
 ## Features
 
 ✅ **Hierarchical Instruction Structure:** Solution-level → Global → Domain-specific guidelines
-✅ **Complete Domain Coverage:** C#/.NET, Clean Architecture, frontend, backend, DevOps, testing
-✅ **Convention Standardization:** Namespaces, test patterns, commit messages, file organization
-✅ **Tool Integration:** Git workflows, .NET CLI commands, CI/CD pipelines
-✅ **Custom VS Code Chat Modes:** Specialized workflows for architecture review and instruction creation
-✅ **Reusable Prompt Templates:** POML-based templates for common development tasks
-✅ **Prompt Engineering Framework:** CoT, SoT, ToT, Self-Consistency patterns with POML support
+✅ **Multi-Stack Coverage:** .NET/C#, Rust, Vue.js/Quasar, Docker, Kubernetes, databases
+✅ **Architecture Patterns:** Clean Architecture, CQRS, DDD, microservices
+✅ **Convention Standardization:** Code style, test patterns, commits, file organization
+✅ **Tool Integration:** Git, CLI tools, CI/CD pipelines, static analysis
+✅ **Custom Chat Modes:** Architecture review, instruction generation
+✅ **Prompt Templates:** POML-based templates with CoT, SoT, ToT patterns
 
 ---
 
@@ -18,12 +18,10 @@ Structured AI agent guidelines for .NET projects using Clean Architecture and CQ
 
 - [Installation](#installation)
 - [Quick Start](#quick-start)
-- [Directory Structure](#directory-structure)
 - [Usage Examples](#usage-examples)
 - [Chat Modes](#chat-modes)
 - [Prompt Templates](#prompt-templates)
 - [API Reference](#api-reference)
-- [Contributing](#contributing)
 - [Dependencies](#dependencies)
 - [References](#references)
 
@@ -66,140 +64,65 @@ cd copilot-instructions
    cp AGENTS.md copilot-instructions.md /your/project/.github/
    ```
 
-2. **Adapt AGENTS.md** for your solution structure
+2. **Adapt AGENTS.md** for your project structure
 
-3. **Select domain instructions:**
+3. **Select relevant instructions:**
    ```bash
-   # For .NET backend
-   cp instructions/dotnet-csharp.instructions.md /your/project/.github/instructions/
-   cp instructions/clean-architecture-code.instructions.md /your/project/.github/instructions/
+   # .NET project
+   cp instructions/{dotnet-csharp,clean-architecture-code,backend}.instructions.md /your/project/.github/instructions/
 
-   # For frontend
-   cp instructions/frontend.instructions.md /your/project/.github/instructions/
+   # Rust project
+   cp instructions/rust-testing.instructions.md /your/project/.github/instructions/
+
+   # Frontend project
+   cp instructions/{frontend,vue-quasar,ui-ux}.instructions.md /your/project/.github/instructions/
+
+   # DevOps
+   cp instructions/{docker,k8s,ci-cd-devops}.instructions.md /your/project/.github/instructions/
    ```
 
 ### First AI Interaction
 
 ```text
-# In GitHub Copilot Chat
-"Refactor this class following clean-architecture-code.instructions.md and dotnet-csharp.instructions.md"
-```
-
----
-
-## Directory Structure
-
-```
-.github/
-├── AGENTS.md                        # Agent policies, workflow patterns, context rules
-├── copilot-instructions.md          # Global rules, domain mapping, repository overview
-├── CHANGELOG.md                     # Version history for .github directory
-├── LICENSE                          # MIT License
-├── README.md                        # This file
-├── chatmodes/
-│   ├── clean-architecture-review.chatmode.md    # Architecture compliance reviewer
-│   └── instruction-writer.chatmode.md           # Instruction file generator
-├── instructions/
-│   ├── ai-orchestration.instructions.md         # AI workflow optimization
-│   ├── backend.instructions.md                  # Backend API patterns
-│   ├── ci-cd-devops.instructions.md             # CI/CD and DevOps practices
-│   ├── clean-architecture-code.instructions.md  # Clean Architecture patterns
-│   ├── copilot-instruction-creation.instructions.md  # Meta-instructions
-│   ├── database.instructions.md                 # Database design patterns
-│   ├── docker.instructions.md                   # Container best practices
-│   ├── dotnet-csharp.instructions.md            # C# and .NET conventions
-│   ├── e2e-testing.instructions.md              # End-to-end testing
-│   ├── effort-estimation-ucp.instructions.md    # Use Case Points estimation
-│   ├── feedback-changelog.instructions.md       # Changelog management
-│   ├── frontend.instructions.md                 # Frontend patterns
-│   ├── k8s.instructions.md                      # Kubernetes guidelines
-│   ├── microservices-performance.instructions.md # Microservices optimization
-│   ├── orm.instructions.md                      # ORM (EF Core) patterns
-│   ├── powershell-execution.instructions.md     # PowerShell automation
-│   ├── pr.instructions.md                       # Pull request guidelines
-│   ├── prompt-templates.instructions.md         # Prompt engineering standards
-│   ├── readme.instructions.md                   # README writing guidelines
-│   ├── rust-testing.instructions.md             # Rust testing patterns
-│   ├── static-analysis-sonarqube.instructions.md # Code quality analysis
-│   ├── ui-ux.instructions.md                    # UI/UX design patterns
-│   ├── vue-quasar.instructions.md               # Vue.js + Quasar framework
-│   └── workflow-optimization.instructions.md    # Development workflow optimization
-├── prompts/
-│   ├── create-dotnet-class.prompt.md            # .NET class generator
-│   ├── generate-changelog.prompt.md             # Changelog entry generator
-│   ├── generate-unit-tests.prompt.md            # Unit test generator
-│   └── poml/
-│       ├── prompt-engineering-poml.md           # Complete POML guide
-│       ├── README.md                            # POML documentation
-│       ├── styles/
-│       │   └── enterprise.poml                  # Enterprise style definitions
-│       └── templates/
-│           ├── changelog-entry.poml             # CHANGELOG POML template
-│           └── unit-test-generator.poml         # Test generation POML template
-├── scripts/
-│   ├── deploy/                                  # Deployment automation
-│   ├── doc/                                     # Documentation tooling
-│   ├── maintenance/                             # Maintenance scripts
-│   └── tests/                                   # Test automation
-└── templates/
-    ├── changelog-entry-template.md              # Changelog entry template
-    ├── docker-compose-template.yml              # Docker Compose template
-    ├── dotnet-class-template.cs                 # .NET class template
-    ├── dotnet-dockerfile-template               # .NET Dockerfile template
-    ├── dotnet-integration-test-template.cs      # Integration test template
-    ├── dotnet-interface-template.cs             # .NET interface template
-    ├── dotnet-unit-test-template.cs             # Unit test template
-    ├── effort-estimation-poc-mvp-template.md    # Effort estimation template
-    ├── github-change-checklist-template.md      # PR checklist template
-    ├── readme-template.md                       # Standard README template
-    ├── rust-async-tests-template.rs             # Rust async test template
-    ├── rust-error-tests-template.rs             # Rust error test template
-    ├── rust-integration-tests-template.rs       # Rust integration test template
-    └── rust-unit-tests-template.rs              # Rust unit test template
+# In GitHub Copilot Chat (reference loaded instruction files)
+"Refactor following dotnet-csharp.instructions.md conventions"
+"Generate Rust tests using rust-testing.instructions.md patterns"
+"Review architecture compliance per clean-architecture-code.instructions.md"
 ```
 
 ---
 
 ## Usage Examples
 
-### Code Refactoring with Instructions
+### Code Refactoring (.NET)
 
 ```text
-# Select code snippet in editor
-# Open GitHub Copilot Chat
-"Refactor to C# 12 with sealed classes, file-scoped namespaces, and XML docs following dotnet-csharp.instructions.md"
+"Refactor to C# 12 with sealed classes and file-scoped namespaces per dotnet-csharp.instructions.md"
+```
+
+### Test Generation (Rust)
+
+```text
+"Generate async tests for this module following rust-testing.instructions.md patterns"
 ```
 
 ### Architecture Review
 
 ```text
-# In VS Code Chat, select clean-architecture-review mode
-"Review this OrderService class for SOLID principles and Clean Architecture compliance"
+@clean-architecture-review "Analyze this service for SOLID violations"
 ```
 
-### Generate New Instruction File
+### Component Generation (Vue)
 
 ```text
-# In VS Code Chat, select instruction-writer mode
-"Create new instruction file for GraphQL API guidelines including schema design, resolvers, and error handling"
+"Create Quasar component with Composition API per vue-quasar.instructions.md"
 ```
 
 ### Using Prompt Templates
 
 ```text
-# Open prompts/create-dotnet-class.prompt.md
-# Replace ${input:className}, ${input:namespace}, ${input:layer}
-# Execute in Chat:
-"Create sealed class OrderService in NetToolsKit.Domain.Orders namespace for Domain layer with XML docs and validation"
-```
-
-### POML-Based Template Usage
-
-```csharp
-// Use POML templates programmatically
-var renderer = new PomlRenderer();
-var input = new { version = "1.2.0", gitDiff = "..." };
-var result = await renderer.RenderAsync("changelog-entry.poml", input);
+# Reference prompts/generate-unit-tests.prompt.md
+"Generate xUnit tests for OrderService with AAA pattern and mocking"
 ```
 
 ---
@@ -270,15 +193,17 @@ Located in `prompts/poml/templates/`:
 
 | Domain | File | Description |
 |--------|------|-------------|
-| **Code** | `dotnet-csharp.instructions.md` | C# 12, .NET 8/9, naming conventions |
-| **Architecture** | `clean-architecture-code.instructions.md` | Clean Architecture, CQRS, DDD patterns |
-| **Backend** | `backend.instructions.md` | API design, error handling, validation |
-| **Data** | `orm.instructions.md`, `database.instructions.md` | EF Core, SQL, migrations |
-| **Frontend** | `frontend.instructions.md`, `vue-quasar.instructions.md` | SPA, component design, state management |
-| **Testing** | `e2e-testing.instructions.md`, `rust-testing.instructions.md` | Test strategies, patterns, frameworks |
-| **DevOps** | `ci-cd-devops.instructions.md`, `docker.instructions.md`, `k8s.instructions.md` | Pipelines, containers, orchestration |
-| **Documentation** | `readme.instructions.md`, `pr.instructions.md` | Documentation standards, PR templates |
-| **Workflow** | `workflow-optimization.instructions.md`, `ai-orchestration.instructions.md` | Development efficiency, AI collaboration |
+| **.NET/C#** | `dotnet-csharp.instructions.md` | C# 12, .NET 8/9, naming, conventions |
+| **Rust** | `rust-testing.instructions.md` | Test patterns, async, error handling |
+| **Architecture** | `clean-architecture-code.instructions.md` | Clean Architecture, CQRS, DDD |
+| **Backend** | `backend.instructions.md` | REST APIs, validation, error handling |
+| **Frontend** | `frontend.instructions.md`, `vue-quasar.instructions.md` | SPA, Vue 3, Quasar, state management |
+| **Data** | `orm.instructions.md`, `database.instructions.md` | EF Core, SQL, schema design |
+| **DevOps** | `docker.instructions.md`, `k8s.instructions.md`, `ci-cd-devops.instructions.md` | Containers, orchestration, pipelines |
+| **Testing** | `e2e-testing.instructions.md` | E2E strategies, test frameworks |
+| **Quality** | `static-analysis-sonarqube.instructions.md` | Code quality, static analysis |
+| **Documentation** | `readme.instructions.md`, `pr.instructions.md` | READMEs, PR guidelines |
+| **Workflow** | `workflow-optimization.instructions.md`, `ai-orchestration.instructions.md` | Development efficiency, AI patterns |
 
 ### Context Selection Rule (Hard Requirement)
 
@@ -287,51 +212,6 @@ Located in `prompts/poml/templates/`:
 2. `AGENTS.md`
 
 This ensures consistent agent behavior and proper context hierarchy.
-
----
-
-## Contributing
-
-### Making Changes
-
-1. **Update core files:**
-   - `AGENTS.md` for agent policies and workflow patterns
-   - `copilot-instructions.md` for global rules and domain mapping
-
-2. **Follow meta-instructions:**
-   - Review `instructions/copilot-instruction-creation.instructions.md` before modifying instruction files
-   - Use `instructions/feedback-changelog.instructions.md` for CHANGELOG updates
-
-3. **Document changes:**
-   - Update `CHANGELOG.md` for `.github/` directory changes
-   - Include "Applied instructions" section in PRs when AI influenced the change
-
-4. **Test instructions:**
-   - Validate with GitHub Copilot Chat before committing
-   - Ensure instructions are clear and actionable
-
-### Pull Request Guidelines
-
-Follow structure in `instructions/pr.instructions.md`:
-- Context: Why the change is needed
-- Changes: What was modified
-- Rationale: Technical reasoning
-- Testing: Validation performed
-- Applied instructions: Which files influenced the work
-
-### Git Workflow
-
-```bash
-# Create feature branch
-git checkout -b feature/add-graphql-instructions
-
-# Make changes following conventions
-git add instructions/graphql.instructions.md
-git commit -m "Add GraphQL API development instructions"
-
-# Push and create PR
-git push origin feature/add-graphql-instructions
-```
 
 ---
 
@@ -347,7 +227,7 @@ None. This is a documentation and policy repository.
 
 ### Optional Dependencies
 - **POML CLI** (`npm install -g @microsoft/poml-cli`) for POML template rendering
-- **.NET SDK** (if working on .NET projects using these instructions)
+- **Language SDKs** (.NET SDK, Rust toolchain, Node.js) depending on your project stack
 
 ---
 
@@ -373,17 +253,9 @@ None. This is a documentation and policy repository.
 - [Semantic Versioning](https://semver.org/) - Version numbering convention
 - [Conventional Commits](https://www.conventionalcommits.org/) - Commit message convention
 
-### Research Papers
-
-- Wei et al. (2022). *Chain-of-Thought Prompting* (arXiv:2201.11903)
-- Wang et al. (2023). *Self-Consistency* (arXiv:2203.11171)
-- Yao et al. (2023). *Tree of Thoughts* (arXiv:2305.10601)
-
 ### Internal Documentation
 
-- [POML Guide](./prompts/poml/README.md) - Complete POML template documentation
-- [Prompt Engineering Guide](./prompts/poml/prompt-engineering-poml.md) - Advanced techniques
-- [CHANGELOG](.github/CHANGELOG.md) - Version history
+- [CHANGELOG](./CHANGELOG.md) - Version history
 
 ---
 
