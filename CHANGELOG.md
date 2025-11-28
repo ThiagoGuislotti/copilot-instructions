@@ -85,8 +85,8 @@
 - Updated template consistency and naming conventions:
   - `dotnet-class-template.cs` — PascalCase placeholders and enhanced XML documentation structure
   - `dotnet-interface-template.cs` — implicit usings support and cleaner namespace organization
-  - `dotnet-integration-test-template.cs` — FluentAssertions integration and comprehensive test scenarios
-  - `dotnet-unit-test-template.cs` — framework-agnostic design supporting both xUnit and NUnit
+  - `dotnet-integration-test-template.cs` — Native NUnit assertions integration and comprehensive test scenarios
+  - `dotnet-unit-test-template.cs` — framework-agnostic design supporting both xUnit and NUnit with native assertions
 
 ## [1.0.2] - 2025-09-17
 

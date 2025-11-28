@@ -136,7 +136,7 @@ Generate comprehensive xUnit/NUnit unit tests following AAA pattern.
 
 **Features:**
 - AAA (Arrange-Act-Assert) pattern
-- FluentAssertions usage
+- Native xUnit/NUnit assertions
 - NSubstitute mocking
 - Comprehensive coverage (valid, invalid, edge, exception scenarios)
 

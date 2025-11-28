@@ -43,7 +43,7 @@ Requirements:
 ### AAA Pattern
 - Arrange: Set up test data and dependencies
 - Act: Execute the method under test
-- Assert: Verify expected outcomes using FluentAssertions
+- Assert: Verify expected outcomes using native xUnit/NUnit assertions
 
 ### Coverage Areas
 - Valid inputs: Test successful execution paths

@@ -82,8 +82,8 @@ namespace [Namespace].IntegrationTests.Tests.[Category]
             ConsoleLogger.WriteLine(result);
 
             // Assert
-            result.IsSuccess.Should().BeTrue();
-            result.Data.Should().NotBeNull();
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Data, Is.Not.Null);
         }
 
         [Test]
@@ -104,7 +104,7 @@ namespace [Namespace].IntegrationTests.Tests.[Category]
             ConsoleLogger.WriteLine(result);
 
             // Assert
-            result.IsSuccess.Should().BeTrue();
+            Assert.That(result.IsSuccess, Is.True);
         }
 
         [Test]
@@ -123,8 +123,8 @@ namespace [Namespace].IntegrationTests.Tests.[Category]
             ConsoleLogger.WriteLine(result);
 
             // Assert
-            result.Should().HaveCount(1);
-            result.First().Id.Should().Be(_testEntityId);
+            Assert.That(result, Has.Count.EqualTo(1));
+            Assert.That(result.First().Id, Is.EqualTo(_testEntityId));
         }
 
         [Test]
@@ -140,8 +140,8 @@ namespace [Namespace].IntegrationTests.Tests.[Category]
             ConsoleLogger.WriteLine(result);
 
             // Assert
-            result.Should().NotBeEmpty();
-            result.Should().Contain(x => x.Id == _testEntityId);
+            Assert.That(result, Is.Not.Empty);
+            Assert.That(result, Has.Some.Property("Id").EqualTo(_testEntityId));
         }
 
         [Test]
@@ -160,7 +160,7 @@ namespace [Namespace].IntegrationTests.Tests.[Category]
             ConsoleLogger.WriteLine(result);
 
             // Assert
-            result.IsSuccess.Should().BeTrue();
+            Assert.That(result.IsSuccess, Is.True);
         }
         #endregion
 
@@ -180,8 +180,8 @@ namespace [Namespace].IntegrationTests.Tests.[Category]
             var result = await _mediator.Send(command).ConfigureAwait(false);
 
             // Assert
-            result.IsSuccess.Should().BeFalse();
-            result.Errors.Should().NotBeEmpty();
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(result.Errors, Is.Not.Empty);
         }
 
         [Test]
@@ -199,8 +199,8 @@ namespace [Namespace].IntegrationTests.Tests.[Category]
             var result = await _mediator.Send(duplicateCommand).ConfigureAwait(false);
 
             // Assert
-            result.IsSuccess.Should().BeFalse();
-            result.Errors.Should().Contain(e => e.Contains("duplicate") || e.Contains("exists"));
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(result.Errors, Has.Some.Matches<string>(e => e.Contains("duplicate") || e.Contains("exists")));
         }
         #endregion
 
@@ -218,8 +218,8 @@ namespace [Namespace].IntegrationTests.Tests.[Category]
             stopwatch.Stop();
 
             // Assert
-            result.Should().NotBeNull();
-            stopwatch.ElapsedMilliseconds.Should().BeLessThan(5000); // 5 seconds max
+            Assert.That(result, Is.Not.Null);
+            Assert.That(stopwatch.ElapsedMilliseconds, Is.LessThan(5000)); // 5 seconds max
             ConsoleLogger.WriteLine($"Query executed in {stopwatch.ElapsedMilliseconds}ms");
         }
         #endregion
@@ -235,7 +235,7 @@ namespace [Namespace].IntegrationTests.Tests.[Category]
             };
 
             var result = await _mediator.Send(command).ConfigureAwait(false);
-            result.IsSuccess.Should().BeTrue("Setup entity creation should succeed");
+            Assert.That(result.IsSuccess, Is.True, "Setup entity creation should succeed");
         }
         #endregion
     }

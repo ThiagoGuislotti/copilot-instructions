@@ -38,7 +38,7 @@
     <item>Follow AAA pattern strictly (Arrange, Act, Assert)</item>
     <item>Use [Trait("Category", "Unit")] for xUnit or [Category("Unit")] for NUnit</item>
     <item>Name tests: MethodName_Scenario_ExpectedResult</item>
-    <item>Use FluentAssertions for assertions</item>
+    <item>Use native xUnit/NUnit assertions (Assert.Equal, Assert.True, etc.)</item>
     <item>Mock dependencies with NSubstitute</item>
     <item>Organize with #region directives per method</item>
     <item>Include XML documentation for test classes</item>
@@ -50,7 +50,6 @@
   <output format="csharp">
 using System;
 using Xunit; // or NUnit.Framework
-using FluentAssertions;
 using NSubstitute;
 
 namespace {{Namespace}}.Tests;
@@ -86,12 +85,9 @@ public class {{ClassName}}Tests
         // Arrange
         {{arrange}}
 
-        // Act
-        Action act = () => {{act}};
-
-        // Assert
-        act.Should().Throw&lt;ArgumentException&gt;()
-            .WithMessage("*{{expectedMessage}}*");
+        // Act & Assert
+        var ex = Assert.Throws&lt;ArgumentException&gt;(() => {{act}});
+        Assert.Contains("{{expectedMessage}}", ex.Message);
     }
 
     #endregion
@@ -135,7 +131,6 @@ public class OrderService
       <output>
 using System;
 using Xunit;
-using FluentAssertions;
 
 namespace Services.Tests;
 
@@ -165,7 +160,7 @@ public class OrderServiceTests
         var result = service.CalculateTotal(order);
 
         // Assert
-        result.Should().Be(35.00m);
+        Assert.Equal(35.00m, result);
     }
 
     #endregion
@@ -178,12 +173,9 @@ public class OrderServiceTests
         // Arrange
         var service = new OrderService();
 
-        // Act
-        Action act = () => service.CalculateTotal(null);
-
-        // Assert
-        act.Should().Throw&lt;ArgumentNullException&gt;()
-            .WithParameterName("order");
+        // Act & Assert
+        var ex = Assert.Throws&lt;ArgumentNullException&gt;(() => service.CalculateTotal(null));
+        Assert.Equal("order", ex.ParamName);
     }
 
     #endregion
@@ -201,7 +193,7 @@ public class OrderServiceTests
         var result = service.CalculateTotal(order);
 
         // Assert
-        result.Should().Be(0m);
+        Assert.Equal(0m, result);
     }
 
     #endregion

@@ -94,7 +94,11 @@ namespace [Namespace].UnitTests.Tests.[Category]
             var result = _[DependencyName].[MethodUnderTest](request);
 
             // Assert
-            result.IsValid.Should().BeTrue();
+#if UNIT_XUNIT
+            Assert.True(result.IsValid);
+#elif UNIT_NUNIT
+            Assert.That(result.IsValid, Is.True);
+#endif
         }
         #endregion
 
@@ -122,8 +126,13 @@ namespace [Namespace].UnitTests.Tests.[Category]
             var result = _[DependencyName].[MethodUnderTest](request);
 
             // Assert + Output
-            result.IsValid.Should().BeFalse();
-            result.Errors.Should().Contain(e => e.PropertyName == "[Property]");
+#if UNIT_XUNIT
+            Assert.False(result.IsValid);
+            Assert.Contains(result.Errors, e => e.PropertyName == "[Property]");
+#elif UNIT_NUNIT
+            Assert.That(result.IsValid, Is.False);
+            Assert.That(result.Errors, Has.Some.Property("PropertyName").EqualTo("[Property]"));
+#endif
 
 #if UNIT_XUNIT
             _output.WriteLine(result.ToString());
@@ -151,7 +160,11 @@ namespace [Namespace].UnitTests.Tests.[Category]
             var result = _[DependencyName].[MethodUnderTest](request);
 
             // Assert
-            result.Should().NotBeNull();
+#if UNIT_XUNIT
+            Assert.NotNull(result);
+#elif UNIT_NUNIT
+            Assert.That(result, Is.Not.Null);
+#endif
         }
         #endregion
 
@@ -169,9 +182,10 @@ namespace [Namespace].UnitTests.Tests.[Category]
             // Act & Assert
 #if UNIT_XUNIT
             var ex = Assert.Throws<ArgumentNullException>(() => _[DependencyName].[MethodUnderTest](request));
-            ex.ParamName.Should().Be("request");
+            Assert.Equal("request", ex.ParamName);
 #elif UNIT_NUNIT
-            Assert.Throws<ArgumentNullException>(() => _[DependencyName].[MethodUnderTest](request));
+            var ex = Assert.Throws<ArgumentNullException>(() => _[DependencyName].[MethodUnderTest](request));
+            Assert.That(ex.ParamName, Is.EqualTo("request"));
 #endif
         }
         #endregion
