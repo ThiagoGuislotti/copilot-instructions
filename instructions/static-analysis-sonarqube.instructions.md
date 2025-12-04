@@ -1,5 +1,6 @@
 ---
 applyTo: "**/{sonar,sonarqube,analysis,quality,lint,static}*/**/*.{properties,yml,yaml,json,xml,config,cs,ts,js}"
+priority: low
 ---
 
 # SonarQube Setup

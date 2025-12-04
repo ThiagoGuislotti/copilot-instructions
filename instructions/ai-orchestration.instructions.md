@@ -1,5 +1,6 @@
 ---
 applyTo: "**/*.*"
+priority: high
 ---
 
 # AI Orchestration

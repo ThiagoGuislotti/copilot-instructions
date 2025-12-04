@@ -1,5 +1,6 @@
 ---
 applyTo: "**/README.md"
+priority: high
 ---
 
 # Temporary README Rules (Reference)

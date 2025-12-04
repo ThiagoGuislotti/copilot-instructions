@@ -1,5 +1,4 @@
 ---
-description: Testing standards and best practices for NetToolsKit CLI
 applyTo: '**/*.rs'
 priority: high
 ---

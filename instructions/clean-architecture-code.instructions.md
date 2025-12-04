@@ -1,5 +1,6 @@
 ---
 applyTo: "**/*.{cs,ts,js,go,rs,java,py}"
+priority: high
 ---
 
 # Clean Architecture principles

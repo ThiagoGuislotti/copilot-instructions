@@ -1,5 +1,6 @@
 ---
 applyTo: "**/*.{html,css,scss,js,ts,jsx,tsx,vue}"
+priority: medium
 ---
 
 # Design system
@@ -18,7 +19,7 @@ applyTo: "**/*.{html,css,scss,js,ts,jsx,tsx,vue}"
   --spacing-md: 1rem;
   --spacing-lg: 1.5rem;
   --spacing-xl: 2rem;
-  
+
   --text-dark: #1a1a1a;
   --text-light: #6b7280;
   --bg-white: #ffffff;

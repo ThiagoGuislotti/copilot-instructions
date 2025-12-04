@@ -1,5 +1,6 @@
 ---
 applyTo: frontend/**/*.{vue,ts,js}
+priority: high
 ---
 
 # Vue + Quasar Clean Architecture
@@ -292,7 +293,7 @@ export class InvoiceMapper {
   static toDomain(dto: InvoiceDTO): Invoice {
     return new Invoice(dto.id, new Money(dto.amount, dto.currency))
   }
-  
+
   static toDTO(invoice: Invoice): InvoiceDTO {
     return {
       id: invoice.id,
@@ -374,7 +375,7 @@ export class HttpInvoiceRepo implements InvoiceRepo {
 // application/CreateInvoice.ts
 export class CreateInvoice {
   constructor(private repo: InvoiceRepo) {}
-  
+
   async execute(data: CreateInvoiceData): Promise<Invoice> {
     const invoice = Invoice.create(data)
     await this.repo.save(invoice)
@@ -392,11 +393,11 @@ import { HttpInvoiceRepo } from '../../infrastructure/HttpInvoiceRepo'
 export function useInvoiceForm() {
   const repo = new HttpInvoiceRepo()
   const createInvoice = new CreateInvoice(repo)
-  
+
   const submit = async (data: FormData) => {
     await createInvoice.execute(data)
   }
-  
+
   return { submit }
 }
 ```

@@ -1,5 +1,6 @@
 ---
 applyTo: "**/{k8s,kubernetes,manifests,helm,charts,deploy,deployment,cluster}*/**/*.{yaml,yml}"
+priority: medium
 ---
 
 # Security

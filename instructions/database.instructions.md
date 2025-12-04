@@ -1,5 +1,6 @@
 ---
 applyTo: "**/{db,database,data,migrations,sql,prisma}*/**/*.{sql,psql,pgsql,mysql,db,prisma,json,yaml,yml}"
+priority: medium
 ---
 
 # Schema design

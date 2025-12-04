@@ -1,5 +1,6 @@
 ---
 applyTo: "**/*.vue"
+priority: medium
 ---
 
 # SFC (Single File Components)
@@ -159,11 +160,11 @@ const { rows, loading } = useQTableData({ page, size, sort, filter })
       <q-btn label="Search" color="primary" />
     </div>
   </div>
-  
+
   <!-- Use design-system utilities for common patterns -->
   <p class="truncate">Very long text that will be truncated...</p>
   <p class="line-clamp-2">Multi-line text limited to 2 lines...</p>
-  
+
   <!-- Custom CSS only for unique component needs -->
   <div class="custom-gradient-background">
     Content with unique styling

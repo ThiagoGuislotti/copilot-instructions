@@ -1,5 +1,6 @@
 ---
 applyTo: "**/*.ps1"
+priority: high
 ---
 
 # Working Directory Detection

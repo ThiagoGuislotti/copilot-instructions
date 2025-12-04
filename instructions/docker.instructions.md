@@ -1,5 +1,6 @@
 ---
 applyTo: "**/Dockerfile*"
+priority: medium
 ---
 
 # Multi-stage Builds

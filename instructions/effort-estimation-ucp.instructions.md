@@ -1,5 +1,6 @@
 ---
 applyTo: "docs/**/effort-estimation*"
+priority: low
 ---
 
 # Template Usage

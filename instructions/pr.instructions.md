@@ -1,5 +1,6 @@
 ---
 applyTo: ".github/**"
+priority: low
 ---
 
 # Pull Request Goals

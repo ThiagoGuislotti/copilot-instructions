@@ -1,5 +1,6 @@
 ---
 applyTo: "**/*.{cs,js,ts,py,java,go,rs}"
+priority: medium
 ---
 
 # Clean Architecture

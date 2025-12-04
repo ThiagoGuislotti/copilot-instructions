@@ -1,5 +1,6 @@
 ---
 applyTo: ".github/**"
+priority: low
 ---
 
 # Prompt Engineering Standards

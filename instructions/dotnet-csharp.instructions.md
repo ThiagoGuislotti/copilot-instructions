@@ -1,5 +1,6 @@
 ---
 applyTo: "**/*.{cs,csproj,sln,slnf,props,targets}"
+priority: high
 ---
 
 # Code Organization
@@ -14,12 +15,14 @@ applyTo: "**/*.{cs,csproj,sln,slnf,props,targets}"
 ```csharp
 // follow .github/templates/dotnet-class-template.cs and .github/templates/dotnet-interface-template.cs when creating new types
 // Replace placeholders, keep PascalCase naming, remove unused usings
-namespace MyApp.Core;
-public sealed class OrderService
+namespace MyApp.Core
 {
-    private readonly IRepository _repo;
-    public OrderService(IRepository repo) { _repo = repo; }
-    public Task<Order> GetAsync(Guid id) => _repo.FindAsync(id);
+    public sealed class OrderService
+    {
+        private readonly IRepository _repo;
+        public OrderService(IRepository repo) { _repo = repo; }
+        public Task<Order> GetAsync(Guid id) => _repo.FindAsync(id);
+    }
 }
 ```
 
@@ -45,9 +48,12 @@ foreach (var p in parts) sb.Append(p);
 - ValueTask for hot paths
 - Avoid deadlocks
 ```csharp
-public async Task<Order> GetAsync(Guid id, CancellationToken ct)
+namespace MyApp.Services
 {
-    return await db.FindAsync(id, ct).ConfigureAwait(false);
+    public async Task<Order> GetAsync(Guid id, CancellationToken ct)
+    {
+        return await db.FindAsync(id, ct).ConfigureAwait(false);
+    }
 }
 ```
 

@@ -1,5 +1,6 @@
 ---
 applyTo: "**/microservice*/**/*.{cs,ts,js,json,yml,yaml,config,dockerfile}"
+priority: medium
 ---
 
 # Service boundaries

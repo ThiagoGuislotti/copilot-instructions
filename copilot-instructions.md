@@ -54,7 +54,7 @@ Language: pt-BR for chat; EN for code/commits/docs/UI/database; pt-BR i18n outpu
 - Infrastructure and DevOps: .github/instructions/docker.instructions.md; .github/instructions/k8s.instructions.md; .github/instructions/ci-cd-devops.instructions.md; .github/instructions/static-analysis-sonarqube.instructions.md (e.g., pipelines, security scans).
 
 ## Testing and Documentation
-- Rust testing standards: .github/instructions/rust-testing.instructions.md (e.g., error_tests.rs mandatory, coverage requirements, templates).
+- Rust organization and testing: .github/instructions/rust-code-organization.instructions.md (e.g., mirror src/ structure, no inline tests, test_suite.rs entry point); .github/instructions/rust-testing.instructions.md (e.g., error_tests.rs mandatory, coverage requirements, templates).
 - E2E testing: .github/instructions/e2e-testing.instructions.md (e.g., Playwright, test categories).
 - Documentation and processes: .github/instructions/readme.instructions.md; .github/instructions/pr.instructions.md; .github/instructions/prompt-templates.instructions.md; .github/instructions/effort-estimation-ucp.instructions.md (e.g., README creation with template, PR guidelines, changelog versioning).
 

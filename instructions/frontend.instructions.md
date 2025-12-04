@@ -1,5 +1,6 @@
 ---
 applyTo: "**/*.{html,css,scss,js,ts,jsx,tsx}"
+priority: medium
 ---
 
 # Architecture
@@ -88,10 +89,10 @@ Set-Cookie: session=...; Secure; SameSite=Strict
     <q-btn label="Clear" color="warning" />
     <q-btn label="Search" color="primary" />
   </div>
-  
+
   <!-- ✅ CORRECT: Design system utility when needed -->
   <p class="truncate">Very long text...</p>
-  
+
   <!-- ✅ CORRECT: Scoped CSS for unique component needs -->
   <div class="custom-gradient">Content</div>
 </template>

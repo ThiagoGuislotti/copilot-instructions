@@ -1,5 +1,6 @@
 ---
 applyTo: "**/{CHANGELOG,changelog,feedback,issue}*"
+priority: high
 ---
 
 # Feedback Integration

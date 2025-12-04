@@ -1,5 +1,6 @@
 ---
 applyTo: "**/README.md"
+priority: medium
 ---
 
 # Template Usage

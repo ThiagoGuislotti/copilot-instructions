@@ -1,5 +1,6 @@
 ---
 applyTo: "**/*{Repository,Context,Entity,Mapping}*.{cs,ts,js,java,py,go,rs}"
+priority: medium
 ---
 
 # Domain

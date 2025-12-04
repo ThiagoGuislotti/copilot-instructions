@@ -1,5 +1,6 @@
 ---
 applyTo: "**/{e2e,E2E,end-to-end,integration,spec,test}*/**/*.{cs,ts,js,json,yml,yaml,config}"
+priority: high
 ---
 
 # Frameworks

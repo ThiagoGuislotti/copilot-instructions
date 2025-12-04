@@ -1,5 +1,6 @@
 ---
 applyTo: "**/{pipeline,ci,cd,deploy,build,workflow,action}*/**/*.{yml,yaml,json,ps1,sh,dockerfile}"
+priority: medium
 ---
 
 # Pipeline

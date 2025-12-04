@@ -1,5 +1,6 @@
 ---
 applyTo: ".github/instructions/*"
+priority: high
 ---
 
 # Instruction Creation Standards
