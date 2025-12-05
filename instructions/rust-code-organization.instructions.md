@@ -6,9 +6,10 @@ priority: high
 # Rust Code Organization
 
 ## Core Principles
-Mirror src/ structure in tests/ exactly; production code in src/, tests in tests/; no #[cfg(test)] blocks in production; follow Rust module conventions.
+Mirror src/ structure in tests/ exactly; production code in src/, tests in tests/; no #[cfg(test)] blocks in production; follow Rust module conventions; **1 trait = 1 file, 1 struct = 1 file** for better maintainability and scalability.
 
 > **Rule:** Test file structure MUST mirror source file structure.
+> **Rule:** Each trait and struct should have its own file (unless trivially small < 20 lines).
 
 ## Standard Layout
 
@@ -150,6 +151,122 @@ mod ui { pub mod core { pub mod colors_tests; } }
 ```
 
 ---
+## Code Organization: Traits and Structs
+
+### Rule: 1 Trait = 1 File, 1 Struct = 1 File
+
+**Rationale:** Inspired by .NET/C# conventions (1 class = 1 file), Rust code should follow:
+- **1 trait = 1 file** (unless trivially small < 20 lines)
+- **1 struct = 1 file** (unless trivially small < 20 lines)
+- Group related items in a module with `mod.rs` for re-exports
+
+**Benefits:**
+- Easy to locate code
+- Clear separation of concerns
+- Scalable as code grows
+- Better git history tracking
+- Easier code review
+
+### Pattern: Trait Organization
+
+**Before (traits in lib.rs - ❌ NOT RECOMMENDED):**
+```
+src/
+└── lib.rs  # Contains MenuEntry + CommandEntry + MenuProvider
+```
+
+**After (separated - ✅ RECOMMENDED):**
+```
+src/
+├── lib.rs  # Re-exports only
+└── menu/
+    ├── mod.rs              # Module aggregator
+    ├── menu_entry.rs       # MenuEntry trait
+    ├── command_entry.rs    # CommandEntry trait
+    └── menu_provider.rs    # MenuProvider trait
+```
+
+**mod.rs:**
+```rust
+//! Menu system traits and utilities
+
+mod command_entry;
+mod menu_entry;
+mod menu_provider;
+
+pub use command_entry::CommandEntry;
+pub use menu_entry::MenuEntry;
+pub use menu_provider::MenuProvider;
+```
+
+**lib.rs:**
+```rust
+pub mod menu;
+
+// Re-export commonly used items
+pub use menu::{CommandEntry, MenuEntry, MenuProvider};
+```
+
+### Pattern: Struct Organization
+
+**Simple struct (< 20 lines) - OK to keep in module:**
+```rust
+// src/config.rs
+pub struct Config {
+    pub name: String,
+    pub value: i32,
+}
+```
+
+**Complex struct with many methods - Separate file:**
+```
+src/models/
+├── mod.rs
+├── user.rs          # User struct
+├── session.rs       # Session struct
+└── permission.rs    # Permission struct
+```
+
+### When to Keep Together vs Separate
+
+**Keep Together (in same file):**
+- ✅ Tightly coupled types (< 100 total lines)
+- ✅ Enum + impl block (single responsibility)
+- ✅ Struct + builder pattern in same file
+- ✅ Type aliases and small utility traits
+
+**Separate Files:**
+- ❌ Multiple unrelated traits (even if small)
+- ❌ Large trait with many methods (> 50 lines)
+- ❌ Struct with extensive impl blocks (> 100 lines)
+- ❌ Types likely to grow over time
+
+### Example: Before and After
+
+**Before (menu.rs - 150 lines):**
+```rust
+pub trait MenuEntry { /* ... */ }
+pub trait CommandEntry { /* ... */ }
+pub trait MenuProvider { /* ... */ }
+
+pub struct MenuConfig { /* ... */ }
+impl MenuConfig { /* ... */ }
+
+pub fn render_menu() { /* ... */ }
+```
+
+**After (organized):**
+```
+menu/
+├── mod.rs
+├── menu_entry.rs      # MenuEntry trait
+├── command_entry.rs   # CommandEntry trait
+├── menu_provider.rs   # MenuProvider trait
+├── config.rs          # MenuConfig struct + impl
+└── renderer.rs        # render_menu function
+```
+
+---
 ## Test Template
 
 ```rust
@@ -260,9 +377,9 @@ fn test_parse_invalid_input_returns_error() {
 ---
 ## Best Practices
 
-**Naming:** `test_[function]_[scenario]_[result]` ✅ | `test1`, `it_works` ❌  
-**Isolation:** Each test independent; no shared state  
-**Grouping:** Use `// ======== Section ========` comments  
+**Naming:** `test_[function]_[scenario]_[result]` ✅ | `test1`, `it_works` ❌
+**Isolation:** Each test independent; no shared state
+**Grouping:** Use `// ======== Section ========` comments
 **Helpers:** `tests/helpers/mod.rs` for shared utilities
 
 ```rust
