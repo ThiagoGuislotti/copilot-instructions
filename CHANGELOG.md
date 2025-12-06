@@ -1,3 +1,37 @@
+## [1.1.0] - 2025-12-06
+
+### Changed
+- Consolidated VS Code workspace settings into single auto-loading configuration:
+  - Merged `.github/.vscode/settings.copilot.jsonc` into `.github/.vscode/settings.json`
+  - Enhanced header documentation with file structure breakdown and line range references
+  - Simplified file tree documentation using wildcards (*.chatmode.md, *.instructions.md)
+  - Replaced user-specific paths with portable %USERPROFILE% environment variable
+  - Added comprehensive Copilot & AI Chat Configuration section with visual separators (lines 321-490)
+  - Consolidated all Copilot enable settings, chat modes, MCP servers, and custom instructions
+
+### Added
+- Custom chat mode definitions for specialized development workflows (5 files):
+  - `backend-csharp-expert.chatmode.md` - Backend development with C#/.NET expertise
+  - `database-orm-expert.chatmode.md` - Database and ORM pattern guidance
+  - `devops-infrastructure-expert.chatmode.md` - DevOps and infrastructure automation
+  - `rust-expert.chatmode.md` - Rust language and ecosystem best practices
+  - `vue-quasar-expert.chatmode.md` - Vue.js/Quasar frontend development
+- Reusable prompt templates for common development tasks (7 files):
+  - `create-api-endpoint.prompt.md` - RESTful API endpoint scaffolding
+  - `create-docker-setup.prompt.md` - Docker containerization setup
+  - `create-ef-migration.prompt.md` - Entity Framework migration creation
+  - `create-rust-module.prompt.md` - Rust module scaffolding
+  - `create-vue-component.prompt.md` - Vue component creation with Quasar
+  - `generate-pr-description.prompt.md` - Pull request description generation
+  - `refactor-to-clean-architecture.prompt.md` - Clean Architecture refactoring guidance
+- Code snippets for Copilot command shortcuts:
+  - `.github/.vscode/snippets/copilot.code-snippets` - Quick access snippets for Copilot workflows
+
+### Fixed
+- VS Code not auto-loading Copilot configuration from `.jsonc` extension file
+  - VS Code only auto-loads `settings.json` by default; `.jsonc` files require explicit reference
+  - All Copilot settings now in main workspace settings.json for immediate availability
+
 ## [1.0.9] - 2025-11-28
 
 ### Added

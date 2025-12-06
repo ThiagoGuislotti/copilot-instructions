@@ -1,21 +1,18 @@
 {
-    "Copilot Custom Instruction": {
-        "prefix": "copilotinstr",
-        "description": "Custom instructions for Copilot Chat with mandatory context and quality rules.",
+    "Copilot Review Instructions": {
+        "prefix": "copilotreview",
+        "description": "Instructions for code review with Copilot Chat (reviewSelection).",
         "body": [
-            "github.copilot.chat.customInstructions: [",
-            "  { \"file\": \"AGENTS.md\" },",
-            "  { \"file\": \"copilot-instructions.md\" },",
-            "  { \"file\": \"instructions/workflow-optimization.instructions.md\" },",
-            "  { \"file\": \"instructions/ai-orchestration.instructions.md\" },",
-            "  { \"file\": \"instructions/powershell-execution.instructions.md\" },",
-            "  { \"file\": \"instructions/feedback-changelog.instructions.md\" },",
-            "  { \"file\": \"${1:instructions/backend.instructions.md}\" },",
-            "  { \"file\": \"${2:instructions/dotnet-csharp.instructions.md}\" },",
-            "  { \"text\": \"Language: write code/commits in EN; UI via i18n (pt-BR); DB schema in EN.\" },",
-            "  { \"text\": \"Progress cadence: brief preamble before tool batches; report after 3-5 tool calls or >3 edits.\" },",
-            "  { \"text\": \"Quality gates: Build, Lint/Typecheck, Unit tests, Smoke; do not finish with a red build; up to 3 fix attempts.\" },",
-            "  { \"text\": \"Keep answers concise; avoid heavy formatting unless requested; prefer lists; use code fences only when needed.\" }",
+            "\"github.copilot.chat.reviewSelection.instructions\": [",
+            "  { \"file\": \"../AGENTS.md\" },",
+            "  { \"file\": \"../copilot-instructions.md\" },",
+            "  { \"file\": \"../instructions/workflow-optimization.instructions.md\" },",
+            "  { \"file\": \"../instructions/ai-orchestration.instructions.md\" },",
+            "  { \"file\": \"../instructions/powershell-execution.instructions.md\" },",
+            "  { \"file\": \"../instructions/feedback-changelog.instructions.md\" },",
+            "  { \"file\": \"../instructions/${1:backend}.instructions.md\" },",
+            "  { \"file\": \"../instructions/${2:dotnet-csharp}.instructions.md\" },",
+            "  { \"text\": \"Code suggestions must follow Clean Architecture: separation of concerns, dependency inversion, maintainability, readability and simplicity.\" }",
             "]"
         ]
     },

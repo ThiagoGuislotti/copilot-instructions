@@ -1,3 +1,29 @@
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// VS CODE WORKSPACE SETTINGS
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+//
+// This file consolidates ALL VS Code workspace settings including:
+//   - Editor, terminal, workbench, and UI configurations
+//   - Git/SCM, GitHub, and remote development settings
+//   - Language-specific formatters and behaviors
+//   - Extensions and development tools
+//   - GitHub Copilot and AI Chat configurations
+//   - File references for Copilot instructions and custom modes
+//
+// Structure:
+//   Lines 1-320:   Core VS Code settings (editor, terminal, languages, etc.)
+//   Lines 321-490: GitHub Copilot & AI Chat (enable, chat modes, MCP, file references)
+//   Lines 491-end: Terminal auto-approve, telemetry, and extension-specific settings
+//
+// Copilot File References:
+//   Update paths to point to your %USERPROFILE%\.github folder structure:
+//   %USERPROFILE%\.github\
+//   ├── AGENTS.md
+//   ├── copilot-instructions.md
+//   ├── chatmodes\*.chatmode.md
+//   └── instructions\*.instructions.md
+//
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
 {
     // EDITOR - Basic editor settings
     // https://code.visualstudio.com/docs/getstarted/settings#_editor
@@ -94,13 +120,13 @@
         "Makefile.*": "makefile",
         // Markdown
         "*.md*": "markdown",
-        // Configuração
+        // Configuration Files
         "*.jsonc": "jsonc",
         "*.json5": "jsonc",
         "*.yml": "yaml",
         "*.yaml": "yaml",
         "*.toml": "toml",
-        // Linguagens de programação
+        // Programming Languages
         "*.js": "javascript",
         "*.jsx": "javascriptreact",
         "*.ts": "typescript",
@@ -183,11 +209,6 @@
     // REMOTE DEVELOPMENT - SSH, WSL and Remote Development
     // https://code.visualstudio.com/docs/remote/remote-overview
     "remote.WSL.useShellEnvironment": true,
-    "remote.SSH.remotePlatform": {
-        "consiluxutils": "linux",
-        "lot9-curitiba": "linux",
-        "lot9-saopaulo": "linux"
-    },
     "remote.autoForwardPortsSource": "hybrid",
     "remote.extensionKind": {
         "alefragnani.project-manager": ["workspace", "ui"],
@@ -262,6 +283,10 @@
         "files.encoding": "utf8",
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
+    "[vue]": {
+        "files.encoding": "utf8",
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
 
     // Configuration Files
     "[json]": {
@@ -296,6 +321,16 @@
         "html"
     ],
     "makefile.configureOnOpen": true,
+
+    // ═══════════════════════════════════════════════════════════════════════════════════════════════
+    // COPILOT & AI CHAT CONFIGURATION
+    // ═══════════════════════════════════════════════════════════════════════════════════════════════
+    // Consolidated GitHub Copilot, AI Chat, and file reference settings.
+    // Update paths below to point to your %USERPROFILE%\.github folder structure.
+    // ═══════════════════════════════════════════════════════════════════════════════════════════════
+
+    // Copilot Enable Settings
+    // https://code.visualstudio.com/docs/copilot/overview
     "github.copilot.enable": {
         "*": true,
         "plaintext": false,
@@ -307,48 +342,285 @@
     "github.copilot.nextEditSuggestions.enabled": true,
     "github.copilot.chat.codeGeneration.useInstructionFiles": true,
 
-    // Copilot Chat custom instructions
+    // Chat & AI Configuration
+    "chat.enable": true,
+    "chat.agent.maxRequests": 1000,
+    "chat.promptFiles": true,
+    "chat.useAgentsMdFile": true,
+    "chat.useNestedAgentsMdFiles": false,
+
+    // Chat instruction file locations - Folders containing .md instruction files
+    // https://code.visualstudio.com/docs/copilot/customization
+    "chat.instructionsFilesLocations": {
+        "C:\\Users\\tguis\\.github\\instructions": true,
+        "C:\\Users\\tguis\\.aitk\\instructions\\": true
+    },
+
+    // Chat custom modes - References to chatmode files
+    "chat.customModes": [
+        {
+            "id": "clean-architecture-review",
+            "name": "Clean Architecture Review",
+            "description": "Specialized code review for Clean Architecture compliance",
+            "file": "C:\\Users\\tguis\\.github\\chatmodes\\clean-architecture-review.chatmode.md"
+        },
+        {
+            "id": "instruction-writer",
+            "name": "Instruction Writer",
+            "description": "Create and edit repository instruction files",
+            "file": "C:\\Users\\tguis\\.github\\chatmodes\\instruction-writer.chatmode.md"
+        },
+        {
+            "id": "backend-csharp-expert",
+            "name": "Backend C# Expert",
+            "description": ".NET/C# backend development with Clean Architecture and CQRS",
+            "file": "C:\\Users\\tguis\\.github\\chatmodes\\backend-csharp-expert.chatmode.md"
+        },
+        {
+            "id": "vue-quasar-expert",
+            "name": "Vue/Quasar Frontend Expert",
+            "description": "Vue 3 Composition API, Quasar Framework, and TypeScript frontend",
+            "file": "C:\\Users\\tguis\\.github\\chatmodes\\vue-quasar-expert.chatmode.md"
+        },
+        {
+            "id": "devops-infrastructure-expert",
+            "name": "DevOps & Infrastructure Expert",
+            "description": "Docker, Kubernetes, and CI/CD automation",
+            "file": "C:\\Users\\tguis\\.github\\chatmodes\\devops-infrastructure-expert.chatmode.md"
+        },
+        {
+            "id": "database-orm-expert",
+            "name": "Database & ORM Expert",
+            "description": "Database design, Entity Framework Core, and query optimization",
+            "file": "C:\\Users\\tguis\\.github\\chatmodes\\database-orm-expert.chatmode.md"
+        },
+        {
+            "id": "rust-expert",
+            "name": "Rust Expert",
+            "description": "Rust development with focus on safety, performance, and testing",
+            "file": "C:\\Users\\tguis\\.github\\chatmodes\\rust-expert.chatmode.md"
+        }
+    ],
+
+    // MCP Servers - Model Context Protocol for extended Copilot capabilities
+    // https://modelcontextprotocol.io/
+    "github.copilot.chat.mcp.servers": {
+        // .NET Development
+        "dotnet-sdk": {
+            "command": "dotnet",
+            "args": ["--info"],
+            "description": ".NET SDK information and version management"
+        },
+        "dotnet-ef": {
+            "command": "dotnet",
+            "args": ["ef", "--help"],
+            "description": "Entity Framework Core migrations and database management"
+        },
+        
+        // Node.js / Frontend Tools
+        "npm": {
+            "command": "npm",
+            "args": ["--version"],
+            "description": "Node Package Manager"
+        },
+        "vite": {
+            "command": "npx",
+            "args": ["vite", "--version"],
+            "description": "Vite build tool and dev server for frontend"
+        },
+        "quasar": {
+            "command": "npx",
+            "args": ["quasar", "--version"],
+            "description": "Quasar Framework CLI for Vue.js"
+        },
+        
+        // Rust Development
+        "cargo": {
+            "command": "cargo",
+            "args": ["--version"],
+            "description": "Rust package manager and build system"
+        },
+        "rustc": {
+            "command": "rustc",
+            "args": ["--version"],
+            "description": "Rust compiler"
+        },
+        "clippy": {
+            "command": "cargo",
+            "args": ["clippy", "--version"],
+            "description": "Rust linter for code quality"
+        },
+        
+        // Clojure Development
+        "leiningen": {
+            "command": "lein",
+            "args": ["version"],
+            "description": "Leiningen build automation for Clojure"
+        },
+        "clojure": {
+            "command": "clojure",
+            "args": ["--version"],
+            "description": "Clojure CLI tools"
+        },
+        
+        // DevOps & Infrastructure
+        "docker": {
+            "command": "docker",
+            "args": ["--version"],
+            "description": "Docker containerization platform"
+        },
+        "kubectl": {
+            "command": "kubectl",
+            "args": ["version", "--client"],
+            "description": "Kubernetes cluster management"
+        },
+        
+        // Testing & Quality
+        "playwright": {
+            "command": "npx",
+            "args": ["playwright", "--version"],
+            "description": "E2E testing framework"
+        },
+        
+        // Version Control
+        "git": {
+            "command": "git",
+            "args": ["--version"],
+            "description": "Git version control system"
+        }
+    },
+
+    // Copilot Custom Instructions - File references for code review, commits, and PRs
     // https://code.visualstudio.com/docs/copilot/customization/custom-instructions
     "github.copilot.chat.reviewSelection.instructions": [
-        { "file": "AGENTS.md" },
-        { "file": "copilot-instructions.md" },
-        { "file": "instructions/workflow-optimization.instructions.md" },
-        { "file": "instructions/ai-orchestration.instructions.md" },
-        { "file": "instructions/powershell-execution.instructions.md" },
-        { "file": "instructions/dotnet-csharp.instructions.md" },
-        { "file": "instructions/clean-architecture-code.instructions.md" },
-        { "file": "instructions/backend.instructions.md" },
-        { "file": "instructions/frontend.instructions.md" },
-        { "file": "instructions/vue-quasar.instructions.md" },
-        { "file": "instructions/ui-ux.instructions.md" },
-        { "file": "instructions/database.instructions.md" },
-        { "file": "instructions/orm.instructions.md" },
-        { "file": "instructions/microservices-performance.instructions.md" },
-        { "file": "instructions/static-analysis-sonarqube.instructions.md" },
-        { "file": "instructions/docker.instructions.md" },
-        { "file": "instructions/k8s.instructions.md" },
-        { "file": "instructions/e2e-testing.instructions.md" },
-        { "file": "instructions/readme.instructions.md" },
-        { "file": "instructions/feedback-changelog.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\AGENTS.md" },
+        { "file": "C:\\Users\\tguis\\.github\\copilot-instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\workflow-optimization.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\ai-orchestration.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\powershell-execution.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\dotnet-csharp.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\clean-architecture-code.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\backend.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\frontend.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\vue-quasar.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\vue-quasar-architecture.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\ui-ux.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\database.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\orm.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\microservices-performance.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\static-analysis-sonarqube.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\docker.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\k8s.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\ci-cd-devops.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\e2e-testing.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\rust-code-organization.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\rust-testing.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\readme.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\feedback-changelog.instructions.md" },
         { "text": "Code suggestions must follow Clean Architecture: separation of concerns, dependency inversion, maintainability, readability and simplicity." }
     ],
     "github.copilot.chat.commitMessageGeneration.instructions": [
-        { "file": "AGENTS.md" },
-        { "file": "copilot-instructions.md" },
-        { "file": "instructions/pr.instructions.md" },
-        { "file": "instructions/prompt-templates.instructions.md" },
-        { "file": "instructions/readme.instructions.md" },
-        { "file": "instructions/feedback-changelog.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\AGENTS.md" },
+        { "file": "C:\\Users\\tguis\\.github\\copilot-instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\pr.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\prompt-templates.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\readme.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\feedback-changelog.instructions.md" },
         { "text": "Commit messages: Conventional Commits (feat, fix, docs, refactor, test, chore), English, imperative mood, max 72 chars." }
     ],
     "github.copilot.chat.pullRequestDescriptionGeneration.instructions": [
-        { "file": "AGENTS.md" },
-        { "file": "copilot-instructions.md" },
-        { "file": "instructions/pr.instructions.md" },
-        { "file": "instructions/readme.instructions.md" },
-        { "file": "instructions/feedback-changelog.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\AGENTS.md" },
+        { "file": "C:\\Users\\tguis\\.github\\copilot-instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\pr.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\readme.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\feedback-changelog.instructions.md" },
         { "text": "PR description must include: Context, Changes, Rationale, Risks, Testing, Docs, Breaking Changes, Migration." }
     ],
+
+    // ═══════════════════════════════════════════════════════════════════════════════════════════════
+    // END COPILOT & AI CHAT CONFIGURATION
+    // ═══════════════════════════════════════════════════════════════════════════════════════════════
+
+    // Terminal Auto-Approve - Safe commands for multi-language development
+    "chat.tools.terminal.autoApprove": {
+        // .NET Commands
+        "dotnet build": true,
+        "dotnet restore": true,
+        "dotnet test": true,
+        "dotnet run": true,
+        "dotnet clean": true,
+        
+        // Node.js / npm / pnpm / yarn
+        "npm install": true,
+        "npm i": true,
+        "npm init": true,
+        "npm run dev": true,
+        "npm run build": true,
+        "npm run test": true,
+        "npm run test:run": true,
+        "npm run test:coverage": true,
+        "npm run lint": true,
+        "npm run format": true,
+        "pnpm install": true,
+        "pnpm dev": true,
+        "pnpm build": true,
+        "pnpm test": true,
+        "yarn install": true,
+        "yarn dev": true,
+        "yarn build": true,
+        "yarn test": true,
+        "npx": true,
+        
+        // Vue / Quasar / Vite
+        "vite": true,
+        "vite build": true,
+        "vite preview": true,
+        "quasar dev": true,
+        "quasar build": true,
+        "quasar clean": true,
+        "quasar inspect": true,
+        "vue-cli-service serve": true,
+        "vue-cli-service build": true,
+        
+        // Rust Commands
+        "cargo build": true,
+        "cargo run": true,
+        "cargo test": true,
+        "cargo check": true,
+        "cargo clean": true,
+        "cargo clippy": true,
+        "cargo fmt": true,
+        
+        // Clojure Commands
+        "clojure": true,
+        "clj": true,
+        "lein test": true,
+        "lein run": true,
+        
+        // PowerShell Cmdlets
+        "Copy-Item": true,
+        "Move-Item": true,
+        "mv": true,
+        "New-Item": true,
+        "Out-File": true,
+        "Out-Null": true,
+        "Test-Path": true,
+        "Push-Location": true,
+        "Pop-Location": true,
+        "ForEach-Object": true,
+        "Set-Content": true,
+        "Get-Content": true,
+        "Remove-Item": true,
+        "rm": true,
+        "taskkill": true,
+        "$null": true,
+        "$content": true,
+        "Expression={[math]::Round($_.Length/1MB,2)}}": true
+    },
+
+    // GitLens AI Configuration
+    "gitlens.ai.model": "vscode",
+    "gitlens.ai.vscode.model": "copilot:gpt-4.1",
 
     // TELEMETRY & PRIVACY - Privacy and data collection settings
     // https://code.visualstudio.com/docs/getstarted/telemetry
@@ -370,12 +642,7 @@
     // Database Client
     "database-client.autoSync": true,
 
-    // ChatGPT / AI Tools
-    "chat.enable": true,
-    "chat.agent.maxRequests": 1000,
-    "chat.promptFiles": true,
-
-    // Habilita o runner integrado para testes com POML (Python e JavaScript)
+    // POML - Integrated test runners for POML (Python and JavaScript)
     "poml.runners.python.enabled": true,
     "poml.runners.javascript.enabled": false
 }
