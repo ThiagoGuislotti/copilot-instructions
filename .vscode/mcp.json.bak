@@ -1,0 +1,121 @@
+{
+    "servers": {
+        "microsoft/playwright-mcp": {
+            "type": "stdio",
+            "command": "npx",
+            "args": [
+                "@playwright/mcp@latest"
+            ],
+            "gallery": "https://api.mcp.github.com",
+            "version": "0.0.1-seed"
+        },
+        "io.github.github/github-mcp-server": {
+            "type": "http",
+            "url": "https://api.githubcopilot.com/mcp/",
+            "headers": {
+                "Authorization": "${input:Authorization}"
+            },
+            "gallery": "https://api.mcp.github.com",
+            "version": "0.24.0"
+        },
+        "com.microsoft/azure": {
+            "type": "stdio",
+            "command": "dnx",
+            "args": [
+                "Azure.Mcp@2.0.0-beta.6",
+                "--yes",
+                "--",
+                "server",
+                "start"
+            ],
+            "gallery": "https://api.mcp.github.com",
+            "version": "2.0.0-beta.6"
+        },
+        "microsoftdocs/mcp": {
+            "type": "http",
+            "url": "https://learn.microsoft.com/api/mcp",
+            "gallery": "https://api.mcp.github.com",
+            "version": "1.0.0"
+        },
+        "microsoft/azure-devops-mcp": {
+            "type": "stdio",
+            "command": "npx",
+            "args": [
+                "-y",
+                "@azure-devops/mcp@latest",
+                "${input:ado_org}",
+                "-d",
+                "${input:ado_domain}"
+            ],
+            "gallery": "https://api.mcp.github.com",
+            "version": "1.0.0"
+        },
+        "io.github.ChromeDevTools/chrome-devtools-mcp": {
+            "type": "stdio",
+            "command": "npx",
+            "args": [
+                "chrome-devtools-mcp@0.11.0"
+            ],
+            "gallery": "https://api.mcp.github.com",
+            "version": "0.11.0"
+        },
+        "coplaydev/unity-mcp": {
+            "type": "stdio",
+            "command": "uv",
+            "args": [
+                "--directory",
+                "${input:unity_mcp_server_src}",
+                "run",
+                "server.py"
+            ],
+            "gallery": "https://api.mcp.github.com",
+            "version": "1.0.0"
+        },
+        "microsoft/devbox-mcp-server": {
+            "type": "stdio",
+            "command": "npx",
+            "args": [
+                "-y",
+                "@microsoft/devbox-mcp@latest",
+                "@microsoft/devbox-mcp@latest"
+            ],
+            "gallery": "https://api.mcp.github.com",
+            "version": "1.0.0"
+        },
+        "microsoft/markitdown": {
+            "type": "stdio",
+            "command": "uvx",
+            "args": [
+                "markitdown-mcp==0.0.1a4"
+            ],
+            "gallery": "https://api.mcp.github.com",
+            "version": "1.0.0"
+        }
+    },
+    "inputs": [
+        {
+            "id": "Authorization",
+            "type": "promptString",
+            "description": "Authentication token (PAT or App token)",
+            "password": true
+        },
+        {
+            "id": "ado_org",
+            "type": "promptString",
+            "description": "Azure DevOps organization name (e.g., contoso).",
+            "password": false
+        },
+        {
+            "id": "ado_domain",
+            "type": "promptString",
+            "description": "Repeat to enable specific domains: core, work, work-items, search, test-plans, repositories, wiki, pipelines, advanced-security.",
+            "password": false
+        },
+        {
+            "id": "unity_mcp_server_src",
+            "type": "promptString",
+            "description": "Absolute path to the Unity MCP Server 'src' folder installed by the Unity package (e.g., macOS: ~/Library/Application Support/UnityMCP/UnityMcpServer/src; Windows: %USERPROFILE%/AppData/Local/UnityMCP/UnityMcpServer/src; Linux: ~/.local/share/UnityMCP/UnityMcpServer/src).",
+            "password": false
+        }
+    ]
+}
