@@ -4,20 +4,21 @@ priority: medium
 ---
 
 # Template Usage
-Use template .github/templates/readme-template.md as base for standard structure.
+ALWAYS use template .github/templates/readme-template.md as base for standard structure.
 
 # Required Structure
 Introduction, Table of Contents, Installation, Quick Start, Usage Examples, API Reference, Build and Tests, Contributing, Dependencies, References.
 
 # Introduction
 Problem solved, context, technical approach; key features with checkmarks.
+
 ```markdown
 ## Features
 
-✅ Dynamic query building with LINQ expressions
-✅ Type-safe filtering and sorting
-✅ Extensible validator framework
-✅ Multi-target .NET 8.0 and .NET 9.0 support
+- ✅ Dynamic query building with LINQ expressions
+- ✅ Type-safe filtering and sorting
+- ✅ Extensible validator framework
+- ✅ Multi-target .NET 8.0 and .NET 9.0 support
 ```
 
 # Table of Contents

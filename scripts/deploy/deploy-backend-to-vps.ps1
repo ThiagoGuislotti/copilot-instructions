@@ -1,213 +1,229 @@
-<#
-.SYNOPSIS
-    Interactive Docker deployment helper for .NET backends targeting VPS hosts (e.g., Contabo).
-.DESCRIPTION
-    Guides the operator through seven interactive stages:
-        1. Optionally rebuild the Docker image locally.
-        2. Export the image to a compressed .tar.gz bundle.
-        3. Optionally clean the remote stack (`docker compose down -v`).
-        4. Sync the local docker/ directory (compose files, configs, env files, etc.).
-        5. Transfer the exported bundle to the VPS via SCP.
-        6. Load the image into the remote Docker engine.
-        7. Start the stack with `docker compose up -d`, display container status and helpful URLs.
-
-    The script is generic; create environment-specific wrappers to avoid retyping secrets or
-    parameters. When -VpsPassword is omitted, the script prompts once and reuses the answer.
-
-.PARAMETER VpsIp
-    Public IP or hostname of the target VPS.
-.PARAMETER VpsUser
-    SSH user employed for all remote operations (e.g., root, deploy).
-.PARAMETER VpsBasePath
-    Base directory on the VPS where compose files and artifacts are stored.
-.PARAMETER ImageName
-    Name assigned to the Docker image bundle.
-.PARAMETER ImageTag
-    Optional Docker tag. Default: latest.
-.PARAMETER ApiPort
-.PARAMETER ApiPortHttps
-.PARAMETER SeqPort
-    Ports surfaced in the final summary (HTTP endpoint, HTTPS endpoint, Seq dashboard).
-.PARAMETER ProjectRoot
-    Local project root that contains docker/ assets and the Dockerfile.
-.PARAMETER DockerfilePath
-    Path to the Dockerfile used during the build stage.
-.PARAMETER VpsPassword
-    Optional SSH password value (compatible with sshpass if installed). Prompted when omitted.
-
-.EXAMPLE
-    Recommended usage: call the generic script through a project-specific wrapper.
-    $params = @{
-        VpsIp          = "38.242.232.14"
-        VpsUser        = "root"
-        VpsBasePath    = "/root/my-app"
-        ImageName      = "my-app-api"
-        ApiPort        = "5000"
-        ApiPortHttps   = "5001"
-        SeqPort        = "8082"
-        ProjectRoot    = $PSScriptRoot
-        DockerfilePath = ".\src\API\Dockerfile"
-    }
-    & .\deploy-backend-to-vps.ps1 @params
-
-.EXAMPLE
-    Ad-hoc invocation where all parameters are passed explicitly.
-    .\deploy-backend-to-vps.ps1 `
-        -VpsIp "38.242.232.14" `
-        -VpsUser "root" `
-        -VpsBasePath "/root/prod-app" `
-        -ImageName "prod-api" `
-        -ApiPort "5000" `
-        -ApiPortHttps "5001" `
-        -SeqPort "8082" `
-        -ProjectRoot "C:\Projects\Prod" `
-        -DockerfilePath ".\src\Api\Dockerfile"
-
-.EXAMPLE
-    Wrapper snippet demonstrating password capture and reuse.
-    $pwd = Read-Host 'VPS password' -AsSecureString
-    $plain = [Runtime.InteropServices.Marshal]::PtrToStringBSTR([Runtime.InteropServices.Marshal]::SecureStringToBSTR($pwd))
-    & .\deploy-backend-to-vps.ps1 -VpsIp "10.0.0.5" -VpsUser "deploy" -VpsBasePath "/srv/app" -ImageName "app-api" -ApiPort 5000 -ApiPortHttps 5001 -SeqPort 8082 -ProjectRoot "$PSScriptRoot" -DockerfilePath ".\Dockerfile" -VpsPassword $plain
-
-.NOTES
-    Requirements: Docker CLI, SSH/SCP tools, PowerShell 7+, network access to the VPS.
-    Recommendation: keep environment-specific wrappers (deploy-staging.ps1, deploy-prod.ps1, etc.).
-#>
+################################################################################
+# Deploy Backend para VPS Contabo
+# 
+# Script GENÉRICO para deploy de aplicações backend .NET em VPS Contabo
+# 
+# ⚙️ CARACTERÍSTICAS:
+# • Parâmetros obrigatórios (não hardcoded)
+# • Perguntas contextuais em cada etapa
+# • Deploy interativo com confirmações
+# • Suporte a múltiplos projetos/ambientes
+# • Cópia recursiva de configurações Docker
+# 
+# 🔄 PROCESSO (7 ETAPAS):
+# [1/7] Build da imagem Docker (pergunta se quer rebuild)
+# [2/7] Exportar imagem como .tar.gz (compressão automática)
+# [3/7] Limpar VPS (pergunta se quer docker compose down -v)
+# [4/7] Reenviar pasta docker/ (pergunta se quer reenviar configs)
+# [5/7] Enviar imagem para VPS (via SCP)
+# [6/7] Carregar imagem no Docker (importação)
+# [7/7] Executar deploy (docker compose up -d)
+#
+# 📋 REQUISITOS:
+# • Docker Desktop instalado e rodando
+# • SSH/SCP disponíveis no PATH
+# • Acesso SSH configurado ao VPS
+# • Estrutura docker/ no projeto
+# • Dockerfile válido no projeto
+#
+# 🚀 USO:
+#
+# Este script NÃO deve ser chamado diretamente.
+# Crie um wrapper script para seu projeto específico.
+#
+# EXEMPLO DE WRAPPER (deploy-meu-app.ps1):
+# -----------------------------------------------
+# $params = @{
+#     VpsIp = "38.242.232.14"
+#     VpsUser = "root"
+#     VpsBasePath = "/root/meu-app"
+#     ImageName = "meu-app-api"
+#     ApiPort = "5000"
+#     ApiPortHttps = "5001"
+#     SeqPort = "8082"
+#     ProjectRoot = $PSScriptRoot
+#     DockerfilePath = ".\src\API\Dockerfile"
+# }
+# & .\deploy-backend-to-vps.ps1 @params
+# -----------------------------------------------
+#
+# Ou chame diretamente (não recomendado):
+# .\deploy-backend-to-vps.ps1 `
+#     -VpsIp "38.242.232.14" `
+#     -VpsUser "root" `
+#     -VpsBasePath "/root/meu-app" `
+#     -ImageName "meu-app-api" `
+#     -ApiPort "5000" `
+#     -ApiPortHttps "5001" `
+#     -SeqPort "8082" `
+#     -ProjectRoot "C:\Projetos\MeuApp" `
+#     -DockerfilePath "C:\Projetos\MeuApp\src\API\Dockerfile"
+#
+# 💡 RECOMENDAÇÃO:
+# Use o wrapper específico do seu projeto (ex: deploy-muralha.ps1)
+# para evitar digitar todos os parâmetros manualmente.
+#
+# 📖 MAIS INFORMAÇÕES:
+# Consulte README.md e REFACTORING-SUMMARY.md para detalhes
+################################################################################
 
 param(
     [Parameter(Mandatory=$true)]
     [string]$VpsIp,
-
+    
     [Parameter(Mandatory=$true)]
     [string]$VpsUser,
-
+    
     [Parameter(Mandatory=$true)]
     [string]$VpsBasePath,
-
+    
     [Parameter(Mandatory=$true)]
     [string]$ImageName,
-
+    
     [string]$ImageTag = "latest",
-
+    
     [Parameter(Mandatory=$true)]
     [string]$ApiPort,
-
+    
     [Parameter(Mandatory=$true)]
     [string]$ApiPortHttps,
-
+    
     [Parameter(Mandatory=$true)]
     [string]$SeqPort,
-
+    
     [Parameter(Mandatory=$true)]
     [string]$ProjectRoot,
-
+    
     [Parameter(Mandatory=$true)]
     [string]$DockerfilePath,
-
-    [string]$VpsPassword = ""
+    
+    [SecureString]$VpsPassword
 )
 
 $ErrorActionPreference = "Stop"
 
 # ============================================================================
-# Configure SSH authentication (prompt password once)
+# Configurar autenticação SSH (pedir senha uma única vez)
 # ============================================================================
-if (-not $VpsPassword) {
+$plainPassword = $null
+
+if ($VpsPassword) {
+    # Converter SecureString para string plana
+    $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($VpsPassword)
+    $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+    [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
+} else {
+    # Pedir senha interativamente
     Write-Host ""
-    Write-Host "🔐 SSH Authentication" -ForegroundColor Cyan
+    Write-Host "🔐 Autenticação SSH" -ForegroundColor Cyan
     Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
-    $securePassword = Read-Host "   VPS password (${VpsUser}@${VpsIp})" -AsSecureString
+    $securePassword = Read-Host "   Senha do VPS (${VpsUser}@${VpsIp})" -AsSecureString
     $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
-    $VpsPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+    $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
     [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
 }
 
-# Configure sshpass environment variable when available
-$env:SSHPASS = $VpsPassword
+# Configurar variável de ambiente para sshpass (se disponível)
+$env:SSHPASS = $plainPassword
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  Deploy Backend para VPS Contabo" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Configuration:" -ForegroundColor Gray
+Write-Host "Configurações:" -ForegroundColor Gray
 Write-Host "  • VPS: ${VpsUser}@${VpsIp}" -ForegroundColor White
-Write-Host "  • Base path: ${VpsBasePath}" -ForegroundColor White
-Write-Host "  • Image: ${ImageName}:${ImageTag}" -ForegroundColor White
-Write-Host "  • API ports: ${ApiPort} (HTTP) | ${ApiPortHttps} (HTTPS)" -ForegroundColor White
+Write-Host "  • Base Path: ${VpsBasePath}" -ForegroundColor White
+Write-Host "  • Imagem: ${ImageName}:${ImageTag}" -ForegroundColor White
+Write-Host "  • API Port: ${ApiPort} (HTTP) | ${ApiPortHttps} (HTTPS)" -ForegroundColor White
 Write-Host ""
 
-# Define paths
+# Definir caminhos
 $exportPath = Join-Path $PSScriptRoot "${ImageName}.tar.gz"
 $fullImageName = "${ImageName}:${ImageTag}"
 $dockerPath = Join-Path $ProjectRoot "docker"
 $vpsDockerPath = "${VpsBasePath}/docker"
 
 # ============================================================================
-# STEP 1: Build local Docker image
+# ETAPA 1: Build da imagem Docker localmente
 # ============================================================================
-Write-Host "[1/7] Build Docker image" -ForegroundColor Cyan
+Write-Host "[1/7] Build da imagem Docker" -ForegroundColor Cyan
 Write-Host ""
 
 $buildNewImage = $false
-if (docker images -q $fullImageName 2>$null) {
-    Write-Host "✅ Local Docker image found: $fullImageName" -ForegroundColor Green
+$imageExists = docker images -q $fullImageName 2>$null
+if ($imageExists) {
+    Write-Host "✅ Imagem Docker local encontrada: $fullImageName" -ForegroundColor Green
     Write-Host ""
-    $response = Read-Host "Rebuild image from scratch? (y/N)"
-    $buildNewImage = $response -match '^[yY]'
+    $response = Read-Host "Deseja fazer BUILD de uma NOVA imagem? (s/N)"
+    $buildNewImage = $response -match '^[sS]'
 } else {
-    Write-Host "⚠️  Local Docker image not found: $fullImageName" -ForegroundColor Yellow
-    Write-Host "   A fresh image will be created automatically." -ForegroundColor Gray
+    Write-Host "⚠️  Imagem Docker local NÃO encontrada: $fullImageName" -ForegroundColor Yellow
+    Write-Host "   Uma nova imagem será criada automaticamente." -ForegroundColor Gray
     $buildNewImage = $true
 }
 
 Write-Host ""
 
 if ($buildNewImage) {
-    Write-Host "   Building Docker image..." -ForegroundColor Yellow
+    Write-Host "   Fazendo build da imagem..." -ForegroundColor Yellow
 
     try {
         Push-Location $ProjectRoot
-
-        # Build image (without cache to guarantee full rebuild)
+        
+        # Build da imagem (sem cache para garantir rebuild completo)
+        Write-Host "   🛠️  Removendo imagem antiga (se existir)..." -ForegroundColor Gray
         docker rmi $fullImageName -f 2>$null
-        docker build --no-cache -t $fullImageName -f $DockerfilePath . 2>&1 | Out-Null
-
-        if ($LASTEXITCODE -ne 0) {
-            throw "Docker image build failed"
+        
+        Write-Host "   👷 Construindo imagem Docker..." -ForegroundColor Yellow
+        Write-Host "   (Aguarde, isso pode levar alguns minutos)" -ForegroundColor Gray
+        
+        docker build --no-cache -t $fullImageName -f $DockerfilePath . 2>&1 | ForEach-Object {
+            if ($_ -match "Step \d+/\d+|Successfully built|Successfully tagged") {
+                Write-Host "   $_" -ForegroundColor DarkGray
+            }
         }
-
-        Write-Host "   ✅ Build completed!" -ForegroundColor Green
+        
+        if ($LASTEXITCODE -ne 0) {
+            throw "Falha no build da imagem Docker"
+        }
+        
+        Write-Host "   ✅ Build concluído!" -ForegroundColor Green
         Write-Host ""
     }
     finally {
         Pop-Location
     }
 } else {
-    Write-Host "   Using existing image" -ForegroundColor Gray
+    Write-Host "   Usando imagem existente" -ForegroundColor Gray
     Write-Host ""
 }
 
 # ============================================================================
-# STEP 2: Export Docker image
+# ETAPA 2: Exportar imagem como arquivo
 # ============================================================================
-Write-Host "[2/7] Export Docker image" -ForegroundColor Cyan
+Write-Host "[2/7] Exportar imagem Docker" -ForegroundColor Cyan
 Write-Host ""
 
-# Remove previous bundle if present
+# Remover arquivo antigo se existir
 if (Test-Path $exportPath) {
     Remove-Item $exportPath -Force
 }
 
-# Export to .tar first
+# Exportar para .tar primeiro
 $tarPath = $exportPath -replace '\.gz$', ''
-docker save -o $tarPath $fullImageName 2>&1 | Out-Null
+Write-Host "   📦 Exportando imagem Docker para .tar..." -ForegroundColor Yellow
+Write-Host "   (Aguarde, isso pode levar alguns segundos)" -ForegroundColor Gray
+
+$saveOutput = docker save -o $tarPath $fullImageName 2>&1
 
 if ($LASTEXITCODE -ne 0) {
-    throw "Failed to export Docker image"
+    Write-Host "   ❌ Erro: $saveOutput" -ForegroundColor Red
+    throw "Falha ao exportar imagem Docker"
 }
 
-# Compress with PowerShell
+# Comprimir com PowerShell
+Write-Host "   🗜️  Comprimindo arquivo .tar para .tar.gz..." -ForegroundColor Yellow
 $tarFileStream = [System.IO.File]::OpenRead($tarPath)
 $gzipFileStream = [System.IO.File]::Create($exportPath)
 $gzipStream = New-Object System.IO.Compression.GZipStream($gzipFileStream, [System.IO.Compression.CompressionMode]::Compress)
@@ -216,115 +232,122 @@ $gzipStream.Close()
 $tarFileStream.Close()
 $gzipFileStream.Close()
 
-# Remove intermediate .tar
+# Remover .tar original
 Remove-Item $tarPath -Force
 
 $fileSize = (Get-Item $exportPath).Length / 1MB
-Write-Host "   ✅ Exported bundle size: $([math]::Round($fileSize, 2)) MB" -ForegroundColor Green
+Write-Host "   ✅ Exportado: $([math]::Round($fileSize, 2)) MB" -ForegroundColor Green
 Write-Host ""
 
 # ============================================================================
-# STEP 3: Clean VPS (optional)
+# ETAPA 3: Limpar VPS
 # ============================================================================
-Write-Host "[3/7] Clean VPS" -ForegroundColor Cyan
+Write-Host "[3/7] Limpar VPS" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "   This step will:" -ForegroundColor Yellow
-Write-Host "   • Stop all containers (docker compose down)" -ForegroundColor Yellow
-Write-Host "   • Remove volumes/data (-v)" -ForegroundColor Yellow
+Write-Host "   Esta operação irá:" -ForegroundColor Yellow
+Write-Host "   • Parar todos os containers (docker compose down)" -ForegroundColor Yellow
+Write-Host "   • Remover volumes e dados (-v)" -ForegroundColor Yellow
 Write-Host ""
 $cleanVps = $false
-$response = Read-Host "   Do you want to CLEAN the VPS? (y/N)"
-$cleanVps = $response -match '^[yY]'
+$response = Read-Host "   Deseja LIMPAR o VPS? (s/N)"
+$cleanVps = $response -match '^[sS]'
 Write-Host ""
 
 if ($cleanVps) {
-    Write-Host "   Cleaning VPS..." -ForegroundColor Yellow
-
-    $cleanCmd = "cd ${vpsDockerPath} && docker compose down -v 2>&1 && echo '✅ VPS cleaned'"
-
+    Write-Host "   Limpando VPS..." -ForegroundColor Yellow
+    
+    $cleanCmd = "cd ${vpsDockerPath} && docker compose down -v 2>&1 && echo '✅ VPS limpo'"
+    
     $sshArgsClean = @(
         "-o", "StrictHostKeyChecking=no",
         "${VpsUser}@${VpsIp}",
         $cleanCmd
     )
-
-    & ssh @sshArgsClean 2>&1 | Select-String -Pattern "✅" -SimpleMatch
-
+    
+    Write-Host "   🧹 Executando docker compose down -v..." -ForegroundColor Yellow
+    
+    $cleanOutput = & ssh @sshArgsClean 2>&1
+    $cleanOutput | ForEach-Object {
+        if ($_ -match "Stopping|Removing|✅") {
+            Write-Host "   $_" -ForegroundColor Gray
+        }
+    }
+    
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "   ⚠️ Warning: VPS folder may not exist yet" -ForegroundColor Yellow
+        Write-Host "   ⚠️ Aviso: VPS pode não existir ou ocorreu um erro" -ForegroundColor Yellow
     } else {
-        Write-Host "   ✅ VPS cleaned!" -ForegroundColor Green
+        Write-Host "   ✅ VPS limpo!" -ForegroundColor Green
     }
     Write-Host ""
 } else {
-    Write-Host "   Skipping cleanup" -ForegroundColor Gray
+    Write-Host "   Pulando limpeza" -ForegroundColor Gray
     Write-Host ""
 }
 
 # ============================================================================
-# STEP 4: Re-upload docker folder
+# ETAPA 4: Reenviar pasta docker
 # ============================================================================
-Write-Host "[4/7] Re-upload docker/ folder" -ForegroundColor Cyan
+Write-Host "[4/7] Reenviar pasta docker/" -ForegroundColor Cyan
 Write-Host ""
 
 $resendDockerFolder = $false
 
 if ($cleanVps) {
-    # If the VPS was cleaned we must upload docker/ again (no prompt)
-    Write-Host "   ⚠️  VPS was cleaned – docker/ will be uploaded automatically" -ForegroundColor Yellow
+    # Se limpou o VPS, DEVE reenviar a pasta docker (sem perguntar)
+    Write-Host "   ⚠️  VPS foi limpo - pasta docker/ SERÁ reenviada automaticamente" -ForegroundColor Yellow
     Write-Host ""
     $resendDockerFolder = $true
 } else {
-    # Otherwise, ask if we should re-upload configuration assets
-    Write-Host "   This step will:" -ForegroundColor Yellow
-    Write-Host "   • Recreate ${vpsDockerPath}/ on the VPS" -ForegroundColor Yellow
-    Write-Host "   • Upload ALL configuration files" -ForegroundColor Yellow
-    Write-Host "   • Include: docker-compose*.yaml, .env, env/, otel-collector/, rabbitmq/, etc." -ForegroundColor Yellow
+    # Se não limpou, pergunta se quer reenviar
+    Write-Host "   Esta operação irá:" -ForegroundColor Yellow
+    Write-Host "   • Recriar a pasta ${vpsDockerPath}/ no VPS" -ForegroundColor Yellow
+    Write-Host "   • Enviar TODOS os arquivos de configuração" -ForegroundColor Yellow
+    Write-Host "   • Incluir: docker-compose*.yaml, .env, env/, otel-collector/, rabbitmq/, etc" -ForegroundColor Yellow
     Write-Host ""
-    $response = Read-Host "   Re-upload docker/ folder? (y/N)"
-    $resendDockerFolder = $response -match '^[yY]'
+    $response = Read-Host "   Deseja REENVIAR a pasta docker/? (s/N)"
+    $resendDockerFolder = $response -match '^[sS]'
     Write-Host ""
 }
 
 if ($resendDockerFolder) {
-    Write-Host "   Uploading docker/ folder..." -ForegroundColor Yellow
-
+    Write-Host "   Reenviando pasta docker/..." -ForegroundColor Yellow
+    
     if (-not (Test-Path $dockerPath)) {
-        throw "docker/ folder not found: $dockerPath"
+        throw "Pasta docker/ não encontrada: $dockerPath"
     }
-
-    # Preview everything that will be uploaded
+    
+    # Listar tudo que será enviado
     Write-Host ""
-    Write-Host "   📦 docker/ content scheduled for upload:" -ForegroundColor Cyan
+    Write-Host "   📦 Conteúdo que será enviado de docker/:" -ForegroundColor Cyan
     Write-Host "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
-
-    # Enumerate files and folders
+    
+    # Listar arquivos e pastas recursivamente
     $allItems = Get-ChildItem -Path $dockerPath -Recurse -Force | Sort-Object FullName
     $files = $allItems | Where-Object { -not $_.PSIsContainer }
     $folders = $allItems | Where-Object { $_.PSIsContainer }
-
-    Write-Host "   📁 Folders ($($folders.Count)):" -ForegroundColor Yellow
+    
+    Write-Host "   📁 Pastas ($($folders.Count)):" -ForegroundColor Yellow
     foreach ($folder in $folders) {
         $relativePath = $folder.FullName.Substring($dockerPath.Length).TrimStart('\')
         Write-Host "      └─ $relativePath" -ForegroundColor Gray
     }
-
+    
     Write-Host ""
-    Write-Host "   📄 Files ($($files.Count)):" -ForegroundColor Yellow
+    Write-Host "   📄 Arquivos ($($files.Count)):" -ForegroundColor Yellow
     foreach ($file in $files) {
         $relativePath = $file.FullName.Substring($dockerPath.Length).TrimStart('\')
         $sizeKB = [math]::Round($file.Length / 1KB, 2)
         $sizeDisplay = if ($sizeKB -lt 1) { "$($file.Length) bytes" } else { "$sizeKB KB" }
-
-        # Highlight critical files (skip root .env for security)
+        
+        # Destacar arquivos críticos (exceto .env - não mostrar para não expor)
         $icon = "   "
         $color = "Gray"
-
-        # Skip root .env from logs for security reasons
+        
+        # Não mostrar .env no log por segurança
         if ($relativePath -eq ".env") {
             continue
         }
-
+        
         if ($relativePath -like "*.env") {
             $icon = "🔑 "
             $color = "Gray"
@@ -335,15 +358,15 @@ if ($resendDockerFolder) {
             $icon = "⚙️  "
             $color = "Yellow"
         }
-
+        
         Write-Host "      $icon$relativePath" -ForegroundColor $color -NoNewline
         Write-Host " ($sizeDisplay)" -ForegroundColor DarkGray
     }
-
+    
     Write-Host "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
     Write-Host ""
-
-    # Check critical files
+    
+    # Verificar arquivos críticos
     $criticalFiles = @(".env", "docker-compose.yaml", "docker-compose.deploy.yaml")
     $missingCritical = @()
     foreach ($criticalFile in $criticalFiles) {
@@ -352,88 +375,110 @@ if ($resendDockerFolder) {
             $missingCritical += $criticalFile
         }
     }
-
+    
     if ($missingCritical.Count -gt 0) {
-        Write-Host "   ⚠️  WARNING: Critical files missing:" -ForegroundColor Red
+        Write-Host "   ⚠️  AVISO: Arquivos críticos ausentes:" -ForegroundColor Red
         foreach ($missing in $missingCritical) {
             Write-Host "      ❌ $missing" -ForegroundColor Red
         }
         Write-Host ""
-        $response = Read-Host "   Continue anyway? (y/N)"
-        if ($response -notmatch '^[yY]') {
-            throw "Deployment cancelled by user (critical files missing)"
+        $response = Read-Host "   Continuar mesmo assim? (s/N)"
+        if ($response -notmatch '^[sS]') {
+            throw "Deploy cancelado pelo usuário (arquivos críticos ausentes)"
         }
     }
-
+    
     Write-Host ""
-
+    
     # Criar estrutura no VPS
     $createDirsCmd = "mkdir -p ${VpsBasePath} && rm -rf ${vpsDockerPath} && mkdir -p ${vpsDockerPath}"
-
+    
     $sshArgsDirs = @(
         "-o", "StrictHostKeyChecking=no",
         "${VpsUser}@${VpsIp}",
         $createDirsCmd
     )
-
-    & ssh @sshArgsDirs 2>&1 | Out-Null
-
+    
+    Write-Host "   📁 Criando estrutura de diretórios no VPS..." -ForegroundColor Yellow
+    $dirOutput = & ssh @sshArgsDirs 2>&1
+    
     if ($LASTEXITCODE -ne 0) {
-        throw "Failed to prepare directory structure on VPS"
+        Write-Host "   ❌ Erro: $dirOutput" -ForegroundColor Red
+        throw "Falha ao criar estrutura de diretórios no VPS"
+    } else {
+        Write-Host "   ✅ Diretórios criados!" -ForegroundColor Green
     }
-
-    # Use recursive SCP to transfer everything (including hidden files)
+    
+    # Usar SCP com recursão para enviar TUDO (incluindo arquivos ocultos)
     Push-Location $dockerPath
-
+    
     $scpArgsRecursive = @(
         "-o", "StrictHostKeyChecking=no",
         "-r",
         ".",
         "${VpsUser}@${VpsIp}:${vpsDockerPath}/"
     )
-
-    & scp @scpArgsRecursive 2>&1 | Out-Null
-
-    Pop-Location
-
-    if ($LASTEXITCODE -ne 0) {
-        throw "Failed to upload docker/ folder"
+    
+    Write-Host "   📤 Enviando arquivos da pasta docker/..." -ForegroundColor Yellow
+    Write-Host "   (Digite a senha quando solicitado)" -ForegroundColor Gray
+    Write-Host ""
+    
+    $scpStartTime = Get-Date
+    & scp @scpArgsRecursive 2>&1 | ForEach-Object {
+        $currentLine = $_
+        if ($currentLine -match "Authenticated|Sending|100%") {
+            Write-Host "   $currentLine" -ForegroundColor DarkGray
+        }
     }
-
+    
+    Pop-Location
+    
+    if ($LASTEXITCODE -ne 0) {
+        throw "Falha ao enviar pasta docker/"
+    }
+    
+    $scpEndTime = Get-Date
+    $scpDuration = ($scpEndTime - $scpStartTime).TotalSeconds
+    Write-Host ""
+    Write-Host "   ⏱️  Tempo de transferência: $([math]::Round($scpDuration, 1))s" -ForegroundColor Gray
+    
     # Verificar se .env foi enviado
     $checkEnvCmd = "[ -f ${vpsDockerPath}/.env ] && echo '✅ .env OK' || echo '❌ .env MISSING'"
-
+    
     $sshArgsCheckEnv = @(
         "-o", "StrictHostKeyChecking=no",
         "${VpsUser}@${VpsIp}",
         $checkEnvCmd
     )
-
+    
     $envCheck = & ssh @sshArgsCheckEnv 2>&1
     Write-Host "   $envCheck" -ForegroundColor $(if($envCheck -match '✅'){'Green'}else{'Red'})
-
+    
     # Renomear docker-compose.deploy.yaml para docker-compose.yaml
     $renameCmd = "cd ${vpsDockerPath} && [ -f docker-compose.deploy.yaml ] && cp docker-compose.deploy.yaml docker-compose.yaml"
-
+    
     $sshArgsRename = @(
         "-o", "StrictHostKeyChecking=no",
         "${VpsUser}@${VpsIp}",
         $renameCmd
     )
-
-    & ssh @sshArgsRename 2>&1 | Out-Null
-
-    Write-Host "   ✅ docker/ folder uploaded!" -ForegroundColor Green
+    
+    $renameOutput = & ssh @sshArgsRename 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "   ⚠️  Aviso ao renomear docker-compose: $renameOutput" -ForegroundColor Yellow
+    }
+    
+    Write-Host "   ✅ Pasta docker/ enviada!" -ForegroundColor Green
     Write-Host ""
 } else {
-    Write-Host "   Skipping docker/ upload" -ForegroundColor Gray
+    Write-Host "   Pulando reenvio" -ForegroundColor Gray
     Write-Host ""
 }
 
 # ============================================================================
-# STEP 5: Upload image bundle to VPS
+# ETAPA 5: Enviar imagem para VPS
 # ============================================================================
-Write-Host "[5/7] Upload image to VPS" -ForegroundColor Cyan
+Write-Host "[5/7] Enviar imagem para VPS" -ForegroundColor Cyan
 Write-Host ""
 
 $scpArgs = @(
@@ -442,19 +487,37 @@ $scpArgs = @(
     "${VpsUser}@${VpsIp}:${VpsBasePath}/${ImageName}.tar.gz"
 )
 
-& scp @scpArgs 2>&1 | Out-Null
+Write-Host "   📤 Enviando imagem Docker (${ImageName}.tar.gz)..." -ForegroundColor Yellow
+$imageSize = (Get-Item $exportPath).Length / 1MB
+Write-Host "   Tamanho: $([math]::Round($imageSize, 2)) MB" -ForegroundColor Gray
+Write-Host "   (Digite a senha quando solicitado)" -ForegroundColor Gray
+Write-Host ""
 
-if ($LASTEXITCODE -ne 0) {
-    throw "Failed to transfer image bundle to VPS"
+$scpStartTime = Get-Date
+& scp @scpArgs 2>&1 | ForEach-Object {
+    $currentLine = $_
+    # Mostrar feedback após autenticação
+    if ($currentLine -match "Authenticated|Sending|100%|ETA") {
+        Write-Host "   $currentLine" -ForegroundColor DarkGray
+    }
 }
 
-Write-Host "   ✅ Image bundle uploaded!" -ForegroundColor Green
+if ($LASTEXITCODE -ne 0) {
+    throw "Falha ao enviar arquivo para VPS"
+}
+
+$scpEndTime = Get-Date
+$scpDuration = ($scpEndTime - $scpStartTime).TotalSeconds
+Write-Host ""
+Write-Host "   ⏱️  Tempo de transferência: $([math]::Round($scpDuration, 1))s" -ForegroundColor Gray
+
+Write-Host "   ✅ Imagem enviada!" -ForegroundColor Green
 Write-Host ""
 
 # ============================================================================
-# STEP 6: Load image into remote Docker engine
+# ETAPA 6: Carregar imagem no Docker do VPS
 # ============================================================================
-Write-Host "[6/7] Load image into Docker" -ForegroundColor Cyan
+Write-Host "[6/7] Carregar imagem no Docker" -ForegroundColor Cyan
 Write-Host ""
 
 $loadCmd = "gunzip -c ${VpsBasePath}/${ImageName}.tar.gz | docker load && rm ${VpsBasePath}/${ImageName}.tar.gz"
@@ -465,19 +528,26 @@ $sshArgs = @(
     $loadCmd
 )
 
-& ssh @sshArgs 2>&1 | Select-String -Pattern "Loaded image" -SimpleMatch
+Write-Host "   🐋 Descomprimindo e carregando imagem no Docker..." -ForegroundColor Yellow
+Write-Host "   (Aguarde, isso pode levar alguns segundos)" -ForegroundColor Gray
 
-if ($LASTEXITCODE -ne 0) {
-    throw "Failed to load Docker image on VPS"
+$loadOutput = & ssh @sshArgs 2>&1
+$loadOutput | Where-Object { $_ -match "Loaded image" } | ForEach-Object {
+    Write-Host "   $_" -ForegroundColor Green
 }
 
-Write-Host "   ✅ Image loaded!" -ForegroundColor Green
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "   ❌ Erro: $loadOutput" -ForegroundColor Red
+    throw "Falha ao carregar imagem no VPS"
+}
+
+Write-Host "   ✅ Imagem carregada!" -ForegroundColor Green
 Write-Host ""
 
 # ============================================================================
-# STEP 7: Run docker compose deployment
+# ETAPA 7: Executar deploy
 # ============================================================================
-Write-Host "[7/7] Execute deployment" -ForegroundColor Cyan
+Write-Host "[7/7] Executar deploy" -ForegroundColor Cyan
 Write-Host ""
 
 $deployCmd = @"
@@ -486,12 +556,12 @@ docker compose down 2>&1 && \
 docker compose up -d 2>&1 && \
 echo '' && \
 echo '========================================' && \
-echo '  Container Status' && \
+echo '  Status dos Containers' && \
 echo '========================================' && \
 docker compose ps && \
 echo '' && \
 echo '========================================' && \
-echo '  Access URLs' && \
+echo '  URLs de Acesso' && \
 echo '========================================' && \
 echo 'API (HTTP): http://${VpsIp}:${ApiPort}' && \
 echo 'API (HTTPS): https://${VpsIp}:${ApiPortHttps}/swagger/index.html' && \
@@ -499,7 +569,7 @@ echo 'Health: http://${VpsIp}:${ApiPort}/health' && \
 echo 'Seq (Logs): http://${VpsIp}:${SeqPort}' && \
 echo '========================================' && \
 echo '' && \
-echo 'Latest API logs (tail 10):' && \
+echo 'Logs da API (últimas 10 linhas):' && \
 docker compose logs --tail=10 api
 "@
 
@@ -509,33 +579,41 @@ $sshArgs4 = @(
     $deployCmd
 )
 
-& ssh @sshArgs4
+Write-Host "   🚀 Executando docker compose up -d..." -ForegroundColor Yellow
+Write-Host ""
+
+$deployOutput = & ssh @sshArgs4 2>&1
+$deployOutput | ForEach-Object {
+    Write-Host $_
+}
 
 if ($LASTEXITCODE -ne 0) {
-    throw "Failed to execute docker compose on VPS"
+    Write-Host ""
+    Write-Host "   ❌ Falha ao executar deploy no VPS" -ForegroundColor Red
+    throw "Falha ao executar deploy no VPS"
 }
 
 # ============================================================================
-# Local cleanup
+# Limpeza local
 # ============================================================================
 Write-Host ""
-Write-Host "Removing temporary artifacts..." -ForegroundColor Gray
+Write-Host "Limpando arquivo temporário..." -ForegroundColor Gray
 if (Test-Path $exportPath) {
     Remove-Item $exportPath -Force
 }
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Green
-Write-Host "  ✅ DEPLOYMENT COMPLETED SUCCESSFULLY!" -ForegroundColor Green
+Write-Host "  ✅ DEPLOY CONCLUÍDO COM SUCESSO!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
 Write-Host ""
-Write-Host "Access URLs:" -ForegroundColor Cyan
+Write-Host "URLs de Acesso:" -ForegroundColor Cyan
 Write-Host "  • API (HTTP): http://${VpsIp}:${ApiPort}" -ForegroundColor White
 Write-Host "  • API (HTTPS): https://${VpsIp}:${ApiPortHttps}/swagger/index.html" -ForegroundColor White
 Write-Host "  • Health: http://${VpsIp}:${ApiPort}/health" -ForegroundColor White
 Write-Host "  • Seq (Logs): http://${VpsIp}:${SeqPort}" -ForegroundColor White
 Write-Host ""
-Write-Host "Useful SSH commands:" -ForegroundColor Cyan
+Write-Host "Comandos SSH úteis:" -ForegroundColor Cyan
 Write-Host "  • ssh ${VpsUser}@${VpsIp}" -ForegroundColor White
 Write-Host "  • ssh ${VpsUser}@${VpsIp} 'cd ${vpsDockerPath} && docker compose logs -f api'" -ForegroundColor White
 Write-Host "  • ssh ${VpsUser}@${VpsIp} 'cd ${vpsDockerPath} && docker compose restart api'" -ForegroundColor White

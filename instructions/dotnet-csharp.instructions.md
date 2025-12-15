@@ -4,10 +4,24 @@ priority: high
 ---
 
 # Code Organization
-- #region structure (Fields, Properties, Constructors, Methods)
+- #region structure and order (top to bottom):
+    - `#region Constants` - const fields
+    - `#region Static Variables` - static fields
+    - `#region Static Properties` - static properties
+    - `#region Variables` - instance fields
+    - `#region Protected Properties` - protected properties
+    - `#region Public Properties` - public properties
+    - `#region Internal Properties` - internal properties
+    - `#region Constructors` - constructors
+    - `#region Public Methods/Operators` - public methods and operators
+    - `#region Protected Methods/Operators` - protected methods and operators
+    - `#region Internal Methods/Operators` - internal methods and operators
+    - `#region Private Methods/Operators` - private methods and operators
 - Do not create empty regions. Only wrap members when there is at least one concrete member inside the region. If a type has no public methods, do not emit `#region Public Methods/Operators` at all.
-- Use template .github/templates/dotnet-class-template.cs for classes
-- Use template .github/templates/dotnet-interface-template.cs for interfaces
+- #region formatting: NO blank line after `#region Description` and NO blank line before `#endregion`. Implementation starts immediately after the region marker and ends immediately before endregion.
+- #region spacing: ALWAYS add ONE blank line between `#endregion` and the next `#region`. Never place them adjacent without separation.
+- ALWAYS use template .github/templates/dotnet-class-template.cs for classes
+- ALWAYS use template .github/templates/dotnet-interface-template.cs for interfaces
 - Small focused methods
 - Single responsibility classes
 - Avoid god classes
@@ -75,22 +89,68 @@ catch (SqlException ex)
 # Testing Patterns
 - AAA with minimal duplication
 - Prefer test data builders, isolated mocks and deterministic assertions
-- Unified templates to start fast and keep consistency: unit tests → .github/templates/dotnet-unit-test-template.cs (toggle xUnit or NUnit at the top)
-- Integration tests → .github/templates/dotnet-integration-test-template.cs (NUnit)
+- ALWAYS use templates to start fast and keep consistency:
+    - Unit tests: ALWAYS use template .github/templates/dotnet-unit-test-template.cs
+    - Integration tests: ALWAYS use template .github/templates/dotnet-integration-test-template.cs
 - File layout: unit tests in tests/<Project>.UnitTests/Tests/*Tests.cs
 - Integration tests in tests/<Project>.IntegrationTests/Tests/*Tests.cs
 - Categories/output: organize by domain category (Requests, Stream, Notifications, Commands, Queries, Pipeline, Concurrency, etc.)
 - For xUnit use ITestOutputHelper; for NUnit use TestContext
+- ALWAYS use standard assertions: NUnit (Assert.That, Assert.Throws) or xUnit (Assert.Equal, Assert.True)
+- NO XML summaries on test methods
+- Integration tests require: [TestFixture], [RequiresThread], [SetCulture("pt-BR")], [Category("...")]
+
+## Test File Region Structure
+- Test files MUST follow the region structure from templates (different from production code):
+    - `#region Nested types` - DTOs, stubs, test-specific types
+    - `#region Variables` - private fields, dependencies, test data
+    - `#region SetUp Methods` - [SetUp], [TearDown], [OneTimeSetUp], [OneTimeTearDown]
+    - `#region Test Methods - [MethodUnderTest]` - group tests by the method being tested
+    - `#region Test Methods - [MethodUnderTest] Valid Cases` - happy path tests
+    - `#region Test Methods - [MethodUnderTest] Invalid Cases` - validation/error tests
+    - `#region Test Methods - [MethodUnderTest] Edge Cases` - boundary/edge case tests
+    - `#region Test Methods - [MethodUnderTest] Exception Cases` - exception handling tests
+    - `#region Private Methods/Operators` - helper methods for test setup
+- Replace `[MethodUnderTest]` with the actual method name being tested (e.g., `#region Test Methods - CreateOffset`)
+- Do NOT use generic region names like `#region CanHandle Tests` or `#region RoundTrip Tests`
+- Combine related test cases under the same method region with appropriate suffixes (Valid/Invalid/Edge/Exception Cases)
 ```csharp
-[Fact]
-public void Should_CreateOrder_When_RequestIsValid()
+[TestFixture]
+[Category("Unit")]
+public sealed class OrderServiceTests
 {
-    // Arrange
-    var service = new OrderService();
-    // Act
-    var result = service.Create("123");
-    // Assert
-    result.Should().NotBeNull();
+    #region Variables
+    private OrderService _sut;
+    private Mock<IRepository> _mockRepo;
+    #endregion
+    #region SetUp Methods
+    [SetUp]
+    public void SetUp()
+    {
+        _mockRepo = new Mock<IRepository>();
+        _sut = new OrderService(_mockRepo.Object);
+    }
+    #endregion
+    #region Test Methods - Create Valid Cases
+    [Test]
+    public void Create_ValidRequest_ReturnsOrder()
+    {
+        // Arrange
+        var request = new CreateOrderRequest { Id = "123" };
+        // Act
+        var result = _sut.Create(request);
+        // Assert
+        Assert.That(result, Is.Not.Null);
+    }
+    #endregion
+    #region Test Methods - Create Invalid Cases
+    [Test]
+    public void Create_NullRequest_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => _sut.Create(null));
+    }
+    #endregion
 }
 ```
 

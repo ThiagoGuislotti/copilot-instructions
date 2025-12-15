@@ -338,7 +338,12 @@
     // Chat instruction file locations - Folders containing .md instruction files
     // https://code.visualstudio.com/docs/copilot/customization
     "chat.instructionsFilesLocations": {
+        "C:\\Users\\tguis\\.github": true,
         "C:\\Users\\tguis\\.github\\instructions": true,
+        "C:\\Users\\tguis\\.github\\templates": true,
+        "C:\\Users\\tguis\\.github\\chatmodes": true,
+        "C:\\Users\\tguis\\.github\\prompts": true,
+        "C:\\Users\\tguis\\.github\\scripts": true,
         "C:\\Users\\tguis\\.aitk\\instructions\\": true
     },
 

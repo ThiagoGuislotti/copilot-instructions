@@ -130,7 +130,6 @@ namespace [Namespace]
         #endregion
 
         #region Public Methods/Operators
-
         #if HAS_INTERFACE
         /// <inheritdoc/> // Implements interface method documentation
         #else
