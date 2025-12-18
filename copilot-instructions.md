@@ -17,10 +17,27 @@ Language: pt-BR for chat; EN for code/commits/docs/UI/database; pt-BR i18n outpu
 # Context Selection
 
 ## Hard rule
-- Always load these two files FIRST for any Copilot Chat session, patch proposal, PR summary, or code-gen in this repo:
-  1. .github/AGENTS.md
-  2. .github/copilot-instructions.md
-- If context budget is limited, drop any other files before these. Do not answer without these two when the workspace is available.
+- Always load `.github/AGENTS.md` first, then this file.
+- If the workspace is available, do not proceed unless both files are loaded.
+
+## Decision Quickstart (Instruction Hierarchy)
+
+Follow this order of operations on every task:
+
+1) Read the user request and identify the target area
+- `.github/**` (policies, prompts, instructions)
+- Code workspace (C#, Rust, TS/JS, etc.)
+- Build/CI/CD/infra (pipelines, Docker, Kubernetes)
+
+2) Apply instructions in this precedence order
+- User prompt (explicit constraints)
+- `.github/AGENTS.md` + this file
+- Domain instruction files under `.github/instructions/` (pick by language/folder)
+- Any additional, file-scoped instructions (e.g., `.github/instructions/copilot-instruction-creation.instructions.md` when editing `.github/instructions/*`)
+
+3) Resolve conflicts
+- More specific scope wins (narrower `applyTo` beats broader)
+- Prefer safer/minimal changes when ambiguous, and ask 1–3 clarifying questions if needed
 
 # Workflow
 

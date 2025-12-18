@@ -338,59 +338,59 @@
     // Chat instruction file locations - Folders containing .md instruction files
     // https://code.visualstudio.com/docs/copilot/customization
     "chat.instructionsFilesLocations": {
-        "C:\\Users\\tguis\\.github": true,
-        "C:\\Users\\tguis\\.github\\instructions": true,
-        "C:\\Users\\tguis\\.github\\templates": true,
-        "C:\\Users\\tguis\\.github\\chatmodes": true,
-        "C:\\Users\\tguis\\.github\\prompts": true,
-        "C:\\Users\\tguis\\.github\\scripts": true,
-        "C:\\Users\\tguis\\.aitk\\instructions\\": true
+        "%USERPROFILE%\\.github": true,
+        "%USERPROFILE%\\.github\\instructions": true,
+        "%USERPROFILE%\\.github\\templates": true,
+        "%USERPROFILE%\\.github\\chatmodes": true,
+        "%USERPROFILE%\\.github\\prompts": true,
+        "%USERPROFILE%\\.github\\scripts": true,
+        "%USERPROFILE%\\.aitk\\instructions\\": true
     },
 
     // Copilot Custom Instructions - File references for code review, commits, and PRs
     // https://code.visualstudio.com/docs/copilot/customization/custom-instructions
     "github.copilot.chat.reviewSelection.instructions": [
-        { "file": "C:\\Users\\tguis\\.github\\AGENTS.md" },
-        { "file": "C:\\Users\\tguis\\.github\\copilot-instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\workflow-optimization.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\ai-orchestration.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\powershell-execution.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\dotnet-csharp.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\clean-architecture-code.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\backend.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\frontend.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\vue-quasar.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\vue-quasar-architecture.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\ui-ux.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\database.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\orm.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\microservices-performance.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\static-analysis-sonarqube.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\docker.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\k8s.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\ci-cd-devops.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\e2e-testing.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\rust-code-organization.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\rust-testing.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\readme.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\feedback-changelog.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\AGENTS.md" },
+        { "file": "%USERPROFILE%\\.github\\copilot-instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\workflow-optimization.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\ai-orchestration.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\powershell-execution.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\dotnet-csharp.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\clean-architecture-code.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\backend.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\frontend.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\vue-quasar.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\vue-quasar-architecture.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\ui-ux.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\database.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\orm.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\microservices-performance.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\static-analysis-sonarqube.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\docker.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\k8s.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\ci-cd-devops.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\e2e-testing.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\rust-code-organization.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\rust-testing.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\readme.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\feedback-changelog.instructions.md" },
         { "text": "Code suggestions must follow Clean Architecture: separation of concerns, dependency inversion, maintainability, readability and simplicity." }
     ],
     "github.copilot.chat.commitMessageGeneration.instructions": [
-        { "file": "C:\\Users\\tguis\\.github\\AGENTS.md" },
-        { "file": "C:\\Users\\tguis\\.github\\copilot-instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\pr.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\prompt-templates.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\readme.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\feedback-changelog.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\AGENTS.md" },
+        { "file": "%USERPROFILE%\\.github\\copilot-instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\pr.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\prompt-templates.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\readme.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\feedback-changelog.instructions.md" },
         { "text": "Commit messages: Conventional Commits (feat, fix, docs, refactor, test, chore), English, imperative mood, max 72 chars." }
     ],
     "github.copilot.chat.pullRequestDescriptionGeneration.instructions": [
-        { "file": "C:\\Users\\tguis\\.github\\AGENTS.md" },
-        { "file": "C:\\Users\\tguis\\.github\\copilot-instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\pr.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\readme.instructions.md" },
-        { "file": "C:\\Users\\tguis\\.github\\instructions\\feedback-changelog.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\AGENTS.md" },
+        { "file": "%USERPROFILE%\\.github\\copilot-instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\pr.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\readme.instructions.md" },
+        { "file": "%USERPROFILE%\\.github\\instructions\\feedback-changelog.instructions.md" },
         { "text": "PR description must include: Context, Changes, Rationale, Risks, Testing, Docs, Breaking Changes, Migration." }
     ],
 
@@ -406,7 +406,7 @@
         "dotnet test": true,
         "dotnet run": true,
         "dotnet clean": true,
-        
+
         // Node.js / npm / pnpm / yarn
         "npm install": true,
         "npm i": true,
@@ -427,7 +427,7 @@
         "yarn build": true,
         "yarn test": true,
         "npx": true,
-        
+
         // Vue / Quasar / Vite
         "vite": true,
         "vite build": true,
@@ -438,7 +438,7 @@
         "quasar inspect": true,
         "vue-cli-service serve": true,
         "vue-cli-service build": true,
-        
+
         // Rust Commands
         "cargo build": true,
         "cargo run": true,
@@ -447,13 +447,13 @@
         "cargo clean": true,
         "cargo clippy": true,
         "cargo fmt": true,
-        
+
         // Clojure Commands
         "clojure": true,
         "clj": true,
         "lein test": true,
         "lein run": true,
-        
+
         // PowerShell Cmdlets
         "Copy-Item": true,
         "Move-Item": true,

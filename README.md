@@ -1,16 +1,16 @@
 # Copilot Instructions
 
-Structured AI agent guidelines for software projects covering .NET, Rust, Vue.js, and DevOps. Eliminates inconsistent AI responses and boosts productivity through hierarchical instruction files, domain-specific conventions, and reusable prompt templates.
+Structured AI agent guidelines for software development projects. Focuses on repeatable engineering workflows (planning, implementation, testing, docs, and reviews) using hierarchical instruction files, domain-specific conventions, and reusable prompt templates. Includes examples for .NET, Rust, frontend stacks, and DevOps, but the core goal is consistent, high-quality software delivery across technologies.
 
 ## Features
 
-✅ **Hierarchical Instruction Structure:** Solution-level → Global → Domain-specific guidelines
-✅ **Multi-Stack Coverage:** .NET/C#, Rust, Vue.js/Quasar, Docker, Kubernetes, databases
-✅ **Architecture Patterns:** Clean Architecture, CQRS, DDD, microservices
-✅ **Convention Standardization:** Code style, test patterns, commits, file organization
-✅ **Tool Integration:** Git, CLI tools, CI/CD pipelines, static analysis
-✅ **Custom Chat Modes:** Architecture review, instruction generation
-✅ **Prompt Templates:** POML-based templates with CoT, SoT, ToT patterns
+- ✅ **Hierarchical Instruction Structure:** Solution-level → Global → Domain-specific guidelines
+- ✅ **Multi-Stack Coverage:** .NET/C#, Rust, Vue.js/Quasar, Docker, Kubernetes, databases
+- ✅ **Architecture Patterns:** Clean Architecture, CQRS, DDD, microservices
+- ✅ **Convention Standardization:** Code style, test patterns, commits, file organization
+- ✅ **Tool Integration:** Git, CLI tools, CI/CD pipelines, static analysis
+- ✅ **Custom Chat Modes:** Architecture review, instruction generation
+- ✅ **Prompt Templates:** POML-based templates with CoT, SoT, ToT patterns
 
 ---
 
@@ -193,7 +193,7 @@ Located in `prompts/poml/templates/`:
 
 | Domain | File | Description |
 |--------|------|-------------|
-| **.NET/C#** | `dotnet-csharp.instructions.md` | C# 12, .NET 8/9, naming, conventions |
+| **.NET/C#** | `dotnet-csharp.instructions.md` | .NET 8+, naming, conventions |
 | **Rust** | `rust-testing.instructions.md` | Test patterns, async, error handling |
 | **Architecture** | `clean-architecture-code.instructions.md` | Clean Architecture, CQRS, DDD |
 | **Backend** | `backend.instructions.md` | REST APIs, validation, error handling |
@@ -208,8 +208,8 @@ Located in `prompts/poml/templates/`:
 ### Context Selection Rule (Hard Requirement)
 
 **Always load FIRST in any Copilot Chat session:**
-1. `copilot-instructions.md`
-2. `AGENTS.md`
+1. `AGENTS.md`
+2. `copilot-instructions.md`
 
 This ensures consistent agent behavior and proper context hierarchy.
 
@@ -262,3 +262,5 @@ None. This is a documentation and policy repository.
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](./LICENSE) for details.
+
+---

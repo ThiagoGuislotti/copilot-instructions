@@ -21,6 +21,23 @@ If context budget is tight, prefer dropping any other files before these. These 
 - Switch to Profiler for performance/benchmark tasks.
 - Switch to VS for IDE or build tooling questions.
 
+# Instruction Entry Point (Decision Flow)
+Use this section as the quick “what do I load / follow first?” guide.
+
+1) Always load these first (in order)
+Follow the **Mandatory Context Files** list above.
+
+2) Then select additional instruction files based on what you are changing
+- If editing `.github/**`: include `.github/instructions/pr.instructions.md` and `.github/instructions/prompt-templates.instructions.md` when relevant.
+- If editing `.github/instructions/**`: include `.github/instructions/copilot-instruction-creation.instructions.md`.
+- If editing code: select the domain instruction file(s) under `.github/instructions/` that match the language/folder (e.g., `.github/instructions/dotnet-csharp.instructions.md`, `backend.instructions.md`, `database.instructions.md`, etc).
+
+3) Precedence rules when instructions conflict
+- Follow the user prompt first.
+- Then follow `.github/copilot-instructions.md` + `.github/AGENTS.md`.
+- Then prefer the most specific instruction file by scope/path (narrower `applyTo` wins over broader).
+- If two instructions are equally specific and conflict, pick the safer/minimal option and call out the ambiguity.
+
 # Auditing & Transparency
 - When listing applied instructions in a response or PR body, reference both .github/copilot-instructions.md and .github/AGENTS.md when they influence the change.
 
