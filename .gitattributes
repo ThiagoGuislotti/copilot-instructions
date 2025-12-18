@@ -1,3 +1,54 @@
 * text=auto
-*.bat eol=crlf
-*.ps1 eol=crlf
+
+# Keep source/config files normalized with LF (cross-platform).
+*.rs text eol=lf
+*.toml text eol=lf
+*.lock text eol=lf
+
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.jsonc text eol=lf
+*.sh text eol=lf
+
+# .NET
+*.cs text eol=lf
+*.csproj text eol=lf
+*.sln text eol=lf
+*.slnf text eol=lf
+*.props text eol=lf
+*.targets text eol=lf
+*.resx text eol=lf
+
+# Vue / Quasar
+*.vue text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.sass text eol=lf
+*.less text eol=lf
+*.html text eol=lf
+
+# Keep Windows scripts in CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary assets
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.7z binary
+*.wasm binary
