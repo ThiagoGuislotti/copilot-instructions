@@ -29,6 +29,7 @@ frontend/src/
 │   ├── presentation/      # Reusable UI components (atoms/molecules), icons
 │   │   ├── components/    # Shared components (BaseInput, BaseButton, MetricCard)
 │   │   └── composables/   # Shared composables (useNotification, useFormRules)
+│   ├── config/            # Configuration files (theme.config.ts)
 │   ├── utils/             # Pure helpers
 │   ├── constants/         # Shared constants
 │   └── dtos/              # Data Transfer Objects
@@ -111,6 +112,214 @@ import { HttpInvoiceRepo } from '@modules/billing/infrastructure/HttpInvoiceRepo
 import { InvoiceTable } from '@modules/billing/presentation/components/InvoiceTable.vue'
 ```
 
+# Shared Component Library (nettoolskit-ui-vue)
+
+## Structure
+```
+shared/
+├── adapters/                    # Infrastructure adapters
+│   └── QuasarNotificationAdapter.ts
+├── components/                  # Vue components
+│   ├── form/                    # Form inputs
+│   │   ├── BaseInput.vue
+│   │   ├── BaseSelect.vue
+│   │   ├── BaseMultiSelect.vue
+│   │   ├── BaseTextarea.vue
+│   │   ├── BaseDatePicker.vue
+│   │   └── BaseTimePicker.vue
+│   ├── layout/                  # Layout components
+│   │   ├── BaseHeader.vue
+│   │   ├── BaseSidebar.vue
+│   │   ├── BaseFooter.vue
+│   │   ├── BaseSection.vue
+│   │   └── BaseHero.vue
+│   └── ui/                      # UI components
+│       ├── BaseButton.vue
+│       ├── BaseCard.vue
+│       ├── BaseChip.vue
+│       ├── BaseLogo.vue
+│       ├── MetricCard.vue
+│       ├── InfoCard.vue
+│       ├── BasePricingCard.vue
+│       ├── BaseCreditCard.vue
+│       ├── BaseFeatureCard.vue
+│       ├── BaseSteps.vue
+│       └── SectionHeader.vue
+├── composables/                 # Vue composables
+│   ├── data/
+│   │   ├── useFilters.ts
+│   │   └── useTableColumns.ts
+│   ├── forms/
+│   │   ├── useFormRules.ts
+│   │   └── useBaseField.ts
+│   ├── services/
+│   │   └── useNotification.ts
+│   ├── ui/
+│   │   ├── useDialog.ts
+│   │   ├── useDialogActions.ts
+│   │   ├── useResponsive.ts
+│   │   └── useTheme.ts
+│   └── utils/
+│       ├── useDebounce.ts
+│       └── useAsync.ts
+├── config/                      # Configuration
+│   └── theme.config.ts          # Theme definitions
+├── services/                    # Business services
+│   ├── NotificationService.ts
+│   ├── FilterService.ts
+│   └── FormValidationService.ts
+├── styles/                      # SCSS styles
+│   ├── design-system.scss       # CSS variables & tokens
+│   ├── global.scss              # Global styles
+│   └── quasar-variables.scss    # Quasar customization
+├── utils/                       # Utility functions
+│   ├── validators.ts
+│   └── async.ts
+└── index.ts                     # Single entry point
+```
+
+## Single Entry Point Export
+```typescript
+// shared/index.ts
+// ============================================================================
+// COMPONENTS - Form
+// ============================================================================
+export { default as BaseInput } from './components/form/BaseInput.vue'
+export { default as BaseSelect } from './components/form/BaseSelect.vue'
+export { default as BaseMultiSelect } from './components/form/BaseMultiSelect.vue'
+export { default as BaseTextarea } from './components/form/BaseTextarea.vue'
+export { default as BaseDatePicker } from './components/form/BaseDatePicker.vue'
+export { default as BaseTimePicker } from './components/form/BaseTimePicker.vue'
+
+// ============================================================================
+// COMPONENTS - Layout
+// ============================================================================
+export { default as BaseHeader } from './components/layout/BaseHeader.vue'
+export { default as BaseSidebar } from './components/layout/BaseSidebar.vue'
+export { default as BaseFooter } from './components/layout/BaseFooter.vue'
+export { default as BaseSection } from './components/layout/BaseSection.vue'
+export { default as BaseHero } from './components/layout/BaseHero.vue'
+
+// ============================================================================
+// COMPONENTS - UI
+// ============================================================================
+export { default as BaseButton } from './components/ui/BaseButton.vue'
+export { default as BaseCard } from './components/ui/BaseCard.vue'
+export { default as BaseChip } from './components/ui/BaseChip.vue'
+export { default as BaseLogo } from './components/ui/BaseLogo.vue'
+export { default as MetricCard } from './components/ui/MetricCard.vue'
+export { default as BasePricingCard } from './components/ui/BasePricingCard.vue'
+export { default as BaseCreditCard } from './components/ui/BaseCreditCard.vue'
+export { default as BaseFeatureCard } from './components/ui/BaseFeatureCard.vue'
+export { default as BaseSteps } from './components/ui/BaseSteps.vue'
+
+// ============================================================================
+// COMPOSABLES
+// ============================================================================
+export * from './composables/forms/useFormRules'
+export * from './composables/forms/useBaseField'
+export * from './composables/ui/useDialog'
+export * from './composables/ui/useResponsive'
+export * from './composables/ui/useTheme'
+export * from './composables/data/useFilters'
+export * from './composables/data/useTableColumns'
+export * from './composables/utils/useDebounce'
+export * from './composables/utils/useAsync'
+export * from './composables/services/useNotification'
+
+// ============================================================================
+// SERVICES
+// ============================================================================
+export * from './services/NotificationService'
+export * from './services/FilterService'
+export * from './services/FormValidationService'
+
+// ============================================================================
+// CONFIG - Theme
+// ============================================================================
+export * from './config/theme.config'
+```
+
+## Usage in Features
+```typescript
+// Import from single entry point
+import {
+  BaseInput,
+  BaseButton,
+  BaseCard,
+  useFormRules,
+  useTheme,
+  useNotification,
+} from '@shared';
+
+// Or import specific items
+import { BaseInput } from '@shared/components/form/BaseInput.vue';
+import { useTheme } from '@shared/composables/ui/useTheme';
+```
+
+# Theme Configuration
+
+## Theme Config Structure
+```typescript
+// shared/config/theme.config.ts
+export interface ThemeConfig {
+  name: string;
+  colors: ThemeColors;
+  fonts: ThemeFonts;
+  logo: ThemeLogo;
+  gradients: ThemeGradients;
+}
+
+export const sentinelaTheme: ThemeConfig = {
+  name: 'Sentinela',
+  colors: {
+    primary: '#1976d2',
+    primaryDark: '#1565c0',
+    primaryLight: '#42a5f5',
+    // ... other colors
+  },
+  fonts: {
+    display: 'Poppins',
+    body: 'Inter',
+  },
+  logo: {
+    letter: 'S',
+    text: 'Sentinela',
+    tagline: 'Sistema de Busca',
+  },
+  gradients: {
+    hero: 'linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%)',
+    primary: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
+  },
+};
+
+export const plateaTheme: ThemeConfig = {
+  name: 'PlaTEA',
+  colors: {
+    primary: '#4A9B7F',
+    primaryDark: '#3a7a63',
+    primaryLight: '#6bc4a6',
+    // ... other colors
+  },
+  // ...
+};
+
+export const themes = {
+  sentinela: sentinelaTheme,
+  platea: plateaTheme,
+  dark: darkTheme,
+} as const;
+```
+
+## Theme Initialization
+```typescript
+// main.ts
+import { initTheme } from '@shared';
+
+// Initialize theme on app startup
+initTheme('sentinela'); // or 'platea', 'dark'
+```
+
 # Module Example: demo
 
 ```
@@ -137,37 +346,6 @@ modules/demo/
 │   │   └── useDemoData.ts      # Feature-specific composable
 │   └── routes.ts               # Feature routes
 └── index.ts                    # Barrel export
-```
-
-## Shared Components Example
-
-```
-shared/
-├── src/
-│   └── styles/
-│       ├── design-system.scss  # CSS variables, design tokens, utility classes
-│       ├── global.scss         # Global base styles, reset, typography
-│       └── quasar-variables.scss # Quasar customization
-├── presentation/
-│   ├── components/
-│   │   ├── ui/
-│   │   │   ├── BaseButton.vue      # Generic button
-│   │   │   ├── BaseCard.vue        # Generic card
-│   │   │   ├── MetricCard.vue      # Reusable metric card
-│   │   │   ├── InfoCard.vue        # Reusable info card
-│   │   │   ├── ChartCard.vue       # Reusable chart card
-│   │   └── SectionHeader.vue   # Section headers
-│   └── form/
-│       ├── BaseInput.vue       # Generic input
-│       ├── BaseSelect.vue      # Generic select
-│       ├── BaseTextarea.vue    # Generic textarea
-│       ├── BaseDatePicker.vue  # Date picker
-│       └── BaseTimePicker.vue  # Time picker
-└── composables/
-    ├── useNotification.ts      # Wrapper for NotificationService
-    ├── useFormRules.ts         # Wrapper for FormValidationService
-    ├── useFilters.ts           # Wrapper for FilterService
-    └── useDebounce.ts          # Generic utilities
 ```
 
 # Stores (Pinia)
@@ -217,6 +395,18 @@ Configure integrations in `app/boot/`:
 - `auth.ts` - Authentication
 - `sentry.ts` - Error tracking
 - `dayjs.ts` - Date utilities
+- `theme.ts` - Theme initialization
+
+## Theme Boot File
+```typescript
+// app/boot/theme.ts
+import { boot } from 'quasar/wrappers';
+import { initTheme } from '@shared';
+
+export default boot(() => {
+  initTheme('sentinela');
+});
+```
 
 ## Global Styles
 Keep in `app/styles/`:
@@ -237,7 +427,7 @@ export function useInvoiceForm() {
 ## Generic Composables
 Place in shared:
 ```typescript
-// shared/presentation/composables/useDebounce.ts
+// shared/composables/utils/useDebounce.ts
 export function useDebounce<T>(value: Ref<T>, delay: number) {
   // Generic reusable logic
 }
@@ -272,6 +462,7 @@ tests/
 - Add utility classes to design-system.scss sparingly - prefer Quasar classes first
 - Before writing custom CSS, check if Quasar provides the functionality
 - Document why custom CSS is needed with comments in the code
+- **Use theme CSS variables** for brand colors (--theme-primary, --theme-background, etc.)
 
 ## 1. Feature Isolation
 Keep features self-contained in modules/. Avoid cross-feature dependencies.
@@ -350,6 +541,7 @@ When refactoring existing code to this architecture:
 8. **Remove code duplication**: Check for duplicate directories (e.g., `samples/` duplicating `shared/`)
 9. **Refactor CSS**: Replace custom flexbox with Quasar classes, keep scoped styles in .vue files
 10. **Add design system utilities**: Create reusable utilities in design-system.scss only when Quasar doesn't provide them
+11. **Implement theme system**: Add theme.config.ts and useTheme composable for multi-project support
 
 # Common Patterns
 
@@ -405,3 +597,4 @@ export function useInvoiceForm() {
 # Reference
 
 Full documentation: `.docs/frontend/vue-quasar-clean-architecture-structure.md`
+Component library: [nettoolskit-ui-vue](https://github.com/ThiagoGuislotti/nettoolskit-ui-vue)

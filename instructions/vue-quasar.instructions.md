@@ -27,9 +27,10 @@ const count = ref(0);
 <style scoped lang="scss">
 // ✅ Component-specific styles belong here
 .search-container {
-  background: var(--bg-white);
+  background: var(--theme-background);
   border-radius: 16px;
-  padding: 2rem;
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-soft);
 }
 
 // ❌ Avoid duplicating what Quasar provides
@@ -38,9 +39,65 @@ const count = ref(0);
 ```
 
 # Composables
-- Provide useQTablePaging, useFormRules, useAuth, useDebouncedSearch for cross-feature logic
-```javascript
-const { rows, pagination } = useQTablePaging(apiEndpoint)
+
+## Composable Categories
+
+### UI Composables
+```typescript
+// useTheme - Theme management and switching
+const { theme, setTheme, primaryColor, isDark } = useTheme();
+
+// useDialog - Modal dialog helpers
+const { confirm, alert, prompt } = useDialog();
+
+// useResponsive - Breakpoint detection
+const { isMobile, isTablet, isDesktop, breakpoint } = useResponsive();
+
+// useNotification - Toast notifications
+const { notify, success, error, warning, info } = useNotification();
+```
+
+### Form Composables
+```typescript
+// useFormRules - Validation rule factories
+const { rules, emailRules, cpfRules, cnpjRules } = useFormRules();
+
+// useBaseField - Field state management
+const { value, error, validate, reset } = useBaseField(initialValue);
+```
+
+### Data Composables
+```typescript
+// useFilters - Filter state management
+const { filters, applyFilters, resetFilters } = useFilters();
+
+// useTableColumns - Column visibility
+const { columns, visibleColumns, toggleColumn } = useTableColumns();
+
+// useAsync - Loading/error state handling
+const { data, loading, error, execute } = useAsync(fetchData);
+```
+
+### Utility Composables
+```typescript
+// useDebounce - Debounced values
+const debouncedSearch = useDebounce(searchQuery, 300);
+
+// usePagination - Pagination logic
+const { page, pageSize, totalPages, nextPage, prevPage } = usePagination();
+```
+
+## Composable Naming
+- Prefix with `use*`
+- Use named exports (never default)
+- Place in appropriate category folder
+```typescript
+// ✅ Good
+export function useFormRules() { /* ... */ }
+export function useTheme() { /* ... */ }
+
+// ❌ Bad
+export default function formRules() { /* ... */ }
 ```
 
 # Pinia
@@ -142,6 +199,68 @@ padding-bottom: env(safe-area-inset-bottom);
 const { rows, loading } = useQTableData({ page, size, sort, filter })
 ```
 
+# Component Prop Patterns
+
+## Consistent Prop Interface
+```typescript
+// ✅ Good - Consistent across components
+interface BaseComponentProps {
+  modelValue?: unknown;      // v-model binding
+  label?: string;            // Display label
+  hint?: string;             // Helper text
+  disable?: boolean;         // Disabled state
+  loading?: boolean;         // Loading state
+  rules?: ValidationRule[];  // Validation rules
+}
+```
+
+## Event Naming
+- Use `update:modelValue` for v-model
+- Use past tense for completed actions: `selected`, `deleted`, `submitted`
+- Use present tense for ongoing: `selecting`, `loading`
+```vue
+<script setup lang="ts">
+const emit = defineEmits<{
+  'update:modelValue': [value: string];
+  'selected': [item: Item];
+  'deleted': [id: string];
+}>();
+</script>
+```
+
+# Slot Patterns
+
+## Named Slots for Flexibility
+```vue
+<template>
+  <div class="base-card">
+    <slot name="header">
+      <div class="card-header">{{ title }}</div>
+    </slot>
+    
+    <slot><!-- Default content --></slot>
+    
+    <slot name="actions">
+      <div class="card-actions row q-gutter-sm">
+        <q-btn v-if="showCancel" label="Cancel" @click="$emit('cancel')" />
+        <q-btn label="Confirm" color="primary" @click="$emit('confirm')" />
+      </div>
+    </slot>
+  </div>
+</template>
+```
+
+## Scoped Slots for Data Exposure
+```vue
+<template>
+  <BaseList :items="items">
+    <template #item="{ item, index }">
+      <CustomItem :data="item" :position="index" />
+    </template>
+  </BaseList>
+</template>
+```
+
 # CSS Best Practices
 
 ## Hierarchy of CSS Approaches
@@ -174,9 +293,16 @@ const { rows, loading } = useQTableData({ page, size, sort, filter })
 <style scoped lang="scss">
 // Only write CSS that Quasar doesn't provide
 .custom-gradient-background {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--theme-gradient-primary);
   border-radius: 16px;
-  padding: 2rem;
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-soft);
+  transition: all var(--transition-fast);
+  
+  &:hover {
+    box-shadow: var(--shadow-medium);
+    transform: translateY(-2px);
+  }
 }
 
 // ❌ DON'T duplicate Quasar functionality
@@ -204,3 +330,50 @@ Available reusable utilities (use sparingly, prefer Quasar first):
 - `.line-clamp-2`, `.line-clamp-3` - Multi-line truncation
 - `.grid-auto-fit` - Responsive grid with auto-fit
 - `.space-y-sm`, `.space-y-md`, `.space-y-lg` - Vertical spacing between children
+
+# Theme Integration
+
+## Using Theme in Components
+```vue
+<template>
+  <div class="themed-card">
+    <BaseLogo size="lg" :show-tagline="true" />
+    <h2 class="themed-title">{{ title }}</h2>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useTheme } from '@shared/composables/ui/useTheme';
+
+const { primaryColor, isDark } = useTheme();
+</script>
+
+<style scoped lang="scss">
+.themed-card {
+  background: var(--theme-background);
+  border: 1px solid var(--theme-border);
+  color: var(--theme-text);
+}
+
+.themed-title {
+  color: var(--theme-primary);
+  font-family: var(--theme-font-display);
+}
+</style>
+```
+
+## Theme-Aware Components
+```vue
+<template>
+  <q-btn
+    :color="isDark ? 'white' : 'primary'"
+    :text-color="isDark ? 'primary' : 'white'"
+    label="Action"
+  />
+</template>
+
+<script setup lang="ts">
+import { useTheme } from '@shared/composables/ui/useTheme';
+const { isDark } = useTheme();
+</script>
+```
