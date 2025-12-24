@@ -14,6 +14,9 @@ using NUnit.Framework;
 // Toggle the framework here:
 //#define UNIT_XUNIT
 //#define UNIT_NUNIT
+// Parameterization guidance:
+// - xUnit: prefer [Theory] + [InlineData] for simple constant datasets; use [MemberData] for larger/non-constant datasets.
+// - NUnit: prefer [TestCase] for simple constant datasets; use [TestCaseSource] for larger/non-constant datasets.
 
 // Use: [Namespace] = Project namespace
 // Use: [TEST_CLASS] = ClassUnderTestTests
