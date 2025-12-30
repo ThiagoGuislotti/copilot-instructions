@@ -1,7 +1,7 @@
 {
   "Codex Command": {
     "prefix": "codex",
-    "description": "Codex CLI command per ai-orchestration; end with ;exit; add flags only when allowed",
+    "description": "Codex CLI command (Route → Execute workflow); end with ;exit; add flags only when allowed",
     "body": [
       "codex \"${1:task description with context and quality requirements}\"$2 ;exit"
     ]

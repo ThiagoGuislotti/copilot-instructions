@@ -1,0 +1,319 @@
+# yaml-language-server: $schema=./schemas/instruction-routing.catalog.schema.json
+# Instruction Routing Catalog
+# Purpose: static tagging for instruction selection (static RAGs routing)
+# Notes: keep this file as the single source of truth for routing; do not duplicate rules from copilot-instructions.md.
+
+version: 1
+owner: repo
+
+# How this works (static RAGs routing)
+# 1) A router prompt reads this file and selects the minimum instruction set for the task.
+# 2) The execution prompt/agent then runs with ONLY the selected files (+ mandatory ones).
+#
+# Design principles:
+# - Keep mandatory context small and stable.
+# - Prefer 2–5 domain instruction files per task.
+# - Use more specific files first; avoid pulling unrelated guidance.
+# - This catalog describes selection only; it does not duplicate instruction content.
+
+always:
+  # Mandatory context files (load first)
+  - path: .github/AGENTS.md
+    reason: Mandatory context policy
+  - path: .github/copilot-instructions.md
+    reason: Global rules and domain mapping
+
+  # Mandatory instruction files (always applied)
+  - path: .github/instructions/workflow-optimization.instructions.md
+    reason: Task breakdown and token efficiency
+  - path: .github/instructions/powershell-execution.instructions.md
+    reason: When running or writing PowerShell
+  - path: .github/instructions/feedback-changelog.instructions.md
+    reason: When changing CHANGELOG/feedback
+
+routing:
+  - id: github-meta
+    tags: [github, instructions, prompts, templates]
+    triggers:
+      - ".github"
+      - "copilot instructions"
+      - "instruction"
+      - "prompt"
+      - "chatmode"
+      - "template"
+    include:
+      - path: .github/instructions/copilot-instruction-creation.instructions.md
+        when: editing .github/instructions/*
+      - path: .github/instructions/prompt-templates.instructions.md
+        when: editing .github/prompts or authoring prompts
+      - path: .github/instructions/pr.instructions.md
+        when: creating/updating PR-related content
+
+  - id: docs-readme
+    tags: [docs, readme]
+    triggers:
+      - "readme"
+      - "documentation"
+      - "docs"
+      - "getting started"
+      - "quick start"
+      - "usage examples"
+    include:
+      - path: .github/instructions/readme.instructions.md
+        reason: README structure, required sections, formatting
+      - path: .github/instructions/nettoolskit-rules.instructions.md
+        reason: Repo-specific README rules
+
+  - id: docs-readme-nuget-library
+    tags: [docs, readme, nuget, library]
+    triggers:
+      - "nuget"
+      - "package"
+      - "library"
+      - "pack"
+      - "package reference"
+      - "installation"
+    include:
+      - path: .github/instructions/readme.instructions.md
+        reason: README structure for packages
+      - path: .github/instructions/nettoolskit-rules.instructions.md
+        reason: Repo-specific README rules
+    notes:
+      - Focus README on package installation, minimal quick start, API reference, and build/test commands.
+
+  - id: docs-readme-app-sample
+    tags: [docs, readme, app, sample]
+    triggers:
+      - "readme"
+      - "sample"
+      - "demo"
+      - "worker"
+      - "quick start"
+      - "getting started"
+      - "how to run"
+      - "run locally"
+    include:
+      - path: .github/instructions/readme.instructions.md
+        reason: README structure for runnable apps/samples
+      - path: .github/instructions/nettoolskit-rules.instructions.md
+        reason: Repo-specific README rules
+    notes:
+      - Focus README on prerequisites, run commands, environment variables, and troubleshooting.
+
+  - id: changelog
+    tags: [docs, changelog]
+    triggers:
+      - "changelog"
+      - "release notes"
+      - "version"
+      - "semver"
+    include:
+      - path: .github/instructions/feedback-changelog.instructions.md
+        reason: CHANGELOG process and versioning rules
+
+  - id: dotnet-backend
+    tags: [dotnet, csharp, backend, api, clean-architecture, cqrs]
+    triggers:
+      - "dotnet"
+      - "c#"
+      - "asp.net"
+      - "api"
+      - "controller"
+      - "endpoint"
+      - "clean architecture"
+      - "cqrs"
+      - "mediatr"
+      - "minimal api"
+      - "swagger"
+      - "openapi"
+    include:
+      - path: .github/instructions/dotnet-csharp.instructions.md
+        reason: C# conventions, XML docs, namespaces, TFMs
+      - path: .github/instructions/clean-architecture-code.instructions.md
+        reason: Layering and dependency rules
+      - path: .github/instructions/backend.instructions.md
+        reason: API conventions, errors, resilience, security
+
+  - id: dotnet-testing-unit
+    tags: [dotnet, testing, unit, xunit, nunit, aaa, mocking, nsubstitute]
+    triggers:
+      - "unit test"
+      - "unit tests"
+      - "xunit"
+      - "nunit"
+      - "trait"
+      - "category"
+      - "aaa"
+      - "mock"
+      - "nsubstitute"
+      - "substitute"
+      - "fake"
+      - "assert"
+      - "theory"
+      - "fact"
+    include:
+      - path: .github/instructions/dotnet-csharp.instructions.md
+        reason: C# conventions used in tests
+      - path: .github/instructions/backend.instructions.md
+        reason: Testing strategy notes (when relevant)
+    notes:
+      - Prefer prompt .github/prompts/generate-unit-tests.prompt.md for test generation.
+      - Prefer AAA and fast/deterministic tests; use clear naming Method_Scenario_Expected.
+      - Prefer [Trait("Category","Unit")] for xUnit and consistent categories.
+
+  - id: dotnet-testing-integration-e2e
+    tags: [testing, integration, e2e, playwright, testcontainers]
+    triggers:
+      - "integration test"
+      - "integration tests"
+      - "e2e"
+      - "end-to-end"
+      - "playwright"
+      - "testcontainers"
+    include:
+      - path: .github/instructions/e2e-testing.instructions.md
+        reason: E2E testing guidance
+      - path: .github/instructions/backend.instructions.md
+        reason: Testing strategy patterns
+    notes:
+      - Keep integration tests focused; prefer testcontainers for realistic dependencies when available.
+
+  - id: dotnet-solution-build
+    tags: [dotnet, build, test, tooling]
+    triggers:
+      - "dotnet build"
+      - "dotnet test"
+      - "solution"
+      - "sln"
+      - "msbuild"
+      - "target frameworks"
+      - "net8"
+      - "net9"
+    include:
+      - path: .github/instructions/dotnet-csharp.instructions.md
+        reason: Multi-target guidance and conventions
+      - path: .github/instructions/ci-cd-devops.instructions.md
+        when: changes include pipelines/workflows
+
+  - id: database-orm
+    tags: [database, orm, ef-core, migrations, sql]
+    triggers:
+      - "database"
+      - "sql"
+      - "ef core"
+      - "migration"
+      - "dbcontext"
+      - "repository"
+      - "entity framework"
+      - "index"
+    include:
+      - path: .github/instructions/database.instructions.md
+        reason: Database patterns and schema guidance
+      - path: .github/instructions/orm.instructions.md
+        reason: ORM patterns and repository/context conventions
+
+  - id: devops-containers
+    tags: [devops, docker, containers, k8s, kubernetes, pipeline, cicd]
+    triggers:
+      - "docker"
+      - "dockerfile"
+      - "k8s"
+      - "kubernetes"
+      - "helm"
+      - "pipeline"
+      - "workflow"
+      - "github actions"
+      - "azure devops"
+    include:
+      - path: .github/instructions/docker.instructions.md
+        reason: Dockerfile conventions
+      - path: .github/instructions/k8s.instructions.md
+        reason: Kubernetes manifests guidance
+      - path: .github/instructions/ci-cd-devops.instructions.md
+        reason: CI/CD conventions and gates
+
+  - id: quality-static-analysis
+    tags: [quality, lint, static-analysis, sonar]
+    triggers:
+      - "sonar"
+      - "sonarqube"
+      - "static analysis"
+      - "lint"
+      - "quality gate"
+    include:
+      - path: .github/instructions/static-analysis-sonarqube.instructions.md
+        reason: Static analysis and quality gate conventions
+
+  - id: frontend-vue
+    tags: [frontend, vue, quasar, ui, ux]
+    triggers:
+      - "frontend"
+      - "vue"
+      - "quasar"
+      - "component"
+      - "ui"
+      - "ux"
+      - "i18n"
+    include:
+      - path: .github/instructions/frontend.instructions.md
+        reason: Frontend conventions
+      - path: .github/instructions/vue-quasar.instructions.md
+        reason: Vue/Quasar specifics
+      - path: .github/instructions/vue-quasar-architecture.instructions.md
+        reason: Vue/Quasar architecture
+      - path: .github/instructions/ui-ux.instructions.md
+        reason: UI/UX constraints
+
+  - id: rust
+    tags: [rust, cargo, tests]
+    triggers:
+      - "rust"
+      - "cargo"
+      - "crate"
+      - "cargo test"
+    include:
+      - path: .github/instructions/rust-code-organization.instructions.md
+        reason: Rust project organization
+      - path: .github/instructions/rust-testing.instructions.md
+        reason: Rust testing patterns
+
+  - id: powershell
+    tags: [powershell, scripts]
+    triggers:
+      - "powershell"
+      - "pwsh"
+      - ".ps1"
+    include:
+      - path: .github/instructions/powershell-execution.instructions.md
+        reason: PowerShell execution safety and conventions
+
+prompts:
+  - id: route-instructions
+    path: .github/prompts/route-instructions.prompt.md
+    tags: [rag, routing, instructions]
+    purpose: Generate a Context Pack (which instruction files to load)
+
+  - id: dotnet-create-class
+    path: .github/prompts/create-dotnet-class.prompt.md
+    tags: [dotnet, csharp, generation]
+    purpose: Generate a new C# class following templates and architecture rules
+
+  - id: dotnet-generate-unit-tests
+    path: .github/prompts/generate-unit-tests.prompt.md
+    tags: [dotnet, testing, unit]
+    purpose: Generate unit tests (AAA, traits/categories, mocking)
+
+  - id: dotnet-create-api-endpoint
+    path: .github/prompts/create-api-endpoint.prompt.md
+    tags: [dotnet, backend, api]
+    purpose: Generate an API endpoint pattern (controller/handler, validation)
+
+  - id: dotnet-create-ef-migration
+    path: .github/prompts/create-ef-migration.prompt.md
+    tags: [dotnet, database, ef-core, migrations]
+    purpose: Create EF Core migration and related guidance
+
+  - id: generate-changelog
+    path: .github/prompts/generate-changelog.prompt.md
+    tags: [docs, changelog]
+    purpose: Generate semantic versioned changelog entries

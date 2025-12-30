@@ -1,6 +1,6 @@
 {
   "documents": [
-    ".github/instructions/ai-orchestration.instructions.md",
+    ".github/copilot-instructions.md",
     ".github/instructions/workflow-optimization.instructions.md"
   ],
   "severityCriteria": "Priorizar impacto operacional e aderência às ferramentas disponíveis.",

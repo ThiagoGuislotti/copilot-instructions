@@ -65,7 +65,7 @@ Review the listed documents, identify issues, and produce prioritized recommenda
   <examples>
     <example>
       <input>
-Documents: [".github/instructions/ai-orchestration.instructions.md", ".github/instructions/workflow-optimization.instructions.md"]
+Documents: [".github/copilot-instructions.md", ".github/instructions/workflow-optimization.instructions.md"]
 Criteria: operational impact and alignment with available tools.
       </input>
       <output>
@@ -75,7 +75,7 @@ Criteria: operational impact and alignment with available tools.
             {
               "id": "ISS-001",
               "title": "Codex CLI requirement without fallback",
-              "location": ".github/instructions/ai-orchestration.instructions.md",
+              "location": ".github/copilot-instructions.md",
               "evidence": "Tool Selection Matrix section enforces exclusive use of Codex CLI.",
               "impact": "High",
               "urgency": "Immediate",

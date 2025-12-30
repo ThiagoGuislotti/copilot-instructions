@@ -57,6 +57,26 @@ cd copilot-instructions
 
 ## Quick Start
 
+### Recommended (Most Important): Static RAGs Routing
+
+Use a routing step to select a minimal “context pack” before doing any work.
+
+1. **Copy the core files (required):**
+   ```bash
+   cp AGENTS.md copilot-instructions.md /your/project/.github/
+   ```
+
+2. **Copy the routing assets (recommended):**
+   ```bash
+   cp instruction-routing.catalog.yml /your/project/.github/
+   cp prompts/route-instructions.prompt.md /your/project/.github/prompts/
+   ```
+
+3. **Route first, then execute:**
+   - Run the route-only prompt `.github/prompts/route-instructions.prompt.md`.
+   - Load ONLY the files from the returned Context Pack (mandatory + selected).
+   - Execute the task using that minimal context.
+
 ### Basic Setup (3 Steps)
 
 1. **Copy core files:**
@@ -203,7 +223,7 @@ Located in `prompts/poml/templates/`:
 | **Testing** | `e2e-testing.instructions.md` | E2E strategies, test frameworks |
 | **Quality** | `static-analysis-sonarqube.instructions.md` | Code quality, static analysis |
 | **Documentation** | `readme.instructions.md`, `pr.instructions.md` | READMEs, PR guidelines |
-| **Workflow** | `workflow-optimization.instructions.md`, `ai-orchestration.instructions.md` | Development efficiency, AI patterns |
+| **Workflow** | `workflow-optimization.instructions.md` | Development efficiency |
 
 ### Context Selection Rule (Hard Requirement)
 
@@ -212,6 +232,12 @@ Located in `prompts/poml/templates/`:
 2. `copilot-instructions.md`
 
 This ensures consistent agent behavior and proper context hierarchy.
+
+### Static RAGs Routing
+
+If you want a RAGs-style routing step (selecting a minimal “context pack” before execution), use:
+- `.github/instruction-routing.catalog.yml` (single source of truth for routes)
+- `.github/prompts/route-instructions.prompt.md` (route-only prompt that outputs a JSON context pack)
 
 ---
 

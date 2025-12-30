@@ -117,7 +117,7 @@ The POML engine injects contents into context with labels.
 ---
 ## 7) Integration in Your Stack (.NET)
 
-### Option A: Thin Rendering Service
+### Thin Rendering Service
 1. Store `.poml` in repository.
 2. Node/Python service exposes `/render` that receives `{ template, vars }` and returns `messages`.
 3. .NET API injects data, calls `/render`, sends `messages` to provider (OpenAI/Azure OpenAI).
@@ -131,7 +131,7 @@ var messages = await render.Content.ReadFromJsonAsync<List<Message>>();
 var llm = await OpenAI.Chat.CreateAsync(model, messages);
 ```
 
-### Option B: CLI in Build/CI
+### CLI in Build/CI
 - Run a CLI that transforms `.poml` → `.json` and packages with the application.
 - Advantage: No extra service in production.
 

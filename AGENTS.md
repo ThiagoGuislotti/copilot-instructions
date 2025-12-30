@@ -1,7 +1,5 @@
 # Copilot Agents and Context Policy
 
-This file defines the available Copilot Chat participants (agents) and how they should be used in this repository.
-
 # Agents
 - Workspace: code-first agent for this repo. Reads/edits files, runs searches, and proposes patches.
 - GitHub: PR/issue-centric agent. Summarizes, reviews, and changes GitHub artifacts.
@@ -12,6 +10,12 @@ This file defines the available Copilot Chat participants (agents) and how they 
 - Always include BOTH of these files first when selecting context for Copilot Chat:
   1. .github/AGENTS.md (this file)
   2. .github/copilot-instructions.md
+
+Default workflow for all tasks: Static RAGs Routing (Route → Execute)
+- Route first (pick minimal context):
+  - `.github/instruction-routing.catalog.yml` (single source of truth for routes)
+  - `.github/prompts/route-instructions.prompt.md` (route-only prompt that outputs a JSON context pack)
+- Execute next: use ONLY the files returned by the Context Pack.
 
 If context budget is tight, prefer dropping any other files before these. These two documents coordinate global rules and agent usage and must be loaded to avoid inconsistent answers.
 
@@ -24,6 +28,9 @@ If context budget is tight, prefer dropping any other files before these. These 
 # Instruction Entry Point (Decision Flow)
 Use this section as the quick “what do I load / follow first?” guide.
 
+## Static RAGs Routing
+Baseline workflow for anything in this repo.
+
 1) Always load these first (in order)
 Follow the **Mandatory Context Files** list above.
 
@@ -34,7 +41,7 @@ Follow the **Mandatory Context Files** list above.
 
 3) Precedence rules when instructions conflict
 - Follow the user prompt first.
-- Then follow `.github/copilot-instructions.md` + `.github/AGENTS.md`.
+- Then follow `.github/AGENTS.md` + `.github/copilot-instructions.md`.
 - Then prefer the most specific instruction file by scope/path (narrower `applyTo` wins over broader).
 - If two instructions are equally specific and conflict, pick the safer/minimal option and call out the ambiguity.
 
@@ -111,7 +118,7 @@ After changes: Code compiles, tests pass, architecture maintained, documentation
 ## Scope & References
 - Repo-wide; subfolder `AGENTS.md` may specialize. Direct prompts override.
 - Core: `.github/copilot-instructions.md`. Language policy: EN code/commits, pt-BR UI via i18n, EN DB schema.
-- Mandatory: `.github/instructions/workflow-optimization.instructions.md`, `.github/instructions/ai-orchestration.instructions.md`, `.github/instructions/powershell-execution.instructions.md`, `.github/instructions/feedback-changelog.instructions.md`.
+- Mandatory: `.github/instructions/workflow-optimization.instructions.md`, `.github/instructions/powershell-execution.instructions.md`, `.github/instructions/feedback-changelog.instructions.md`.
 - For `.github`: `.github/instructions/copilot-instruction-creation.instructions.md`. Domain sets live in `.github/instructions/*`.
 - SCM/CI: Azure DevOps primary; `.github` hosts agent/PR guidance.
  - Branches like `feature/dynamicFilter` are ephemeral; avoid branch-specific rules.

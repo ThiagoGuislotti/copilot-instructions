@@ -8,10 +8,10 @@
 ## Detalhes por Achado
 
 ### 1. Obrigatoriedade de Codex CLI
-- **Origem:** `.github/instructions/ai-orchestration.instructions.md`
-- **Problema:** determina uso exclusivo do Codex CLI para toda execução ("Always use Codex CLI"), incluindo comando exemplo com `--dangerously-bypass-approvals-and-sandbox`. Ambiente atual de automação não possui integração nem autorização para esse fluxo e demais instruções (ex.: workflow optimization) assumem edição direta via ferramentas padrão.
-- **Impacto:** instrução inexequível → conflito operacional em todas as tarefas.
-- **Ação sugerida:** substituir regra por diretriz compatível (e.g., priorizar Codex quando disponível, caso contrário usar ferramentas padrão) ou mover para anexo opcional.
+- **Origem:** `.github/prompts/route-instructions.prompt.md` e `.github/instruction-routing.catalog.yml`
+- **Problema:** quando regras de execução e roteamento ficam acopladas em um único documento, é comum surgirem instruções inexequíveis (ex.: exigir um runner/CLI não disponível) que conflitam com o ambiente real.
+- **Impacto:** conflito operacional recorrente, baixa previsibilidade.
+- **Ação sugerida:** manter execução (tools/runner) fora do roteamento; roteador só escolhe contexto mínimo e, quando o ambiente não suportar um fluxo, registrar a decisão no checklist/saída.
 
 ### 2. Template inexistente referenciado
 - **Origem:** `.github/instructions/dotnet-csharp.instructions.md` (seções Background Services e XML docs)
@@ -26,12 +26,11 @@
 - **Ação sugerida:** atualizar stylesheet para JSON apropriado, adicionar metadados e alinhamento com governança de estilos.
 
 ## Recomendações Gerais
-1. Revisar `ai-orchestration` para documentar fallback quando Codex não estiver habilitado.
+1. Manter o roteamento determinístico (pontuação + cap) e documentado.
 2. Publicar template de background service ou ajustar instrução.
 3. Revisar assets POML para aderir ao guia (metadados, guardrails centralizados, JSON válido).
 
 ## Ações Realizadas Nesta Iteração
-- Atualizada `ai-orchestration.instructions.md` com fallback explícito para ferramentas padrão.
 - Adicionado template `.github/templates/background-service-template.cs` eliminando referência órfã.
 - Revisado `styles/pt-br-enterprise.poml` com metadados, JSON consistente e guardrails expandidos.
 

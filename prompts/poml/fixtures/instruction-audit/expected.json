@@ -4,7 +4,7 @@
     {
       "id": "ISS-001",
       "title": "Exigência rígida de Codex CLI",
-      "location": ".github/instructions/ai-orchestration.instructions.md",
+      "location": ".github/copilot-instructions.md",
       "evidence": "Tool Selection Matrix impõe uso exclusivo do Codex CLI.",
       "impact": "High",
       "urgency": "Immediate",

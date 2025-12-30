@@ -84,7 +84,7 @@
   - Applied # headers and bullet point formatting to 10 additional instruction files
   - Added comprehensive code examples with appropriate language specifications
   - Enhanced structural consistency and readability
-  - Files updated: `pr.instructions.md`, `powershell-execution.instructions.md`, `feedback-changelog.instructions.md`, `effort-estimation-ucp.instructions.md`, `e2e-testing.instructions.md`, `ai-orchestration.instructions.md`, `prompt-templates.instructions.md`, `readme.instructions.md`, `static-analysis-sonarqube.instructions.md`, `workflow-optimization.instructions.md`
+  - Files updated: `pr.instructions.md`, `powershell-execution.instructions.md`, `feedback-changelog.instructions.md`, `effort-estimation-ucp.instructions.md`, `e2e-testing.instructions.md`, `prompt-templates.instructions.md`, `readme.instructions.md`, `static-analysis-sonarqube.instructions.md`, `workflow-optimization.instructions.md`
 - All instruction files now follow consistent Markdown hierarchy and formatting standards
 
 ## [1.0.7] - 2025-09-19
@@ -200,7 +200,6 @@
   - `README.md` — Overview, quick start and contribution guidance.
 
 - Instructions (`instructions/`):
-  - `ai-orchestration.instructions.md` — Tool selection, progress cadence, validation.
   - `backend.instructions.md` — Backend development conventions.
   - `ci-cd-devops.instructions.md` — CI/CD pipeline standards and practices.
   - `clean-architecture-code.instructions.md` — Universal Clean Architecture principles.

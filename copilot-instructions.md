@@ -20,6 +20,20 @@ Language: pt-BR for chat; EN for code/commits/docs/UI/database; pt-BR i18n outpu
 - Always load `.github/AGENTS.md` first, then this file.
 - If the workspace is available, do not proceed unless both files are loaded.
 
+# Static RAGs Routing
+Preferred default workflow: **Route → Execute** (always route first to generate a minimal Context Pack).
+
+Use static routing when you want consistent instruction selection without running any external service.
+
+Flow (two-stage):
+1) Route: Use .github/instruction-routing.catalog.yml + .github/prompts/route-instructions.prompt.md to produce a Context Pack (mandatory + minimal domain files).
+2) Execute: Perform the actual task using ONLY the Context Pack files as context.
+
+Rules:
+- Always include mandatory context (AGENTS.md + this file) and mandatory instruction files.
+- Prefer 2–5 domain instruction files per task.
+- If ambiguous, ask up to 3 clarifying questions before executing.
+
 ## Decision Quickstart (Instruction Hierarchy)
 
 Follow this order of operations on every task:
@@ -51,7 +65,6 @@ Follow this order of operations on every task:
 ## Always Applied
 - .github/AGENTS.md (agents and context policy)
 - .github/instructions/workflow-optimization.instructions.md
-- .github/instructions/ai-orchestration.instructions.md
 - .github/instructions/powershell-execution.instructions.md
 - .github/instructions/feedback-changelog.instructions.md
 
