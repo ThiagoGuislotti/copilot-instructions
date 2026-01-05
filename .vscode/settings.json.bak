@@ -338,7 +338,6 @@
     // Chat instruction file locations - Folders containing .md instruction files
     // https://code.visualstudio.com/docs/copilot/customization
     "chat.instructionsFilesLocations": {
-        "%USERPROFILE%\\.github\\": true,
         "%USERPROFILE%\\.github\\instructions\\": true,
         "%USERPROFILE%\\.github\\templates\\": true,
         "%USERPROFILE%\\.github\\chatmodes\\": true,
