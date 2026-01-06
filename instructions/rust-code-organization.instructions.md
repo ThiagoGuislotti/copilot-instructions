@@ -6,10 +6,11 @@ priority: high
 # Rust Code Organization
 
 ## Core Principles
-Mirror src/ structure in tests/ exactly; production code in src/, tests in tests/; no #[cfg(test)] blocks in production; follow Rust module conventions; **1 trait = 1 file, 1 struct = 1 file** for better maintainability and scalability.
+Mirror src/ structure in tests/ exactly; production code in src/, tests in tests/; no #[cfg(test)] blocks in production; follow Rust module conventions; **group related types by functionality** - multiple structs/traits per file is idiomatic Rust.
 
 > **Rule:** Test file structure MUST mirror source file structure.
-> **Rule:** Each trait and struct should have its own file (unless trivially small < 20 lines).
+> **Rule:** Files are organized by **module/functionality**, NOT by type. A file named `config.rs` can contain `LinearConfig`, `BsgsConfig`, and related types.
+> **Rule:** Only split into separate files when a file exceeds ~300-500 lines or when types have distinct responsibilities.
 
 ## Documentation Standards
 Doc comments must be complete and self-explanatory; describe purpose, inputs, outputs, errors, side effects, and invariants; avoid restating identifiers.
@@ -91,6 +92,25 @@ mod core {
 }
 ```## Module Organization Patterns
 
+### Rust Idiomatic Module Organization
+
+**Key Principle:** Rust organizes code by **functionality/domain**, not by type. This differs from Java/C# where each class has its own file.
+
+**Rust Standard Library Examples:**
+- `std::collections` has `HashMap`, `HashSet`, `BTreeMap` in related modules
+- `std::io` has `Read`, `Write`, `BufReader`, `BufWriter` together
+- `std::sync` groups `Arc`, `Mutex`, `RwLock` by domain
+
+**When to Split Files:**
+- File exceeds ~300-500 lines
+- Types have distinct, unrelated responsibilities
+- Complex implementations benefit from isolation
+
+**When to Keep Together:**
+- Types are used together (e.g., `Config` and `ConfigBuilder`)
+- Types share the same domain (e.g., `LinearConfig`, `BsgsConfig`)
+- Types are tightly coupled (e.g., `Algorithm` trait and `AlgorithmInfo`)
+
 ### Pattern 1: Simple Module
 
 **Source:**
@@ -157,120 +177,78 @@ mod ui { pub mod core { pub mod colors_tests; } }
 ```
 
 ---
-## Code Organization: Traits and Structs
+## Code Organization: Modules by Functionality
 
-### Rule: 1 Trait = 1 File, 1 Struct = 1 File
+### Rule: Group Related Types by Domain/Functionality
 
-**Rationale:** Inspired by .NET/C# conventions (1 class = 1 file), Rust code should follow:
-- **1 trait = 1 file** (unless trivially small < 20 lines)
-- **1 struct = 1 file** (unless trivially small < 20 lines)
-- Group related items in a module with `mod.rs` for re-exports
+**Rationale:** Unlike Java/C# (1 class = 1 file), Rust organizes by **module/functionality**. The file name represents the domain, and can contain multiple related types.
+
+**Rust Conventions:**
+- `algorithm.rs` can contain `Algorithm` trait + `AlgorithmInfo` struct
+- `config.rs` can contain `Config`, `LinearConfig`, `BsgsConfig`
+- `result.rs` can contain `SearchResult`, `FoundState`, related types
+
+**File Naming:**
+- Name files by **domain/purpose**: `config.rs`, `algorithm.rs`, `result.rs`
+- NOT by type name: ~~`search_result.rs`~~, ~~`algorithm_trait.rs`~~, ~~`linear_config.rs`~~
 
 **Benefits:**
-- Easy to locate code
-- Clear separation of concerns
-- Scalable as code grows
-- Better git history tracking
-- Easier code review
+- Reduces file proliferation
+- Related code stays together
+- Easier navigation by concept
+- Matches Rust std library patterns
 
-### Pattern: Trait Organization
+### Pattern: Domain-Based Organization
 
-**Before (traits in lib.rs - ❌ NOT RECOMMENDED):**
+**Recommended Structure (✅):**
 ```
-src/
-└── lib.rs  # Contains MenuEntry + CommandEntry + MenuProvider
-```
-
-**After (separated - ✅ RECOMMENDED):**
-```
-src/
-├── lib.rs  # Re-exports only
-└── menu/
-    ├── mod.rs              # Module aggregator
-    ├── menu_entry.rs       # MenuEntry trait
-    ├── command_entry.rs    # CommandEntry trait
-    └── menu_provider.rs    # MenuProvider trait
-```
-
-**mod.rs:**
-```rust
-//! Menu system traits and utilities
-
-mod command_entry;
-mod menu_entry;
-mod menu_provider;
-
-pub use command_entry::CommandEntry;
-pub use menu_entry::MenuEntry;
-pub use menu_provider::MenuProvider;
+src/algorithms/
+├── mod.rs              # Re-exports
+├── common/
+│   ├── mod.rs
+│   ├── algorithm.rs    # Algorithm trait + AlgorithmInfo
+│   ├── config.rs       # CommonConfig + AlgorithmConfig trait
+│   ├── result.rs       # SearchResult struct
+│   └── found_state.rs  # FoundState (atomic state)
+├── linear/
+│   ├── mod.rs
+│   ├── algorithm.rs    # LinearAlgorithm
+│   └── config.rs       # LinearConfig
+└── bsgs/
+    ├── mod.rs
+    ├── algorithm.rs    # BsgsAlgorithm
+    └── config.rs       # BsgsConfig
 ```
 
-**lib.rs:**
-```rust
-pub mod menu;
-
-// Re-export commonly used items
-pub use menu::{CommandEntry, MenuEntry, MenuProvider};
+**NOT Recommended (❌ - Java/C# style):**
 ```
-
-### Pattern: Struct Organization
-
-**Simple struct (< 20 lines) - OK to keep in module:**
-```rust
-// src/config.rs
-pub struct Config {
-    pub name: String,
-    pub value: i32,
-}
-```
-
-**Complex struct with many methods - Separate file:**
-```
-src/models/
-├── mod.rs
-├── user.rs          # User struct
-├── session.rs       # Session struct
-└── permission.rs    # Permission struct
+src/algorithms/
+├── algorithm_trait.rs
+├── algorithm_info.rs
+├── common_config.rs
+├── algorithm_config_trait.rs
+├── search_result.rs
+├── found_state.rs
+├── linear_algorithm.rs
+├── linear_config.rs
+├── bsgs_algorithm.rs
+└── bsgs_config.rs
 ```
 
 ### When to Keep Together vs Separate
 
 **Keep Together (in same file):**
-- ✅ Tightly coupled types (< 100 total lines)
+- ✅ Related types in same domain (Config variants)
+- ✅ Trait + metadata struct (Algorithm + AlgorithmInfo)
 - ✅ Enum + impl block (single responsibility)
-- ✅ Struct + builder pattern in same file
-- ✅ Type aliases and small utility traits
+- ✅ Struct + builder pattern
+- ✅ Types that are always used together
 
 **Separate Files:**
-- ❌ Multiple unrelated traits (even if small)
-- ❌ Large trait with many methods (> 50 lines)
-- ❌ Struct with extensive impl blocks (> 100 lines)
-- ❌ Types likely to grow over time
-
-### Example: Before and After
-
-**Before (menu.rs - 150 lines):**
-```rust
-pub trait MenuEntry { /* ... */ }
-pub trait CommandEntry { /* ... */ }
-pub trait MenuProvider { /* ... */ }
-
-pub struct MenuConfig { /* ... */ }
-impl MenuConfig { /* ... */ }
-
-pub fn render_menu() { /* ... */ }
-```
-
-**After (organized):**
-```
-menu/
-├── mod.rs
-├── menu_entry.rs      # MenuEntry trait
-├── command_entry.rs   # CommandEntry trait
-├── menu_provider.rs   # MenuProvider trait
-├── config.rs          # MenuConfig struct + impl
-└── renderer.rs        # render_menu function
-```
+- ❌ File exceeds 300-500 lines
+- ❌ Types have completely unrelated concerns
+- ❌ Types need different dependencies/imports
+- ❌ Distinct testing requirements
 
 ---
 ## Test Template

@@ -12,6 +12,12 @@
 *.jsonc text eol=lf
 *.sh text eol=lf
 
+# Config files
+.editorconfig text eol=lf
+.gitattributes text eol=lf
+.gitignore text eol=lf
+*.csv text eol=lf
+
 # .NET
 *.cs text eol=lf
 *.csproj text eol=lf
