@@ -11,6 +11,12 @@ Mirror src/ structure in tests/ exactly; production code in src/, tests in tests
 > **Rule:** Test file structure MUST mirror source file structure.
 > **Rule:** Each trait and struct should have its own file (unless trivially small < 20 lines).
 
+## Documentation Standards
+Doc comments must be complete and self-explanatory; describe purpose, inputs, outputs, errors, side effects, and invariants; avoid restating identifiers.
+- Provide a clear summary sentence for every public item; describe behavior and side effects.
+- Document arguments, return values, and error conditions for public functions; include explicit Panics, Errors, and Safety sections when relevant.
+- Enable the missing_docs lint with crate-level attribute #![warn(missing_docs)] in the crate root; fix warnings instead of suppressing.
+
 ## Standard Layout
 
 ```

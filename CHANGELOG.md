@@ -1,3 +1,11 @@
+## [1.1.1] - 2026-01-05
+
+### Changed
+- Added explicit Rust documentation quality expectations to rust-code-organization and rust-testing instruction files.
+
+### Feedback Integration
+- File: instructions/rust-code-organization.instructions.md | context: Rust documentation guidance | problem: Doc comment completeness expectations were implicit | solution: Added self-explanatory doc comment standards and missing_docs lint guidance | workspace-impact: Clearer documentation quality baseline
+
 ## [1.1.0] - 2025-12-06
 
 ### Changed
