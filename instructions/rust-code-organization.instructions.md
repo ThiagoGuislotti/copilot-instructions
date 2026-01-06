@@ -90,7 +90,9 @@ mod core {
     pub mod config_tests;
     pub mod parser_tests;
 }
-```## Module Organization Patterns
+```
+
+## Module Organization Patterns
 
 ### Rust Idiomatic Module Organization
 
