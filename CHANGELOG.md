@@ -1,3 +1,11 @@
+## [1.1.2] - 2026-01-29
+
+### Changed
+- Require XML documentation for all types and members (public/internal/private) in dotnet-csharp instructions, excluding test methods.
+
+### Feedback Integration
+- File: instructions/dotnet-csharp.instructions.md | context: XML documentation scope | problem: Instruction limited XML docs to public APIs | solution: Require XML docs for all accessibility levels except test methods | workspace-impact: Consistent documentation coverage across codebase
+
 ## [1.1.1] - 2026-01-05
 
 ### Changed

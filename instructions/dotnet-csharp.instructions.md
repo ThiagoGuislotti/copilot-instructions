@@ -280,7 +280,7 @@ app.UseEndpoints(e => { e.MapMetrics(); e.MapHealthChecks("/health/ready"); });
 - Block-scoped namespaces
 - Minimal/usings (prefer implicit usings where configured)
 - Consistent naming (PascalCase for types/members, camelCase for locals/params)
-- XML docs for public APIs
+- XML docs for all types and members (public/internal/private) in non-test code
 - EditorConfig compliance
 ```csharp
 namespace NetToolsKit.Core
@@ -297,6 +297,7 @@ namespace NetToolsKit.Core
 - Remarks/examples when useful
 - Inheritdoc for overrides and interface implementations
 - When a method implements an interface, prefer using <inheritdoc cref="IInterface.Method(Type, CancellationToken)"/> and add remarks “Implements interface method documentation”
+- Apply XML docs to all accessibility levels; do not add XML summaries to test methods
 ```csharp
 /// <inheritdoc cref="IOrderService.GetAsync"/>
 public async Task<Order> GetAsync(Guid id, CancellationToken ct) { /* ... */ }
