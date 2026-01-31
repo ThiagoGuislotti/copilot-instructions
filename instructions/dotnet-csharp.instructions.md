@@ -111,7 +111,7 @@ catch (SqlException ex)
     - `#region Test Methods - [MethodUnderTest] Edge Cases` - boundary/edge case tests
     - `#region Test Methods - [MethodUnderTest] Exception Cases` - exception handling tests
     - `#region Private Methods/Operators` - helper methods for test setup
-- Replace `[MethodUnderTest]` with the actual method name being tested (e.g., `#region Test Methods - CreateOffset`)
+    Replace `[MethodUnderTest]` with the resource being tested (for example, `#region Test Methods - Create Valid Cases`)
 - Do NOT use generic region names like `#region CanHandle Tests` or `#region RoundTrip Tests`
 - Combine related test cases under the same method region with appropriate suffixes (Valid/Invalid/Edge/Exception Cases)
 ```csharp
