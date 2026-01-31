@@ -73,6 +73,14 @@ test('user can complete checkout', async ({ page }) => {
 });
 ```
 
+**Test Naming (Mandatory)**:
+- Use `{What}_{How}_{Result}` pattern
+- Example: `CreateUser_WithValidData_ReturnsSuccess`
+
+**Order / Sequencing (Mandatory when needed)**:
+- Use explicit ordering for integration/E2E tests **only** when steps must run in sequence (shared state, workflow stages).
+- If a test validates more than one distinct feature, split into multiple tests (one feature per test).
+
 **Additional Requirements**: Isolated setup/teardown; test data factories; page object model for UI; reusable API clients; avoid inter‑test dependencies; appropriate timeouts.
 
 # Environment

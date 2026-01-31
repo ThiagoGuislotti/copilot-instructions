@@ -87,18 +87,30 @@ catch (SqlException ex)
 ```
 
 # Testing Patterns
+
+## Common (All Tests)
+- Tests require:
+  - for NUnit [TestFixture], [RequiresThread], [Category("...")]
+  - for xUnit [Trait("...", "...")] [Collection("...")]
+- Test naming MUST follow `{What}_{How}_{Result}` (PascalCase)
+  - Example: `CreateUser_WithValidData_ReturnsSuccess`
+- Each test validates a single feature/behavior. If a test validates multiple features, split it into multiple tests.
+
+## Unit Tests
 - AAA with minimal duplication
 - Prefer test data builders, isolated mocks and deterministic assertions
-- ALWAYS use templates to start fast and keep consistency:
-    - Unit tests: ALWAYS use template .github/templates/dotnet-unit-test-template.cs
-    - Integration tests: ALWAYS use template .github/templates/dotnet-integration-test-template.cs
-- File layout: unit tests in tests/<Project>.UnitTests/Tests/*Tests.cs
-- Integration tests in tests/<Project>.IntegrationTests/Tests/*Tests.cs
+- ALWAYS use template .github/templates/dotnet-unit-test-template.cs
+- File layout: tests/<Project>.UnitTests/Tests/*Tests.cs
 - Categories/output: organize by domain category (Requests, Stream, Notifications, Commands, Queries, Pipeline, Concurrency, etc.)
 - For xUnit use ITestOutputHelper; for NUnit use TestContext
 - ALWAYS use standard assertions: NUnit (Assert.That, Assert.Throws) or xUnit (Assert.Equal, Assert.True)
 - NO XML summaries on test methods
-- Integration tests require: [TestFixture], [RequiresThread], [SetCulture("pt-BR")], [Category("...")]
+
+## Integration Tests
+- AAA with minimal duplication
+- ALWAYS use template .github/templates/dotnet-integration-test-template.cs
+- File layout: tests/<Project>.IntegrationTests/Tests/*Tests.cs
+- Use explicit ordering ONLY when sequencing is required by shared state or workflow stages.
 
 ## Test File Region Structure
 - Test files MUST follow the region structure from templates (different from production code):

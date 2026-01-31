@@ -29,6 +29,7 @@ namespace [Namespace].UnitTests.Tests.[Category]
 {
 #if UNIT_XUNIT
     [Trait("[Category]", "[Entity]")]
+    [Collection("[Entity] Tests Collection")]
 #elif UNIT_NUNIT
     [TestFixture]
     [Category("[Category]")]
