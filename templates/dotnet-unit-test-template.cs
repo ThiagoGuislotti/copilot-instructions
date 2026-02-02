@@ -52,17 +52,28 @@ namespace [Namespace].UnitTests.Tests.[Category]
 #endif
         #endregion
 
-        #region SetUp Methods
+        #region Constructors
 #if UNIT_XUNIT
         /// <summary>
         /// xUnit uses constructor for per-test setup and ITestOutputHelper for logs.
         /// </summary>
-        public [TEST_CLASS] (ITestOutputHelper output)
+        public [TEST_CLASS](ITestOutputHelper output)
         {
             _output = output;
             _[DependencyName] = new [DependencyType]();
         }
 #elif UNIT_NUNIT
+        /// <summary>
+        /// NUnit uses parameterless constructor; initialization happens in [SetUp].
+        /// </summary>
+        public [TEST_CLASS]()
+        {
+        }
+#endif
+        #endregion
+
+#if UNIT_NUNIT
+        #region SetUp Methods
         /// <summary>
         /// NUnit uses [SetUp] and TestContext for logs.
         /// </summary>
@@ -71,8 +82,8 @@ namespace [Namespace].UnitTests.Tests.[Category]
         {
             _[DependencyName] = new [DependencyType]();
         }
+#endregion
 #endif
-        #endregion
 
         #region Test Methods - [MethodUnderTest] Valid Cases
 #if UNIT_XUNIT

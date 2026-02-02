@@ -39,6 +39,12 @@ namespace [Namespace].IntegrationTests.Tests.[Category]
         private string _testEntityId;
         #endregion
 
+        #region Constructors
+        public [HandlerClass]()
+        {
+        }
+        #endregion
+
         #region SetUp Methods
         [SetUp]
         public void SetUp()

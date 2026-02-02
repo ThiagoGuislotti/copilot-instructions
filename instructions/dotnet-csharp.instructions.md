@@ -116,6 +116,7 @@ catch (SqlException ex)
 - Test files MUST follow the region structure from templates (different from production code):
     - `#region Nested types` - DTOs, stubs, test-specific types
     - `#region Variables` - private fields, dependencies, test data
+    - `#region Constructors` - test class constructors
     - `#region SetUp Methods` - [SetUp], [TearDown], [OneTimeSetUp], [OneTimeTearDown]
     - `#region Test Methods - [MethodUnderTest]` - group tests by the method being tested
     - `#region Test Methods - [MethodUnderTest] Valid Cases` - happy path tests
