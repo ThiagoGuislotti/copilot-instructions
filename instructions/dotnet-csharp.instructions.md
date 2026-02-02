@@ -129,7 +129,7 @@ catch (SqlException ex)
 - Combine related test cases under the same method region with appropriate suffixes (Valid/Invalid/Edge/Exception Cases)
 ```csharp
 [TestFixture]
-[Category("Unit")]
+[Category("Services")]
 public sealed class OrderServiceTests
 {
     #region Variables

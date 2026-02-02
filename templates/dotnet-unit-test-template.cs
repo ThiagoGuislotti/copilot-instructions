@@ -21,18 +21,18 @@ using NUnit.Framework;
 // Use: [Namespace] = Project namespace
 // Use: [TEST_CLASS] = ClassUnderTestTests
 // Use: [MethodUnderTest] = CreateMotorcycle
-// Use: [Category] = Commands/Queries/Services/Validators
+// Use: [CategoryName] = Repositories/Commands/Queries/Services/Validators
 // Use: [Entity] = Motorcycle (or similar)
 // Use: [DependencyType] = Subject-under-test or Validator/Service/etc.
 
-namespace [Namespace].UnitTests.Tests.[Category]
+namespace [Namespace].UnitTests.Tests.[CategoryName]
 {
 #if UNIT_XUNIT
-    [Trait("[Category]", "[Entity]")]
+    [Trait("Category", "[CategoryName]")]
     [Collection("[Entity] Tests Collection")]
 #elif UNIT_NUNIT
     [TestFixture]
-    [Category("[Category]")]
+    [Category("[CategoryName]")]
 #endif
     public class [TEST_CLASS]
     {
