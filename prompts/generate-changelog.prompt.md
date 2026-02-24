@@ -18,7 +18,7 @@ Based on the provided changes or current git diff, create a CHANGELOG entry that
 7. Maintain consistency with repository writing style
 
 Use these references:
-- [changelog-entry-template.md](../templates/changelog-entry-template.md)
+- [changelog-entry-template.md](../.github/templates/changelog-entry-template.md)
 - Existing CHANGELOG.md entries for pattern matching
 - Repository commit history and file changes
 

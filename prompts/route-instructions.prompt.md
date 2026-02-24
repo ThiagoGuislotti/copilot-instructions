@@ -13,8 +13,8 @@ Given a user request, select the minimal set of instruction files and prompt tem
 ## Sources
 - Read and use the routing catalog: ../instruction-routing.catalog.yml
 - Respect mandatory context hierarchy defined in:
-  - ../AGENTS.md
-  - ../copilot-instructions.md
+  - ../.github/AGENTS.md
+  - ../.github/copilot-instructions.md
 
 ## Hard Rules
 - Always include mandatory context files listed under `always`.

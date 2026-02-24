@@ -138,7 +138,7 @@ Output: {"consensus": "...", "confidence": 0.0-1.0, "divergences": [...]}
 - `.github/templates/dotnet-*-template.*` for .NET code
 - `.github/templates/rust-*-template.rs` for Rust code
 
-### Prompt Templates (`.github/prompts/`)
+### Prompt Templates (`prompts/`)
 - `create-dotnet-class.prompt.md` - Generate .NET classes
 - `generate-unit-tests.prompt.md` - Generate comprehensive tests
 - `generate-changelog.prompt.md` - Generate changelog entries
@@ -296,7 +296,7 @@ public async Task Prompt_WithInput_ReturnsExpectedOutput(string input, string ex
 ---
 ## References
 
-- `.github/prompts/poml/prompt-engineering-poml.md` - Complete POML guide
+- `prompts/poml/prompt-engineering-poml.md` - Complete POML guide
 - Wei et al. (2022). *Chain-of-Thought Prompting* (arXiv:2201.11903)
 - Wang et al. (2023). *Self-Consistency* (arXiv:2203.11171)
 - Yao et al. (2023). *Tree of Thoughts* (arXiv:2305.10601)

@@ -45,7 +45,7 @@ routing:
       - path: .github/instructions/copilot-instruction-creation.instructions.md
         when: editing .github/instructions/*
       - path: .github/instructions/prompt-templates.instructions.md
-        when: editing .github/prompts or authoring prompts
+        when: editing prompts or authoring prompts
       - path: .github/instructions/pr.instructions.md
         when: creating/updating PR-related content
 
@@ -157,7 +157,7 @@ routing:
       - path: .github/instructions/backend.instructions.md
         reason: Testing strategy notes (when relevant)
     notes:
-      - Prefer prompt .github/prompts/generate-unit-tests.prompt.md for test generation.
+      - Prefer prompt prompts/generate-unit-tests.prompt.md for test generation.
       - Prefer AAA and fast/deterministic tests; use clear naming Method_Scenario_Expected.
       - Prefer [Trait("Category","Unit")] for xUnit and consistent categories.
 
@@ -289,31 +289,31 @@ routing:
 
 prompts:
   - id: route-instructions
-    path: .github/prompts/route-instructions.prompt.md
+    path: prompts/route-instructions.prompt.md
     tags: [rag, routing, instructions]
     purpose: Generate a Context Pack (which instruction files to load)
 
   - id: dotnet-create-class
-    path: .github/prompts/create-dotnet-class.prompt.md
+    path: prompts/create-dotnet-class.prompt.md
     tags: [dotnet, csharp, generation]
     purpose: Generate a new C# class following templates and architecture rules
 
   - id: dotnet-generate-unit-tests
-    path: .github/prompts/generate-unit-tests.prompt.md
+    path: prompts/generate-unit-tests.prompt.md
     tags: [dotnet, testing, unit]
     purpose: Generate unit tests (AAA, traits/categories, mocking)
 
   - id: dotnet-create-api-endpoint
-    path: .github/prompts/create-api-endpoint.prompt.md
+    path: prompts/create-api-endpoint.prompt.md
     tags: [dotnet, backend, api]
     purpose: Generate an API endpoint pattern (controller/handler, validation)
 
   - id: dotnet-create-ef-migration
-    path: .github/prompts/create-ef-migration.prompt.md
+    path: prompts/create-ef-migration.prompt.md
     tags: [dotnet, database, ef-core, migrations]
     purpose: Create EF Core migration and related guidance
 
   - id: generate-changelog
-    path: .github/prompts/generate-changelog.prompt.md
+    path: prompts/generate-changelog.prompt.md
     tags: [docs, changelog]
     purpose: Generate semantic versioned changelog entries

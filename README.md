@@ -31,19 +31,20 @@ Structured AI agent guidelines for software development projects. Focuses on rep
 
 ### Using in Existing Projects
 
-Copy relevant files to your project's `.github/` directory:
+Copy relevant files to your project (`.github/` for instructions and repo root for routing assets):
 
 ```bash
 # Copy core instruction files
-cp AGENTS.md /path/to/your/project/.github/
-cp copilot-instructions.md /path/to/your/project/.github/
+cp .github/AGENTS.md /path/to/your/project/.github/
+cp .github/copilot-instructions.md /path/to/your/project/.github/
 
 # Copy domain-specific instructions as needed
-cp -r instructions/ /path/to/your/project/.github/
+cp -r .github/instructions/ /path/to/your/project/.github/
 
-# Optional: Copy chat modes and prompts
-cp -r chatmodes/ /path/to/your/project/.github/
-cp -r prompts/ /path/to/your/project/.github/
+# Optional: Copy chat modes, prompts, and routing schema
+cp -r chatmodes/ /path/to/your/project/
+cp -r prompts/ /path/to/your/project/
+cp -r schemas/ /path/to/your/project/
 ```
 
 ### Repository Setup
@@ -52,6 +53,30 @@ cp -r prompts/ /path/to/your/project/.github/
 git clone https://github.com/ThiagoGuislotti/copilot-instructions.git
 cd copilot-instructions
 ```
+
+### Repository Layout
+
+```text
+copilot-instructions/
+├─ .github/   # shared Copilot + Codex instructions
+├─ .codex/    # shared Codex assets (skills/mcp/scripts)
+├─ chatmodes/ # reusable chat mode definitions
+├─ schemas/   # schema files (e.g., routing catalog schema)
+├─ scripts/   # bootstrap + automation scripts
+├─ README.md
+└─ .gitignore
+```
+
+### Bootstrap Local Folders
+
+```powershell
+pwsh -File .\scripts\bootstrap.ps1
+
+# optional: also apply shared MCP servers to ~/.codex/config.toml
+pwsh -File .\scripts\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
+```
+
+This syncs versioned `.github/` and `.codex/` assets into your local runtime paths (`~/.github` and `~/.codex`).
 
 ---
 
@@ -63,17 +88,18 @@ Use a routing step to select a minimal “context pack” before doing any work.
 
 1. **Copy the core files (required):**
    ```bash
-   cp AGENTS.md copilot-instructions.md /your/project/.github/
+   cp .github/AGENTS.md .github/copilot-instructions.md /your/project/.github/
    ```
 
 2. **Copy the routing assets (recommended):**
    ```bash
-   cp instruction-routing.catalog.yml /your/project/.github/
-   cp prompts/route-instructions.prompt.md /your/project/.github/prompts/
+   cp instruction-routing.catalog.yml /your/project/
+   cp prompts/route-instructions.prompt.md /your/project/prompts/
+   cp -r schemas/ /your/project/
    ```
 
 3. **Route first, then execute:**
-   - Run the route-only prompt `.github/prompts/route-instructions.prompt.md`.
+   - Run the route-only prompt `prompts/route-instructions.prompt.md`.
    - Load ONLY the files from the returned Context Pack (mandatory + selected).
    - Execute the task using that minimal context.
 
@@ -81,24 +107,24 @@ Use a routing step to select a minimal “context pack” before doing any work.
 
 1. **Copy core files:**
    ```bash
-   cp AGENTS.md copilot-instructions.md /your/project/.github/
+   cp .github/AGENTS.md .github/copilot-instructions.md /your/project/.github/
    ```
 
-2. **Adapt AGENTS.md** for your project structure
+2. **Adapt `.github/AGENTS.md`** for your project structure
 
 3. **Select relevant instructions:**
    ```bash
    # .NET project
-   cp instructions/{dotnet-csharp,clean-architecture-code,backend}.instructions.md /your/project/.github/instructions/
+   cp .github/instructions/{dotnet-csharp,clean-architecture-code,backend}.instructions.md /your/project/.github/instructions/
 
    # Rust project
-   cp instructions/rust-testing.instructions.md /your/project/.github/instructions/
+   cp .github/instructions/rust-testing.instructions.md /your/project/.github/instructions/
 
    # Frontend project
-   cp instructions/{frontend,vue-quasar,ui-ux}.instructions.md /your/project/.github/instructions/
+   cp .github/instructions/{frontend,vue-quasar,ui-ux}.instructions.md /your/project/.github/instructions/
 
    # DevOps
-   cp instructions/{docker,k8s,ci-cd-devops}.instructions.md /your/project/.github/instructions/
+   cp .github/instructions/{docker,k8s,ci-cd-devops}.instructions.md /your/project/.github/instructions/
    ```
 
 ### First AI Interaction
@@ -196,7 +222,7 @@ Located in `prompts/poml/templates/`:
 - **changelog-entry.poml** - Structured CHANGELOG generator with versioning
 - **unit-test-generator.poml** - AAA pattern test generator with mocking
 
-**Learn more:** [POML Documentation](./prompts/poml/README.md)
+**Learn more:** [POML Guide](./prompts/poml/prompt-engineering-poml.md)
 
 ---
 
@@ -206,8 +232,8 @@ Located in `prompts/poml/templates/`:
 
 | File | Purpose | When to Use |
 |------|---------|-------------|
-| **AGENTS.md** | Agent policies, workflow patterns, context selection rules | Always load FIRST in Copilot sessions |
-| **copilot-instructions.md** | Global rules, domain mapping, repository structure | Always load SECOND in Copilot sessions |
+| **.github/AGENTS.md** | Agent policies, workflow patterns, context selection rules | Always load FIRST in Copilot sessions |
+| **.github/copilot-instructions.md** | Global rules, domain mapping, repository structure | Always load SECOND in Copilot sessions |
 
 ### Instruction Files
 
@@ -228,16 +254,16 @@ Located in `prompts/poml/templates/`:
 ### Context Selection Rule (Hard Requirement)
 
 **Always load FIRST in any Copilot Chat session:**
-1. `AGENTS.md`
-2. `copilot-instructions.md`
+1. `.github/AGENTS.md`
+2. `.github/copilot-instructions.md`
 
 This ensures consistent agent behavior and proper context hierarchy.
 
 ### Static RAGs Routing
 
 If you want a RAGs-style routing step (selecting a minimal “context pack” before execution), use:
-- `.github/instruction-routing.catalog.yml` (single source of truth for routes)
-- `.github/prompts/route-instructions.prompt.md` (route-only prompt that outputs a JSON context pack)
+- `instruction-routing.catalog.yml` (single source of truth for routes)
+- `prompts/route-instructions.prompt.md` (route-only prompt that outputs a JSON context pack)
 
 ---
 
@@ -281,7 +307,7 @@ None. This is a documentation and policy repository.
 
 ### Internal Documentation
 
-- [CHANGELOG](./CHANGELOG.md) - Version history
+- [CHANGELOG](./.github/CHANGELOG.md) - Version history
 
 ---
 

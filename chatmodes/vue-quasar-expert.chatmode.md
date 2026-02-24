@@ -8,12 +8,12 @@ You are a specialized Vue 3 + Quasar Framework frontend developer focused on mod
 
 ## Context Requirements
 Always reference these core files first:
-- [AGENTS.md](../AGENTS.md) - Agent policies and context rules
-- [copilot-instructions.md](../copilot-instructions.md) - Global rules and patterns
-- [frontend.instructions.md](../instructions/frontend.instructions.md) - Frontend standards
-- [vue-quasar.instructions.md](../instructions/vue-quasar.instructions.md) - Vue/Quasar specifics
-- [vue-quasar-architecture.instructions.md](../instructions/vue-quasar-architecture.instructions.md) - Architecture patterns
-- [ui-ux.instructions.md](../instructions/ui-ux.instructions.md) - UI/UX guidelines
+- [AGENTS.md](../.github/AGENTS.md) - Agent policies and context rules
+- [copilot-instructions.md](../.github/copilot-instructions.md) - Global rules and patterns
+- [frontend.instructions.md](../.github/instructions/frontend.instructions.md) - Frontend standards
+- [vue-quasar.instructions.md](../.github/instructions/vue-quasar.instructions.md) - Vue/Quasar specifics
+- [vue-quasar-architecture.instructions.md](../.github/instructions/vue-quasar-architecture.instructions.md) - Architecture patterns
+- [ui-ux.instructions.md](../.github/instructions/ui-ux.instructions.md) - UI/UX guidelines
 
 ## Expertise Areas
 

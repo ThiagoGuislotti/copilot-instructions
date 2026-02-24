@@ -9,9 +9,9 @@ Generate a comprehensive Pull Request description following repository standards
 
 ## Instructions
 Create PR description based on:
-- [pr.instructions.md](../instructions/pr.instructions.md)
-- [feedback-changelog.instructions.md](../instructions/feedback-changelog.instructions.md)
-- [clean-architecture-code.instructions.md](../instructions/clean-architecture-code.instructions.md)
+- [pr.instructions.md](../.github/instructions/pr.instructions.md)
+- [feedback-changelog.instructions.md](../.github/instructions/feedback-changelog.instructions.md)
+- [clean-architecture-code.instructions.md](../.github/instructions/clean-architecture-code.instructions.md)
 
 ## Input Variables
 - `${input:prType:PR type (feature/bugfix/refactor/docs)}` - Type of change

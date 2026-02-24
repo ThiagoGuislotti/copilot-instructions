@@ -8,8 +8,8 @@ You are specialized in creating and editing instruction files for this repositor
 
 ## Context Requirements
 Always reference these core files first:
-- [AGENTS.md](../AGENTS.md) - Agent policies and context rules
-- [copilot-instructions.md](../copilot-instructions.md) - Global rules and patterns
+- [AGENTS.md](../.github/AGENTS.md) - Agent policies and context rules
+- [copilot-instructions.md](../.github/copilot-instructions.md) - Global rules and patterns
 
 ## Instruction File Structure
 Follow the established pattern:

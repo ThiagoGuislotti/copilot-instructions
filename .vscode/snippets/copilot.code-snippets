@@ -50,8 +50,8 @@
             "Applied instructions:",
             "- %USERPROFILE%\\.github\\AGENTS.md",
             "- %USERPROFILE%\\.github\\copilot-instructions.md",
-            "- ${1:instructions/backend.instructions.md}",
-            "- ${2:instructions/dotnet-csharp.instructions.md}",
+            "- ${1:.github/instructions/backend.instructions.md}",
+            "- ${2:.github/instructions/dotnet-csharp.instructions.md}",
             "${3:}"
         ]
     },
@@ -84,7 +84,7 @@
             "## [${1:X.Y.Z}] - ${2:YYYY-MM-DD}",
             "",
             "### ${3:Added|Changed|Fixed|Removed|Breaking}",
-            "- `instructions/${4:AREA}.instructions.md`: ${5:CHANGE_DESCRIPTION}",
+            "- `.github/instructions/${4:AREA}.instructions.md`: ${5:CHANGE_DESCRIPTION}",
             "  - ${6:SPECIFIC_COMPONENT}: ${7:DETAILS}"
         ]
     },
@@ -92,7 +92,7 @@
         "prefix": "readmemaprow",
         "description": "Insert a README mapping table row for instructions.",
         "body": [
-            "| ${1:AREA} | ${2:FOLDERS} | `instructions/${3:file.instructions.md}` | ${4:GLOB} | ${5:DESCRIPTION} |"
+            "| ${1:AREA} | ${2:FOLDERS} | `.github/instructions/${3:file.instructions.md}` | ${4:GLOB} | ${5:DESCRIPTION} |"
         ]
     }
 }

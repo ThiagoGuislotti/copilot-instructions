@@ -26,7 +26,7 @@ Preferred default workflow: **Route → Execute** (always route first to generat
 Use static routing when you want consistent instruction selection without running any external service.
 
 Flow (two-stage):
-1) Route: Use .github/instruction-routing.catalog.yml + .github/prompts/route-instructions.prompt.md to produce a Context Pack (mandatory + minimal domain files).
+1) Route: Use instruction-routing.catalog.yml + prompts/route-instructions.prompt.md to produce a Context Pack (mandatory + minimal domain files).
 2) Execute: Perform the actual task using ONLY the Context Pack files as context.
 
 Rules:

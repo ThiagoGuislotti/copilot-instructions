@@ -229,7 +229,7 @@ Execute the base prompt 5x (varied temperatures). Do majority-vote on "answer" f
 2. Implement rendering via thin service or CLI.
 3. Add 10 test cases and metrics to dashboard.
 4. Scale to multiple clients with stylesheets.
-5. Version internal library in `.github/prompts/poml/`, maintaining reusable styles and regression fixtures per template.
+5. Version internal library in `prompts/poml/`, maintaining reusable styles and regression fixtures per template.
 
 ---
 ## 13) Sources and Reading

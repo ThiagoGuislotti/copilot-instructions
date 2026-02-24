@@ -9,9 +9,9 @@ Generate complete Docker setup with multi-stage builds, docker-compose, and Kube
 
 ## Instructions
 Create Docker setup based on:
-- [docker.instructions.md](../instructions/docker.instructions.md)
-- [k8s.instructions.md](../instructions/k8s.instructions.md)
-- [ci-cd-devops.instructions.md](../instructions/ci-cd-devops.instructions.md)
+- [docker.instructions.md](../.github/instructions/docker.instructions.md)
+- [k8s.instructions.md](../.github/instructions/k8s.instructions.md)
+- [ci-cd-devops.instructions.md](../.github/instructions/ci-cd-devops.instructions.md)
 
 ## Input Variables
 - `${input:appName:Application name}` - Application identifier

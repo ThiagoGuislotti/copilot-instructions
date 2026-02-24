@@ -9,9 +9,9 @@ Generate a complete API endpoint following Clean Architecture and CQRS pattern w
 
 ## Instructions
 Create API endpoint based on:
-- [backend.instructions.md](../instructions/backend.instructions.md)
-- [clean-architecture-code.instructions.md](../instructions/clean-architecture-code.instructions.md)
-- [dotnet-csharp.instructions.md](../instructions/dotnet-csharp.instructions.md)
+- [backend.instructions.md](../.github/instructions/backend.instructions.md)
+- [clean-architecture-code.instructions.md](../.github/instructions/clean-architecture-code.instructions.md)
+- [dotnet-csharp.instructions.md](../.github/instructions/dotnet-csharp.instructions.md)
 
 ## Input Variables
 - `${input:endpointName:Endpoint name (e.g., CreateOrder)}` - The operation name

@@ -8,7 +8,7 @@
 ## Detalhes por Achado
 
 ### 1. Obrigatoriedade de Codex CLI
-- **Origem:** `.github/prompts/route-instructions.prompt.md` e `.github/instruction-routing.catalog.yml`
+- **Origem:** `prompts/route-instructions.prompt.md` e `instruction-routing.catalog.yml`
 - **Problema:** quando regras de execução e roteamento ficam acopladas em um único documento, é comum surgirem instruções inexequíveis (ex.: exigir um runner/CLI não disponível) que conflitam com o ambiente real.
 - **Impacto:** conflito operacional recorrente, baixa previsibilidade.
 - **Ação sugerida:** manter execução (tools/runner) fora do roteamento; roteador só escolhe contexto mínimo e, quando o ambiente não suportar um fluxo, registrar a decisão no checklist/saída.
@@ -20,7 +20,7 @@
 - **Ação sugerida:** criar template correspondente ou ajustar instrução removendo referência/indicando alternativa.
 
 ### 3. Sobreposição de regras de estilo POML
-- **Origem:** `.github/prompt-engineering-poml.md` e estilo `styles/pt-br-enterprise.poml`
+- **Origem:** `prompts/poml/prompt-engineering-poml.md` e estilo `prompts/poml/styles/enterprise.poml`
 - **Problema:** guia exige separação de responsabilidades e metadados versionados, mas stylesheet atual não declara `meta` nem garante writerOptions JSON válido (usa placeholders `#quot`).
 - **Impacto:** incoerência entre guideline e implementação inicial.
 - **Ação sugerida:** atualizar stylesheet para JSON apropriado, adicionar metadados e alinhamento com governança de estilos.

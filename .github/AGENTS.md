@@ -13,8 +13,8 @@
 
 Default workflow for all tasks: Static RAGs Routing (Route → Execute)
 - Route first (pick minimal context):
-  - `.github/instruction-routing.catalog.yml` (single source of truth for routes)
-  - `.github/prompts/route-instructions.prompt.md` (route-only prompt that outputs a JSON context pack)
+  - `instruction-routing.catalog.yml` (single source of truth for routes)
+  - `prompts/route-instructions.prompt.md` (route-only prompt that outputs a JSON context pack)
 - Execute next: use ONLY the files returned by the Context Pack.
 
 If context budget is tight, prefer dropping any other files before these. These two documents coordinate global rules and agent usage and must be loaded to avoid inconsistent answers.
