@@ -73,6 +73,9 @@ pwsh -File .\scripts\runtime\bootstrap.ps1
 
 # optional: also apply shared MCP servers to ~/.codex/config.toml
 pwsh -File .\scripts\runtime\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
+
+# enterprise healthcheck (instructions + policy + runtime doctor)
+pwsh -File .\scripts\runtime\healthcheck.ps1 -StrictExtras
 ```
 
 This syncs versioned `.github/` and `.codex/` assets into your local runtime paths (`~/.github` and `~/.codex`).
@@ -98,6 +101,7 @@ pwsh -File .\scripts\git-hooks\setup-git-hooks.ps1
 ### pre-commit
 
 - Runs `scripts/validation/validate-instructions.ps1`
+- Runs `scripts/validation/validate-policy.ps1`
 - Blocks commit when validation fails
 - Requires `pwsh` or `powershell`
 
@@ -109,17 +113,34 @@ pwsh -File .\scripts\git-hooks\setup-git-hooks.ps1
 ### post-merge
 
 - Runs `scripts/validation/validate-instructions.ps1` (validation-only)
+- Runs `scripts/validation/validate-policy.ps1` (validation-only)
 - Does not run runtime sync
 
 ### post-checkout
 
 - Runs `scripts/validation/validate-instructions.ps1` (validation-only)
+- Runs `scripts/validation/validate-policy.ps1` (validation-only)
 - Does not run runtime sync
 
 Environment variables:
 - `CODEX_SKIP_POST_COMMIT_SYNC=1`: skip runtime sync
 - `CODEX_APPLY_MCP_ON_POST_COMMIT=1`: enable MCP apply when manifest changed
 - `CODEX_BACKUP_MCP_CONFIG=1|0`: backup control before MCP apply (`1` default)
+
+### Enterprise Ops
+
+```powershell
+# run end-to-end checks and generate .temp/healthcheck-report.json + logs
+pwsh -File .\scripts\runtime\healthcheck.ps1 -StrictExtras
+
+# repair runtime and validate final state
+pwsh -File .\scripts\runtime\self-heal.ps1 -Mirror -StrictExtras
+
+# export consolidated audit report with git metadata and policy inventory
+pwsh -File .\scripts\validation\export-audit-report.ps1 -StrictExtras
+```
+
+Audit logs are generated under `.temp/logs/`.
 
 ---
 

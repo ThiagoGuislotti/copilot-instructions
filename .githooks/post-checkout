@@ -10,14 +10,16 @@ echo "[post-checkout] Running instruction validation..."
 # Validate instruction/routing/skills contracts after checkout/switch.
 if command -v pwsh >/dev/null 2>&1; then
   pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-instructions.ps1
+  pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-policy.ps1
   exit $?
 fi
 
 # Windows PowerShell fallback.
 if command -v powershell >/dev/null 2>&1; then
   powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\validation\\validate-instructions.ps1
+  powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\validation\\validate-policy.ps1
   exit $?
 fi
 
-echo "[post-checkout] PowerShell not found. Install pwsh to run instruction validation." >&2
+echo "[post-checkout] PowerShell not found. Install pwsh to run instruction/policy validation." >&2
 exit 1

@@ -1,0 +1,329 @@
+<#
+.SYNOPSIS
+    Runs end-to-end health checks for the repository instruction and runtime system.
+
+.DESCRIPTION
+    Executes core validation checks and produces:
+    - console summary
+    - structured JSON report
+    - plain-text execution log
+
+    Checks:
+    - scripts/validation/validate-instructions.ps1
+    - scripts/validation/validate-policy.ps1
+    - scripts/runtime/doctor.ps1
+
+    Optional:
+    - scripts/runtime/bootstrap.ps1 (when -SyncRuntime is used)
+
+.PARAMETER RepoRoot
+    Optional repository root. If omitted, auto-detects a root containing .github and .codex.
+
+.PARAMETER TargetGithubPath
+    Runtime target path for .github assets. Defaults to $env:USERPROFILE\.github.
+
+.PARAMETER TargetCodexPath
+    Runtime target path for .codex assets. Defaults to $env:USERPROFILE\.codex.
+
+.PARAMETER SyncRuntime
+    Runs bootstrap sync before health checks.
+
+.PARAMETER Mirror
+    Uses mirror mode when -SyncRuntime is enabled.
+
+.PARAMETER StrictExtras
+    Fails runtime doctor when extra files exist in runtime targets.
+
+.PARAMETER OutputPath
+    Path for JSON healthcheck report. Defaults to .temp/healthcheck-report.json.
+
+.PARAMETER LogPath
+    Path for text execution log. Defaults to .temp/logs/healthcheck-<timestamp>.log.
+
+.PARAMETER Verbose
+    Shows detailed diagnostics.
+
+.EXAMPLE
+    pwsh -File scripts/runtime/healthcheck.ps1
+
+.EXAMPLE
+    pwsh -File scripts/runtime/healthcheck.ps1 -SyncRuntime -Mirror -StrictExtras
+
+.EXAMPLE
+    pwsh -File scripts/runtime/healthcheck.ps1 -TargetGithubPath ./.temp/runtime/github -TargetCodexPath ./.temp/runtime/codex -SyncRuntime
+
+.NOTES
+    Version: 1.0
+    Requirements: PowerShell 7+.
+#>
+
+param(
+    [string] $RepoRoot,
+    [string] $TargetGithubPath = "$env:USERPROFILE\.github",
+    [string] $TargetCodexPath = "$env:USERPROFILE\.codex",
+    [switch] $SyncRuntime,
+    [switch] $Mirror,
+    [switch] $StrictExtras,
+    [string] $OutputPath = '.temp/healthcheck-report.json',
+    [string] $LogPath,
+    [switch] $Verbose
+)
+
+$ErrorActionPreference = 'Stop'
+$script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
+$script:LogFilePath = $null
+
+# -------------------------------
+# Helpers
+# -------------------------------
+function Write-VerboseColor {
+    param(
+        [string] $Message,
+        [ConsoleColor] $Color = [ConsoleColor]::Gray
+    )
+
+    if ($Verbose) {
+        Write-Host $Message -ForegroundColor $Color
+    }
+}
+
+function Resolve-RepoPath {
+    param(
+        [string] $Root,
+        [string] $Path
+    )
+
+    if ([System.IO.Path]::IsPathRooted($Path)) {
+        return [System.IO.Path]::GetFullPath($Path)
+    }
+
+    return [System.IO.Path]::GetFullPath((Join-Path $Root $Path))
+}
+
+function Set-CorrectWorkingDirectory {
+    param(
+        [string] $RequestedRoot
+    )
+
+    $candidates = @()
+
+    if (-not [string]::IsNullOrWhiteSpace($RequestedRoot)) {
+        try {
+            $candidates += (Resolve-Path -LiteralPath $RequestedRoot).Path
+        }
+        catch {
+            throw "Invalid RepoRoot path: $RequestedRoot"
+        }
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($script:ScriptRoot)) {
+        $candidates += (Resolve-Path -LiteralPath (Join-Path $script:ScriptRoot '..\..')).Path
+    }
+
+    $candidates += (Get-Location).Path
+
+    foreach ($candidate in ($candidates | Select-Object -Unique)) {
+        $current = $candidate
+        for ($i = 0; $i -lt 6 -and -not [string]::IsNullOrWhiteSpace($current); $i++) {
+            $hasLayout = (Test-Path -LiteralPath (Join-Path $current '.github')) -and (Test-Path -LiteralPath (Join-Path $current '.codex'))
+            if ($hasLayout) {
+                Set-Location -Path $current
+                Write-VerboseColor ("Repository root detected: {0}" -f $current) 'Green'
+                return $current
+            }
+
+            $current = Split-Path -Path $current -Parent
+        }
+    }
+
+    throw 'Could not detect repository root containing both .github and .codex.'
+}
+
+function Ensure-ParentDirectory {
+    param(
+        [string] $Path
+    )
+
+    $parent = Split-Path -Path $Path -Parent
+    if ([string]::IsNullOrWhiteSpace($parent)) {
+        return
+    }
+
+    New-Item -ItemType Directory -Path $parent -Force | Out-Null
+}
+
+function Write-Log {
+    param(
+        [string] $Level,
+        [string] $Message
+    )
+
+    $timestamp = (Get-Date).ToString('o')
+    $line = "[{0}] [{1}] {2}" -f $timestamp, $Level, $Message
+
+    if ($null -ne $script:LogFilePath) {
+        Add-Content -LiteralPath $script:LogFilePath -Value $line
+    }
+
+    $color = 'Gray'
+    if ($Level -eq 'ERROR') { $color = 'Red' }
+    elseif ($Level -eq 'WARN') { $color = 'Yellow' }
+    elseif ($Level -eq 'OK') { $color = 'Green' }
+    elseif ($Level -eq 'INFO') { $color = 'Cyan' }
+
+    Write-Host $line -ForegroundColor $color
+}
+
+function Invoke-ScriptCheck {
+    param(
+        [string] $Name,
+        [string] $ScriptPath,
+        [hashtable] $Arguments
+    )
+
+    $startedAt = Get-Date
+    $status = 'failed'
+    $exitCode = 1
+    $errorMessage = $null
+
+    if (-not (Test-Path -LiteralPath $ScriptPath -PathType Leaf)) {
+        $errorMessage = "Script not found: $ScriptPath"
+        Write-Log -Level 'ERROR' -Message ("{0}: {1}" -f $Name, $errorMessage)
+    }
+    else {
+        Write-Log -Level 'INFO' -Message ("Starting check: {0}" -f $Name)
+
+        try {
+            & $ScriptPath @Arguments
+            $exitCode = if ($null -eq $LASTEXITCODE) { 0 } else { [int] $LASTEXITCODE }
+            if ($exitCode -eq 0) {
+                $status = 'passed'
+                Write-Log -Level 'OK' -Message ("Check passed: {0}" -f $Name)
+            }
+            else {
+                Write-Log -Level 'ERROR' -Message ("Check failed: {0} (exit code {1})" -f $Name, $exitCode)
+            }
+        }
+        catch {
+            $exitCode = 1
+            $errorMessage = $_.Exception.Message
+            Write-Log -Level 'ERROR' -Message ("Check exception: {0} :: {1}" -f $Name, $errorMessage)
+        }
+    }
+
+    $finishedAt = Get-Date
+    $durationMs = [int] ($finishedAt - $startedAt).TotalMilliseconds
+    $relativeScriptPath = [System.IO.Path]::GetRelativePath((Get-Location).Path, $ScriptPath)
+    $argumentList = @()
+    foreach ($entry in ($Arguments.GetEnumerator() | Sort-Object Name)) {
+        $argumentList += ("-{0}={1}" -f $entry.Key, $entry.Value)
+    }
+
+    return [pscustomobject]@{
+        name = $Name
+        script = $relativeScriptPath
+        arguments = $argumentList
+        status = $status
+        exitCode = $exitCode
+        durationMs = $durationMs
+        startedAt = $startedAt.ToString('o')
+        finishedAt = $finishedAt.ToString('o')
+        error = $errorMessage
+    }
+}
+
+# -------------------------------
+# Main execution
+# -------------------------------
+$resolvedRepoRoot = Set-CorrectWorkingDirectory -RequestedRoot $RepoRoot
+$resolvedOutputPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $OutputPath
+
+$resolvedLogPath = if ([string]::IsNullOrWhiteSpace($LogPath)) {
+    $timestampToken = Get-Date -Format 'yyyyMMdd-HHmmss'
+    Resolve-RepoPath -Root $resolvedRepoRoot -Path (".temp/logs/healthcheck-{0}.log" -f $timestampToken)
+}
+else {
+    Resolve-RepoPath -Root $resolvedRepoRoot -Path $LogPath
+}
+
+Ensure-ParentDirectory -Path $resolvedOutputPath
+Ensure-ParentDirectory -Path $resolvedLogPath
+Set-Content -LiteralPath $resolvedLogPath -Value ("# healthcheck log`n# generatedAt={0}" -f (Get-Date).ToString('o'))
+$script:LogFilePath = $resolvedLogPath
+
+Write-Log -Level 'INFO' -Message ("Repo root: {0}" -f $resolvedRepoRoot)
+Write-Log -Level 'INFO' -Message ("Output report: {0}" -f $resolvedOutputPath)
+Write-Log -Level 'INFO' -Message ("Log file: {0}" -f $resolvedLogPath)
+
+$checks = New-Object System.Collections.Generic.List[object]
+
+$bootstrapScript = Join-Path $resolvedRepoRoot 'scripts/runtime/bootstrap.ps1'
+$validateInstructionsScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-instructions.ps1'
+$validatePolicyScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-policy.ps1'
+$doctorScript = Join-Path $resolvedRepoRoot 'scripts/runtime/doctor.ps1'
+
+if ($SyncRuntime) {
+    $bootstrapArgs = @{
+        RepoRoot = $resolvedRepoRoot
+        TargetGithubPath = $TargetGithubPath
+        TargetCodexPath = $TargetCodexPath
+    }
+    if ($Mirror) {
+        $bootstrapArgs.Mirror = $true
+    }
+
+    $checks.Add((Invoke-ScriptCheck -Name 'runtime-bootstrap' -ScriptPath $bootstrapScript -Arguments $bootstrapArgs)) | Out-Null
+}
+
+$checks.Add((Invoke-ScriptCheck -Name 'validate-instructions' -ScriptPath $validateInstructionsScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
+$checks.Add((Invoke-ScriptCheck -Name 'validate-policy' -ScriptPath $validatePolicyScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
+
+$doctorArgs = @{
+    RepoRoot = $resolvedRepoRoot
+    TargetGithubPath = $TargetGithubPath
+    TargetCodexPath = $TargetCodexPath
+}
+if ($StrictExtras) {
+    $doctorArgs.StrictExtras = $true
+}
+
+$checks.Add((Invoke-ScriptCheck -Name 'runtime-doctor' -ScriptPath $doctorScript -Arguments $doctorArgs)) | Out-Null
+
+$passedChecks = @($checks | Where-Object { $_.status -eq 'passed' }).Count
+$failedChecks = @($checks | Where-Object { $_.status -ne 'passed' }).Count
+$overallStatus = if ($failedChecks -eq 0) { 'passed' } else { 'failed' }
+
+$report = [ordered]@{
+    schemaVersion = 1
+    generatedAt = (Get-Date).ToString('o')
+    repoRoot = $resolvedRepoRoot
+    targets = [ordered]@{
+        github = $TargetGithubPath
+        codex = $TargetCodexPath
+    }
+    options = [ordered]@{
+        syncRuntime = [bool] $SyncRuntime
+        mirror = [bool] $Mirror
+        strictExtras = [bool] $StrictExtras
+    }
+    summary = [ordered]@{
+        totalChecks = $checks.Count
+        passedChecks = $passedChecks
+        failedChecks = $failedChecks
+        overallStatus = $overallStatus
+    }
+    checks = $checks.ToArray()
+    logPath = $resolvedLogPath
+}
+
+$reportJson = $report | ConvertTo-Json -Depth 100
+Set-Content -LiteralPath $resolvedOutputPath -Value $reportJson
+
+Write-Log -Level 'INFO' -Message ("Healthcheck summary: total={0} passed={1} failed={2}" -f $checks.Count, $passedChecks, $failedChecks)
+Write-Log -Level 'INFO' -Message ("Healthcheck report generated: {0}" -f $resolvedOutputPath)
+
+if ($overallStatus -ne 'passed') {
+    exit 1
+}
+
+exit 0

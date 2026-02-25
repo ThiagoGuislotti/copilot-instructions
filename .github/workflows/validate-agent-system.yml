@@ -1,0 +1,59 @@
+name: Validate Agent System
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Instructions Runtime and Policies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run healthcheck
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/runtime/healthcheck.ps1 `
+            -RepoRoot $PWD `
+            -TargetGithubPath ./.temp/runtime/github `
+            -TargetCodexPath ./.temp/runtime/codex `
+            -SyncRuntime `
+            -Mirror `
+            -StrictExtras `
+            -OutputPath ./.temp/healthcheck-report.json `
+            -LogPath ./.temp/logs/healthcheck-ci.log
+
+      - name: Export audit report
+        if: always()
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/export-audit-report.ps1 `
+            -RepoRoot $PWD `
+            -TargetGithubPath ./.temp/runtime/github `
+            -TargetCodexPath ./.temp/runtime/codex `
+            -StrictExtras `
+            -OutputPath ./.temp/audit-report.json `
+            -HealthcheckOutputPath ./.temp/healthcheck-report.json `
+            -LogPath ./.temp/logs/audit-ci.log
+
+      - name: Upload audit artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-audit-report
+          path: |
+            .temp/audit-report.json
+            .temp/healthcheck-report.json
+            .temp/logs/
+          if-no-files-found: warn
