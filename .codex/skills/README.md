@@ -1,20 +1,20 @@
 # Shared Skills
 
-> Repository-managed skills for Codex routing and runtime sync workflows.
+> Repository-managed skills for Codex execution, routing, testing, review, DevOps, and docs workflows.
 
 ---
 
 ## Introduction
 
-This folder stores custom skills used by this repository. Skills are versioned here and synced to local runtime via bootstrap.
+This folder stores versioned Codex skills aligned with `.github/instructions`. Skills are synced to local runtime through bootstrap.
 
 ---
 
 ## Features
 
-- ✅ Skill definitions versioned in source control
-- ✅ Predictable installation through root bootstrap
-- ✅ Reusable workflows for context routing and runtime sync
+- ✅ Skills versioned in source control
+- ✅ Runtime sync through root bootstrap
+- ✅ Reusable workflows mapped to repository instruction packs
 
 ---
 
@@ -35,8 +35,6 @@ This folder stores custom skills used by this repository. Skills are versioned h
 
 ## Installation
 
-Sync these skills into local runtime:
-
 ```powershell
 pwsh -File .\scripts\runtime\bootstrap.ps1
 ```
@@ -54,13 +52,21 @@ Get-ChildItem "$env:USERPROFILE\.codex\skills"
 
 ## Usage Examples
 
-### Example 1: Route Context Before Task Execution
+### Example 1: Software Implementation
 
-Use skill: `repo-context-router`
+Use skill: `software-engineer`
 
-### Example 2: Sync Runtime And Apply MCP
+### Example 2: Testing and Coverage
+
+Use skill: `test-engineer`
+
+### Example 3: Runtime Sync
 
 Use skill: `codex-runtime-sync`
+
+### Example 4: Domain Specialists
+
+Use skills: `dotnet-backend-engineer`, `frontend-vue-quasar-engineer`, `rust-engineer`, `task-planner`
 
 ---
 
@@ -70,20 +76,29 @@ Use skill: `codex-runtime-sync`
 
 - `repo-context-router`
 - `codex-runtime-sync`
+- `software-engineer`
+- `test-engineer`
+- `code-review-engineer`
+- `devops-platform-engineer`
+- `docs-release-engineer`
+- `dotnet-backend-engineer`
+- `frontend-vue-quasar-engineer`
+- `rust-engineer`
+- `task-planner`
 
 ### Layout
 
-- `<skill-name>/SKILL.md`: skill contract and behavior.
+- `<skill-name>/SKILL.md`: skill contract and execution behavior.
 
 ---
 
 ## Build and Tests
 
 ```powershell
-# verify skill files exist
+# Verify skill definitions
 Get-ChildItem .\.codex\skills -Recurse -Filter SKILL.md
 
-# sync and validate local runtime copy
+# Sync to local runtime
 pwsh -File .\scripts\runtime\bootstrap.ps1
 ```
 
@@ -92,8 +107,8 @@ pwsh -File .\scripts\runtime\bootstrap.ps1
 ## Contributing
 
 - Keep skill names stable and descriptive.
+- Keep `SKILL.md` concise and reference existing instruction files.
 - Update this README when adding or removing skills.
-- Keep instructions concise and deterministic.
 
 ---
 
@@ -109,4 +124,5 @@ pwsh -File .\scripts\runtime\bootstrap.ps1
 - `.codex/README.md`
 - `.codex/skills/repo-context-router/SKILL.md`
 - `.codex/skills/codex-runtime-sync/SKILL.md`
+- `.github/instruction-routing.catalog.yml`
 - `scripts/runtime/bootstrap.ps1`
