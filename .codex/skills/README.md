@@ -38,7 +38,7 @@ This folder stores custom skills used by this repository. Skills are versioned h
 Sync these skills into local runtime:
 
 ```powershell
-pwsh -File .\scripts\bootstrap.ps1
+pwsh -File .\scripts\runtime\bootstrap.ps1
 ```
 
 ---
@@ -46,7 +46,7 @@ pwsh -File .\scripts\bootstrap.ps1
 ## Quick Start
 
 ```powershell
-pwsh -File .\scripts\bootstrap.ps1
+pwsh -File .\scripts\runtime\bootstrap.ps1
 Get-ChildItem "$env:USERPROFILE\.codex\skills"
 ```
 
@@ -84,7 +84,7 @@ Use skill: `codex-runtime-sync`
 Get-ChildItem .\.codex\skills -Recurse -Filter SKILL.md
 
 # sync and validate local runtime copy
-pwsh -File .\scripts\bootstrap.ps1
+pwsh -File .\scripts\runtime\bootstrap.ps1
 ```
 
 ---
@@ -109,4 +109,4 @@ pwsh -File .\scripts\bootstrap.ps1
 - `.codex/README.md`
 - `.codex/skills/repo-context-router/SKILL.md`
 - `.codex/skills/codex-runtime-sync/SKILL.md`
-- `scripts/bootstrap.ps1`
+- `scripts/runtime/bootstrap.ps1`

@@ -39,7 +39,7 @@ This folder centralizes shared Codex assets to keep local runtime setup reproduc
 Sync shared assets into local runtime with root bootstrap:
 
 ```powershell
-pwsh -File .\scripts\bootstrap.ps1
+pwsh -File .\scripts\runtime\bootstrap.ps1
 ```
 
 ---
@@ -47,7 +47,7 @@ pwsh -File .\scripts\bootstrap.ps1
 ## Quick Start
 
 ```powershell
-pwsh -File .\scripts\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
+pwsh -File .\scripts\runtime\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
 ```
 
 ---
@@ -57,13 +57,13 @@ pwsh -File .\scripts\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
 ### Example 1: Sync Shared Assets
 
 ```powershell
-pwsh -File .\scripts\bootstrap.ps1
+pwsh -File .\scripts\runtime\bootstrap.ps1
 ```
 
 ### Example 2: Apply MCP Servers To Local Codex Config
 
 ```powershell
-pwsh -File .\scripts\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
+pwsh -File .\scripts\runtime\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
 ```
 
 ---

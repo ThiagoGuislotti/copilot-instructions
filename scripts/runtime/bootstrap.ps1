@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path,
+    [string]$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path,
     [string]$TargetGithubPath = "$env:USERPROFILE\.github",
     [string]$TargetCodexPath = "$env:USERPROFILE\.codex",
     [switch]$Mirror,

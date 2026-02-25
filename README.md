@@ -70,10 +70,10 @@ copilot-instructions/
 ### Bootstrap Local Folders
 
 ```powershell
-pwsh -File .\scripts\bootstrap.ps1
+pwsh -File .\scripts\runtime\bootstrap.ps1
 
 # optional: also apply shared MCP servers to ~/.codex/config.toml
-pwsh -File .\scripts\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
+pwsh -File .\scripts\runtime\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
 ```
 
 This syncs versioned `.github/` and `.codex/` assets into your local runtime paths (`~/.github` and `~/.codex`).

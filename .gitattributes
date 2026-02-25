@@ -11,6 +11,7 @@
 *.json text eol=lf
 *.jsonc text eol=lf
 *.sh text eol=lf
+.githooks/* text eol=lf
 
 # Config files
 .editorconfig text eol=lf

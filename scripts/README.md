@@ -43,10 +43,13 @@ No package installation is required. Scripts run with PowerShell 7+.
 
 ```powershell
 # Sync shared assets
-pwsh -File .\scripts\bootstrap.ps1
+pwsh -File .\scripts\runtime\bootstrap.ps1
 
 # Sync and apply MCP servers into ~/.codex/config.toml
-pwsh -File .\scripts\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
+pwsh -File .\scripts\runtime\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
+
+# Enable local Git hooks (pre-commit + post-commit sync)
+pwsh -File .\scripts\git-hooks\setup-git-hooks.ps1
 ```
 
 ---
@@ -56,19 +59,19 @@ pwsh -File .\scripts\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
 ### Example 1: Bootstrap Shared Runtime Assets
 
 ```powershell
-pwsh -File .\scripts\bootstrap.ps1
+pwsh -File .\scripts\runtime\bootstrap.ps1
 ```
 
 ### Example 2: Mirror Sync (Cleanup Included)
 
 ```powershell
-pwsh -File .\scripts\bootstrap.ps1 -Mirror
+pwsh -File .\scripts\runtime\bootstrap.ps1 -Mirror
 ```
 
 ### Example 3: Apply MCP Servers With Backup
 
 ```powershell
-pwsh -File .\scripts\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
+pwsh -File .\scripts\runtime\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
 ```
 
 ---
@@ -79,7 +82,12 @@ pwsh -File .\scripts\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
 
 ```text
 scripts/
-├── bootstrap.ps1
+├── runtime/
+│   └── bootstrap.ps1
+├── git-hooks/
+│   └── setup-git-hooks.ps1
+├── validation/
+│   └── validate-instructions.ps1
 ├── deploy/
 ├── doc/
 ├── maintenance/
@@ -89,7 +97,7 @@ scripts/
 
 ### Bootstrap Contract
 
-`bootstrap.ps1` syncs:
+`runtime/bootstrap.ps1` syncs:
 - `.github/` -> `~/.github`
 - `.codex/skills/` -> `~/.codex/skills`
 - `.codex/mcp/` -> `~/.codex/shared-mcp`
@@ -105,7 +113,8 @@ Runtime-sensitive files such as `~/.codex/auth.json`, `~/.codex/sessions/`, and 
 |--------|---------|---------------|
 | `deploy/deploy-backend-to-vps.ps1` | Interactive Docker deployment pipeline for VPS hosts. | `& .\scripts\deploy\deploy-backend-to-vps.ps1 @params` |
 | `doc/validate-xml-documentation.ps1` | Audits `<summary>` XML documentation across C# projects. | `pwsh -File scripts/doc/validate-xml-documentation.ps1 -ProjectPath src/Api` |
-| `validate-instructions.ps1` | Validates instruction assets (routing catalog paths, markdown links, and JSON files used by prompts/skills/snippets). | `pwsh -File scripts/validate-instructions.ps1` |
+| `validation/validate-instructions.ps1` | Validates instruction assets (routing catalog paths, markdown links, and JSON files used by prompts/skills/snippets). | `pwsh -File scripts/validation/validate-instructions.ps1` |
+| `git-hooks/setup-git-hooks.ps1` | Configures local Git hooks path (`core.hooksPath=.githooks`) and enables `pre-commit` validation + `post-commit` sync. | `pwsh -File scripts/git-hooks/setup-git-hooks.ps1` |
 | `maintenance/clean-build-artifacts.ps1` | Deletes `.build`, `.deployment`, `bin`, and `obj` directories. Supports dry-run and prompts for confirmation. | `pwsh -File scripts/maintenance/clean-build-artifacts.ps1 -DryRun` |
 | `maintenance/generate-http-from-openapi.ps1` | Generates a REST Client .http file from OpenAPI (default) or Swagger JSON. | `pwsh -File scripts/maintenance/generate-http-from-openapi.ps1 -Source http://localhost:5000` |
 | `maintenance/fix-version-ranges.ps1` | Normalises PackageReference versions into `[current, limit)` ranges. | `pwsh -File scripts/maintenance/fix-version-ranges.ps1 -Verbose` |
@@ -121,13 +130,25 @@ Runtime-sensitive files such as `~/.codex/auth.json`, `~/.codex/sessions/`, and 
 
 ```powershell
 # lint-like execution test for bootstrap (safe dry usage)
-pwsh -File .\scripts\bootstrap.ps1 -TargetGithubPath .\.temp\github -TargetCodexPath .\.temp\codex
+pwsh -File .\scripts\runtime\bootstrap.ps1 -TargetGithubPath .\.temp\github -TargetCodexPath .\.temp\codex
 
 # validate instruction assets and static routing references
-pwsh -File .\scripts\validate-instructions.ps1
+pwsh -File .\scripts\validation\validate-instructions.ps1
+
+# install local Git hooks (validation + sync)
+pwsh -File .\scripts\git-hooks\setup-git-hooks.ps1
 
 # inspect help for script contracts
-Get-Help .\scripts\bootstrap.ps1 -Full
+Get-Help .\scripts\runtime\bootstrap.ps1 -Full
+```
+
+After setup, hooks behavior is:
+- `pre-commit`: runs `scripts/validation/validate-instructions.ps1`
+- `post-commit`: runs `scripts/runtime/bootstrap.ps1` to sync `~/.github` and `~/.codex`
+
+To skip sync for a single shell session:
+```powershell
+$env:CODEX_SKIP_POST_COMMIT_SYNC = "1"
 ```
 
 ---

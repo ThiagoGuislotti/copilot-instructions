@@ -13,7 +13,7 @@ Use this skill to keep local runtime folders aligned with the versioned reposito
 ## Sync Shared Assets
 
 ```powershell
-pwsh -File scripts/bootstrap.ps1
+pwsh -File scripts/runtime/bootstrap.ps1
 ```
 
 ## Apply MCP Servers To Codex

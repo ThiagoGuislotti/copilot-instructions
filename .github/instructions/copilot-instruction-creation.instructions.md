@@ -134,7 +134,7 @@ Detailed breakdowns for complex situations
 - Prefer specific folders and extensions over broad wildcards
 - Avoid **/* unless orchestrator with explicit rationale
 - Prefer src/area/**/*.ext for targeted coverage
-- Validate coverage with validate-instructions.ps1
+- Validate coverage with scripts/validation/validate-instructions.ps1
 - Target real folders to optimize tokens
 - Ensure patterns match actual project structure
 ```yaml
