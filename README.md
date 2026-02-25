@@ -76,7 +76,7 @@ pwsh -File .\scripts\runtime\bootstrap.ps1
 pwsh -File .\scripts\runtime\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
 ```
 
-This syncs versioned `.github/` and `.codex/` assets into your local runtime paths (`~/.github` and `~/.codex`).
+This syncs versioned `.github/` and `.codex/` assets into your local runtime paths (`~/.github` and `~/.codex`), including shared routing assets (`instruction-routing.catalog.yml`, `prompts/`, `chatmodes/`, `schemas/`) into `~/.github`.
 
 ---
 
