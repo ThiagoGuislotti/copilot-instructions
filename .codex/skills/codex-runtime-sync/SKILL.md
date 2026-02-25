@@ -24,7 +24,7 @@ pwsh -File .codex/scripts/sync-mcp-to-codex-config.ps1 -CreateBackup
 ## Render VS Code MCP From Same Manifest
 
 ```powershell
-pwsh -File .codex/scripts/render-vscode-mcp.ps1 -OutputPath .vscode/mcp.json
+pwsh -File .codex/scripts/render-vscode-mcp.ps1 -OutputPath .vscode/mcp.tamplate.jsonc
 ```
 
 ## Source Of Truth

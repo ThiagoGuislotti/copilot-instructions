@@ -338,11 +338,12 @@
     // Chat instruction file locations - Folders containing .md instruction files
     // https://code.visualstudio.com/docs/copilot/customization
     "chat.instructionsFilesLocations": {
+        "%USERPROFILE%\\.github\\": true,
         "%USERPROFILE%\\.github\\instructions\\": true,
         "%USERPROFILE%\\.github\\templates\\": true,
         "%USERPROFILE%\\.github\\chatmodes\\": true,
         "%USERPROFILE%\\.github\\prompts\\": true,
-        "%USERPROFILE%\\.github\\scripts\\": true,
+        "%USERPROFILE%\\.codex\\skills\\": true,
         "%USERPROFILE%\\.aitk\\instructions\\": true
     },
 
@@ -352,7 +353,6 @@
         { "file": "%USERPROFILE%\\.github\\AGENTS.md" },
         { "file": "%USERPROFILE%\\.github\\copilot-instructions.md" },
         { "file": "%USERPROFILE%\\.github\\instructions\\workflow-optimization.instructions.md" },
-        { "file": "%USERPROFILE%\\.github\\instructions\\ai-orchestration.instructions.md" },
         { "file": "%USERPROFILE%\\.github\\instructions\\powershell-execution.instructions.md" },
         { "file": "%USERPROFILE%\\.github\\instructions\\dotnet-csharp.instructions.md" },
         { "file": "%USERPROFILE%\\.github\\instructions\\clean-architecture-code.instructions.md" },

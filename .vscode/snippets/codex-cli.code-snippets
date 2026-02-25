@@ -174,7 +174,7 @@
         "prefix": "codexpr",
         "description": "Create/curate PR description per pr.instructions.md",
         "body": [
-            "codex \"PR task: ${1:short description}; Follow .github/instructions/pr.instructions.md; include sections Context | Changes | Rationale | Risks | Testing | Docs | Breaking Changes | Migration; add Applied instructions; English; File ${2:.github/templates/PULL_REQUEST_TEMPLATE.md}; no trailing blank line\"$3 ;exit"
+            "codex \"PR task: ${1:short description}; Follow .github/instructions/pr.instructions.md; include sections Context | Changes | Rationale | Risks | Testing | Docs | Breaking Changes | Migration; add Applied instructions; English; File ${2:.github/templates/github-change-checklist-template.md}; no trailing blank line\"$3 ;exit"
         ]
     }
 }

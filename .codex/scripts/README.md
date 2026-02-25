@@ -12,7 +12,7 @@ These scripts consume `.codex/mcp/servers.manifest.json` and generate/apply targ
 
 ## Features
 
-- ✅ Render VS Code `mcp.json` from manifest
+- ✅ Render VS Code MCP template (`mcp.tamplate.jsonc`) from manifest
 - ✅ Apply MCP servers into local `~/.codex/config.toml`
 - ✅ Preserve non-MCP sections in local Codex config
 
@@ -43,7 +43,7 @@ No additional installation is required beyond PowerShell.
 
 ```powershell
 pwsh -File .\.codex\scripts\sync-mcp-to-codex-config.ps1 -CreateBackup
-pwsh -File .\.codex\scripts\render-vscode-mcp.ps1 -OutputPath .\.vscode\mcp.json
+pwsh -File .\.codex\scripts\render-vscode-mcp.ps1 -OutputPath .\.vscode\mcp.tamplate.jsonc
 ```
 
 ---
@@ -68,7 +68,7 @@ pwsh -File .\.codex\scripts\sync-mcp-to-codex-config.ps1 `
 
 ```powershell
 pwsh -File .\.codex\scripts\render-vscode-mcp.ps1 `
-  -OutputPath .\.vscode\mcp.json
+  -OutputPath .\.vscode\mcp.tamplate.jsonc
 ```
 
 ---

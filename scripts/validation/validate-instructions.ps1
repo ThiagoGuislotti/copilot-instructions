@@ -25,7 +25,7 @@
     pwsh -File scripts/validation/validate-instructions.ps1 -Verbose
 
 .NOTES
-    Version: 1.2
+    Version: 1.3
     Requirements: PowerShell 7+.
 #>
 
@@ -218,6 +218,97 @@ function Test-JsonFile {
     catch {
         Add-ValidationFailure ("Invalid JSON in {0} :: {1}" -f $Path, $_.Exception.Message)
         return $null
+    }
+}
+
+function Convert-UserProfileReferenceToRepoPath {
+    param(
+        [string] $Root,
+        [string] $Reference
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Reference)) {
+        return $null
+    }
+
+    $normalized = $Reference.Replace('/', '\')
+    $githubPrefix = '%USERPROFILE%\.github\'
+    $codexPrefix = '%USERPROFILE%\.codex\'
+
+    if ($normalized.StartsWith($githubPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        $rest = $normalized.Substring($githubPrefix.Length)
+        $relative = if ([string]::IsNullOrWhiteSpace($rest)) { '.github' } else { ".github\$rest" }
+        return Resolve-RepoPath -Root $Root -Path $relative
+    }
+
+    if ($normalized.StartsWith($codexPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        $rest = $normalized.Substring($codexPrefix.Length)
+        $relative = if ([string]::IsNullOrWhiteSpace($rest)) { '.codex' } else { ".codex\$rest" }
+        return Resolve-RepoPath -Root $Root -Path $relative
+    }
+
+    return $null
+}
+
+function Test-VscodeSettingsReferences {
+    param(
+        [string] $Root,
+        [object] $Settings
+    )
+
+    if ($null -eq $Settings) {
+        return
+    }
+
+    $locationsProperty = $Settings.PSObject.Properties['chat.instructionsFilesLocations']
+    if ($null -ne $locationsProperty -and $null -ne $locationsProperty.Value) {
+        foreach ($location in $locationsProperty.Value.PSObject.Properties) {
+            if ($location.Value -ne $true) {
+                continue
+            }
+
+            $resolved = Convert-UserProfileReferenceToRepoPath -Root $Root -Reference ([string]$location.Name)
+            if ($null -eq $resolved) {
+                continue
+            }
+
+            if (-not (Test-Path -LiteralPath $resolved)) {
+                Add-ValidationFailure ("VS Code instruction location not found: {0}" -f $location.Name)
+            }
+        }
+    }
+
+    $instructionProperties = @(
+        'github.copilot.chat.reviewSelection.instructions',
+        'github.copilot.chat.commitMessageGeneration.instructions',
+        'github.copilot.chat.pullRequestDescriptionGeneration.instructions'
+    )
+
+    foreach ($propertyName in $instructionProperties) {
+        $property = $Settings.PSObject.Properties[$propertyName]
+        if ($null -eq $property -or $null -eq $property.Value) {
+            continue
+        }
+
+        foreach ($entry in @($property.Value)) {
+            if ($null -eq $entry) {
+                continue
+            }
+
+            $fileReference = [string]$entry.file
+            if ([string]::IsNullOrWhiteSpace($fileReference)) {
+                continue
+            }
+
+            $resolved = Convert-UserProfileReferenceToRepoPath -Root $Root -Reference $fileReference
+            if ($null -eq $resolved) {
+                continue
+            }
+
+            if (-not (Test-Path -LiteralPath $resolved)) {
+                Add-ValidationFailure ("VS Code instruction file not found: {0} ({1})" -f $fileReference, $propertyName)
+            }
+        }
     }
 }
 
@@ -583,6 +674,16 @@ if ($null -ne $manifest) {
 
 [void](Test-JsonFile -Root $resolvedRepoRoot -Path '.vscode/snippets/codex-cli.code-snippets')
 [void](Test-JsonFile -Root $resolvedRepoRoot -Path '.vscode/snippets/copilot.code-snippets')
+$vscodeSettings = Test-JsonFile -Root $resolvedRepoRoot -Path '.vscode/settings.tamplate.jsonc'
+$vscodeMcp = Test-JsonFile -Root $resolvedRepoRoot -Path '.vscode/mcp.tamplate.jsonc'
+
+if ($null -ne $vscodeMcp) {
+    if ($null -eq $vscodeMcp.servers -or @($vscodeMcp.servers.PSObject.Properties).Count -eq 0) {
+        Add-ValidationFailure 'VS Code MCP template must contain at least one server.'
+    }
+}
+
+Test-VscodeSettingsReferences -Root $resolvedRepoRoot -Settings $vscodeSettings
 
 $skillStats = Test-SkillDefinitions -Root $resolvedRepoRoot
 $markdownFiles = Get-MarkdownFilesForValidation -Root $resolvedRepoRoot

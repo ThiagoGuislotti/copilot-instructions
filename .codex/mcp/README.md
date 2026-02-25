@@ -14,7 +14,7 @@ This folder defines MCP servers in a single manifest and uses scripts to render/
 
 - ✅ Single source of truth (`servers.manifest.json`)
 - ✅ Automated output for Codex TOML sections
-- ✅ Automated output for VS Code `mcp.json`
+- ✅ Automated output for VS Code MCP template (`mcp.tamplate.jsonc`)
 
 ---
 
@@ -43,7 +43,7 @@ No package installation is required. Edit the manifest and run scripts from `.co
 ## Quick Start
 
 ```powershell
-pwsh -File .\.codex\scripts\render-vscode-mcp.ps1 -OutputPath .\.vscode\mcp.json
+pwsh -File .\.codex\scripts\render-vscode-mcp.ps1 -OutputPath .\.vscode\mcp.tamplate.jsonc
 pwsh -File .\.codex\scripts\sync-mcp-to-codex-config.ps1 -CreateBackup
 ```
 
@@ -55,7 +55,7 @@ pwsh -File .\.codex\scripts\sync-mcp-to-codex-config.ps1 -CreateBackup
 
 ```powershell
 pwsh -File .\.codex\scripts\render-vscode-mcp.ps1 `
-  -OutputPath .\.vscode\mcp.json
+  -OutputPath .\.vscode\mcp.tamplate.jsonc
 ```
 
 ### Example 2: Update Local Codex MCP Servers
