@@ -165,7 +165,7 @@ Monorepo of libraries, modules, and samples for robust .NET services using Clean
 
 ## Security & Changelog
 - No secrets in repo; use User Secrets/Azure Key Vault; typed options via `IOptions`.
-- CHANGELOG: `.github/CHANGELOG.md` for `.github`; root `CHANGELOG.md` for project; entries with `[X.Y.Z]` and `YYYY-MM-DD`.
+- CHANGELOG: single source at root `CHANGELOG.md` for `.github` and project changes; entries with `[X.Y.Z]` and `YYYY-MM-DD`.
 
 ## Domain Instruction References
 - Development: `instructions/clean-architecture-code.instructions.md`, `instructions/dotnet-csharp.instructions.md`, `instructions/backend.instructions.md`, `instructions/frontend.instructions.md`, `instructions/vue-quasar.instructions.md`, `instructions/ui-ux.instructions.md`

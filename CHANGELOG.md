@@ -1,3 +1,29 @@
+## [1.1.3] - 2026-02-25
+
+### Added
+- Added `agents/openai.yaml` metadata to all repository-managed skills under `.codex/skills/*` for better UI discovery and explicit default prompts.
+- Added deterministic routing golden tests:
+  - `scripts/validation/test-routing-selection.ps1`
+  - `scripts/validation/fixtures/routing-golden-tests.json`
+- Added runtime diagnostics script:
+  - `scripts/runtime/doctor.ps1` for drift detection between repo source-of-truth and local `~/.github` / `~/.codex`.
+- Added PowerShell authoring instruction:
+  - `instructions/powershell-script-creation.instructions.md`
+
+### Changed
+- Extended `scripts/validation/validate-instructions.ps1` with skill lint:
+  - validates `SKILL.md` frontmatter (`name`, `description`)
+  - validates skill-folder/name consistency
+  - validates `agents/openai.yaml` contract fields
+  - enforces skill file size guardrail and emits skill summary
+  - runs routing golden tests as part of validation
+- Updated `.githooks/post-commit` with optional MCP apply when `.codex/mcp/servers.manifest.json` changes (enabled with `CODEX_APPLY_MCP_ON_POST_COMMIT=1`).
+- Updated `scripts/git-hooks/setup-git-hooks.ps1` output to document post-commit MCP env flags.
+
+### Feedback Integration
+- File: scripts/validation/validate-instructions.ps1 | context: instruction quality gates | problem: skill contracts and routing behavior were not regression-tested | solution: added skill lint + golden routing tests in validation pipeline | workspace-impact: higher confidence and deterministic context selection
+- File: scripts/runtime/doctor.ps1 | context: runtime sync reliability | problem: no quick drift diagnosis between repo and local runtime | solution: introduced doctor diagnostics with optional auto-fix via bootstrap | workspace-impact: faster troubleshooting and safer local runtime hygiene
+
 ## [1.1.2] - 2026-01-29
 
 ### Changed

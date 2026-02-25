@@ -1,14 +1,34 @@
 #!/usr/bin/env sh
 set -u
 
+# Resolve repository root and local home folder once.
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 cd "$REPO_ROOT"
+CODEX_HOME="${HOME:-${USERPROFILE:-}}"
 
+# Emergency bypass for troubleshooting sessions.
 if [ "${CODEX_SKIP_POST_COMMIT_SYNC:-0}" = "1" ]; then
   echo "[post-commit] Sync skipped (CODEX_SKIP_POST_COMMIT_SYNC=1)."
   exit 0
 fi
 
+# Resolve PowerShell runtime (pwsh first, then Windows PowerShell).
+resolve_ps_cmd() {
+  if command -v pwsh >/dev/null 2>&1; then
+    echo "pwsh"
+    return 0
+  fi
+
+  if command -v powershell >/dev/null 2>&1; then
+    echo "powershell"
+    return 0
+  fi
+
+  echo ""
+  return 0
+}
+
+# Keep local runtime folders aligned with repo source-of-truth.
 run_sync() {
   cmd="$1"
   echo "[post-commit] Syncing ~/.github and ~/.codex from repository..."
@@ -20,15 +40,59 @@ run_sync() {
   return 0
 }
 
-if command -v pwsh >/dev/null 2>&1; then
-  run_sync pwsh
+# Optionally apply MCP config when manifest changed in last commit.
+# Controlled by:
+# - CODEX_APPLY_MCP_ON_POST_COMMIT=1
+# - CODEX_BACKUP_MCP_CONFIG=1|0 (default 1)
+run_optional_mcp_apply() {
+  cmd="$1"
+  changed_files="$(git diff-tree --no-commit-id --name-only -r HEAD 2>/dev/null || true)"
+  manifest_changed=0
+
+  if printf '%s\n' "$changed_files" | grep -Eq '^\.codex/mcp/servers\.manifest\.json$'; then
+    manifest_changed=1
+  fi
+
+  if [ "$manifest_changed" -ne 1 ]; then
+    return 0
+  fi
+
+  if [ "${CODEX_APPLY_MCP_ON_POST_COMMIT:-0}" != "1" ]; then
+    echo "[post-commit] MCP manifest changed; apply is disabled (set CODEX_APPLY_MCP_ON_POST_COMMIT=1)."
+    return 0
+  fi
+
+  if [ -z "$CODEX_HOME" ]; then
+    echo "[post-commit] Warning: HOME/USERPROFILE not found; MCP apply skipped." >&2
+    return 0
+  fi
+
+  target_config="$CODEX_HOME/.codex/config.toml"
+  echo "[post-commit] MCP manifest changed. Applying mcp_servers to $target_config ..."
+
+  if [ "${CODEX_BACKUP_MCP_CONFIG:-1}" = "1" ]; then
+    if ! "$cmd" -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./.codex/scripts/sync-mcp-to-codex-config.ps1 -ManifestPath ./.codex/mcp/servers.manifest.json -TargetConfigPath "$target_config" -CreateBackup; then
+      echo "[post-commit] Warning: MCP apply failed." >&2
+      return 0
+    fi
+  else
+    if ! "$cmd" -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./.codex/scripts/sync-mcp-to-codex-config.ps1 -ManifestPath ./.codex/mcp/servers.manifest.json -TargetConfigPath "$target_config"; then
+      echo "[post-commit] Warning: MCP apply failed." >&2
+      return 0
+    fi
+  fi
+
+  echo "[post-commit] MCP apply complete."
+  return 0
+}
+
+# Hook is best-effort: no hard failure if PowerShell is unavailable.
+PS_CMD="$(resolve_ps_cmd)"
+if [ -z "$PS_CMD" ]; then
+  echo "[post-commit] Warning: PowerShell not found. Sync skipped." >&2
   exit 0
 fi
 
-if command -v powershell >/dev/null 2>&1; then
-  run_sync powershell
-  exit 0
-fi
-
-echo "[post-commit] Warning: PowerShell not found. Sync skipped." >&2
+run_sync "$PS_CMD"
+run_optional_mcp_apply "$PS_CMD"
 exit 0

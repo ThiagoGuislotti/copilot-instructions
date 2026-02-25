@@ -17,6 +17,7 @@ Structured AI agent guidelines for software development projects. Focuses on rep
 ## Table of Contents
 
 - [Installation](#installation)
+- [Git Hooks](#git-hooks)
 - [Quick Start](#quick-start)
 - [Usage Examples](#usage-examples)
 - [Chat Modes](#chat-modes)
@@ -75,6 +76,34 @@ pwsh -File .\scripts\runtime\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
 ```
 
 This syncs versioned `.github/` and `.codex/` assets into your local runtime paths (`~/.github` and `~/.codex`).
+
+---
+
+## Git Hooks
+
+Local hooks are managed by `core.hooksPath=.githooks`.
+
+### Setup
+
+```powershell
+pwsh -File .\scripts\git-hooks\setup-git-hooks.ps1
+```
+
+### pre-commit
+
+- Runs `scripts/validation/validate-instructions.ps1`
+- Blocks commit when validation fails
+- Requires `pwsh` or `powershell`
+
+### post-commit
+
+- Runs `scripts/runtime/bootstrap.ps1` (best effort) to sync `~/.github` and `~/.codex`
+- If `.codex/mcp/servers.manifest.json` changed in `HEAD`, can optionally apply MCP config
+
+Environment variables:
+- `CODEX_SKIP_POST_COMMIT_SYNC=1`: skip runtime sync
+- `CODEX_APPLY_MCP_ON_POST_COMMIT=1`: enable MCP apply when manifest changed
+- `CODEX_BACKUP_MCP_CONFIG=1|0`: backup control before MCP apply (`1` default)
 
 ---
 
@@ -305,7 +334,7 @@ None. This is a documentation and policy repository.
 
 ### Internal Documentation
 
-- [CHANGELOG](./.github/CHANGELOG.md) - Version history
+- [CHANGELOG](./CHANGELOG.md) - Version history
 
 ---
 

@@ -8,6 +8,7 @@
     - instruction-routing.catalog.yml path entries
     - JSON parsing for schema/manifest/snippets
     - Markdown link integrity for core docs and instruction folders
+    - Skill contract lint for .codex/skills/*
 
     Returns exit code 1 when failures are found, otherwise 0.
 
@@ -24,7 +25,7 @@
     pwsh -File scripts/validation/validate-instructions.ps1 -Verbose
 
 .NOTES
-    Version: 1.1
+    Version: 1.2
     Requirements: PowerShell 7+.
 #>
 
@@ -321,8 +322,7 @@ function Get-MarkdownFilesForValidation {
     $markdownFolders = @(
         '.github/instructions',
         '.github/chatmodes',
-        '.github/prompts',
-        '.codex/skills'
+        '.github/prompts'
     )
 
     foreach ($folder in $markdownFolders) {
@@ -366,6 +366,189 @@ function Test-MarkdownLinks {
     return $checkedLinks
 }
 
+function Get-SkillFrontmatter {
+    param(
+        [string] $SkillFilePath
+    )
+
+    $lines = Get-Content -LiteralPath $SkillFilePath
+    if ($lines.Count -lt 3) {
+        return $null
+    }
+
+    if ($lines[0].Trim() -ne '---') {
+        return $null
+    }
+
+    $endIndex = -1
+    for ($i = 1; $i -lt $lines.Count; $i++) {
+        if ($lines[$i].Trim() -eq '---') {
+            $endIndex = $i
+            break
+        }
+    }
+
+    if ($endIndex -lt 1) {
+        return $null
+    }
+
+    $yamlText = ($lines[1..($endIndex - 1)] -join "`n")
+    return [pscustomobject]@{
+        YamlText = $yamlText
+        TotalLines = $lines.Count
+    }
+}
+
+function Convert-FrontmatterToMap {
+    param(
+        [string] $YamlText
+    )
+
+    $map = @{}
+    $yamlLines = $YamlText -split "`r?`n"
+
+    foreach ($line in $yamlLines) {
+        if ([string]::IsNullOrWhiteSpace($line)) {
+            continue
+        }
+
+        $trimmed = $line.Trim()
+        if ($trimmed.StartsWith('#')) {
+            continue
+        }
+
+        $match = [regex]::Match($line, '^\s*(?<key>[A-Za-z0-9_-]+)\s*:\s*(?<value>.*)\s*$')
+        if (-not $match.Success) {
+            continue
+        }
+
+        $key = $match.Groups['key'].Value
+        $value = $match.Groups['value'].Value.Trim()
+        if (($value.StartsWith('"') -and $value.EndsWith('"')) -or ($value.StartsWith("'") -and $value.EndsWith("'"))) {
+            $value = $value.Substring(1, $value.Length - 2)
+        }
+
+        $map[$key] = $value
+    }
+
+    return $map
+}
+
+function Get-SkillMarkdownFiles {
+    param(
+        [string] $Root
+    )
+
+    $skillsRoot = Resolve-RepoPath -Root $Root -Path '.codex/skills'
+    if (-not (Test-Path -LiteralPath $skillsRoot)) {
+        return @()
+    }
+
+    return Get-ChildItem -LiteralPath $skillsRoot -Recurse -File -Filter 'SKILL.md' | Select-Object -ExpandProperty FullName
+}
+
+function Convert-PathListToHashSet {
+    param(
+        [string[]] $Paths
+    )
+
+    $set = New-Object System.Collections.Generic.HashSet[string]([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($path in $Paths) {
+        $set.Add($path) | Out-Null
+    }
+    return $set
+}
+
+function Test-SkillDefinitions {
+    param(
+        [string] $Root
+    )
+
+    $stats = [pscustomobject]@{
+        SkillsChecked = 0
+        SkillFilesChecked = 0
+        OpenAiFilesChecked = 0
+        SkillLinkChecks = 0
+    }
+
+    $skillsRoot = Resolve-RepoPath -Root $Root -Path '.codex/skills'
+    if (-not (Test-Path -LiteralPath $skillsRoot)) {
+        Add-ValidationWarning 'Skipping skill lint: .codex/skills not found.'
+        return $stats
+    }
+
+    $skillDirs = Get-ChildItem -LiteralPath $skillsRoot -Directory | Where-Object { -not $_.Name.StartsWith('.') }
+
+    foreach ($dir in $skillDirs) {
+        $stats.SkillsChecked++
+
+        $skillFile = Join-Path $dir.FullName 'SKILL.md'
+        if (-not (Test-Path -LiteralPath $skillFile)) {
+            Add-ValidationFailure ("Skill missing SKILL.md: .codex/skills/{0}" -f $dir.Name)
+            continue
+        }
+
+        $stats.SkillFilesChecked++
+        $frontmatter = Get-SkillFrontmatter -SkillFilePath $skillFile
+        if ($null -eq $frontmatter) {
+            Add-ValidationFailure ("Invalid or missing frontmatter in skill: .codex/skills/{0}/SKILL.md" -f $dir.Name)
+            continue
+        }
+
+        $frontmatterMap = Convert-FrontmatterToMap -YamlText $frontmatter.YamlText
+        $requiredKeys = @('name', 'description')
+        foreach ($requiredKey in $requiredKeys) {
+            if (-not $frontmatterMap.ContainsKey($requiredKey) -or [string]::IsNullOrWhiteSpace($frontmatterMap[$requiredKey])) {
+                Add-ValidationFailure ("Skill frontmatter missing '{0}': .codex/skills/{1}/SKILL.md" -f $requiredKey, $dir.Name)
+            }
+        }
+
+        if ($frontmatterMap.ContainsKey('name')) {
+            $skillName = $frontmatterMap['name']
+            if ($skillName -notmatch '^[a-z0-9-]{1,64}$') {
+                Add-ValidationFailure ("Skill name must match ^[a-z0-9-]{{1,64}}`$: .codex/skills/{0}/SKILL.md" -f $dir.Name)
+            }
+            elseif ($skillName -ne $dir.Name) {
+                Add-ValidationFailure ("Skill folder/name mismatch: folder='{0}' frontmatter.name='{1}'" -f $dir.Name, $skillName)
+            }
+        }
+
+        $extraKeys = @($frontmatterMap.Keys | Where-Object { $_ -notin @('name', 'description') })
+        if ($extraKeys.Count -gt 0) {
+            Add-ValidationWarning ("Skill frontmatter has non-standard keys ({0}): .codex/skills/{1}/SKILL.md" -f ($extraKeys -join ', '), $dir.Name)
+        }
+
+        if ($frontmatter.TotalLines -gt 500) {
+            Add-ValidationFailure ("Skill exceeds 500 lines: .codex/skills/{0}/SKILL.md ({1} lines)" -f $dir.Name, $frontmatter.TotalLines)
+        }
+
+        $openAiFile = Join-Path $dir.FullName 'agents\openai.yaml'
+        if (-not (Test-Path -LiteralPath $openAiFile)) {
+            Add-ValidationFailure ("Skill missing agents/openai.yaml: .codex/skills/{0}" -f $dir.Name)
+            continue
+        }
+
+        $stats.OpenAiFilesChecked++
+        $openAiContent = Get-Content -Raw -LiteralPath $openAiFile
+        foreach ($requiredPattern in @('display_name:', 'short_description:', 'default_prompt:')) {
+            if ($openAiContent -notmatch [regex]::Escape($requiredPattern)) {
+                Add-ValidationFailure ("openai.yaml missing '{0}': .codex/skills/{1}/agents/openai.yaml" -f $requiredPattern.TrimEnd(':'), $dir.Name)
+            }
+        }
+
+        if ($openAiContent -notmatch [regex]::Escape('$' + $dir.Name)) {
+            $expectedSkillToken = '$' + $dir.Name
+            Add-ValidationWarning ("openai.yaml default_prompt should reference {0}: .codex/skills/{1}/agents/openai.yaml" -f $expectedSkillToken, $dir.Name)
+        }
+    }
+
+    $skillMarkdownFiles = Get-SkillMarkdownFiles -Root $Root
+    $skillMarkdownSet = Convert-PathListToHashSet -Paths $skillMarkdownFiles
+    $stats.SkillLinkChecks = Test-MarkdownLinks -Root $Root -MarkdownFiles $skillMarkdownSet
+
+    return $stats
+}
+
 # -------------------------------
 # Main execution
 # -------------------------------
@@ -401,11 +584,34 @@ if ($null -ne $manifest) {
 [void](Test-JsonFile -Root $resolvedRepoRoot -Path '.vscode/snippets/codex-cli.code-snippets')
 [void](Test-JsonFile -Root $resolvedRepoRoot -Path '.vscode/snippets/copilot.code-snippets')
 
+$skillStats = Test-SkillDefinitions -Root $resolvedRepoRoot
 $markdownFiles = Get-MarkdownFilesForValidation -Root $resolvedRepoRoot
 $checkedLinks = Test-MarkdownLinks -Root $resolvedRepoRoot -MarkdownFiles $markdownFiles
 
+$routingGoldenStatus = 'not-run'
+$routingGoldenScript = Resolve-RepoPath -Root $resolvedRepoRoot -Path 'scripts/validation/test-routing-selection.ps1'
+if (Test-Path -LiteralPath $routingGoldenScript) {
+    & $routingGoldenScript -RepoRoot $resolvedRepoRoot
+    if ($LASTEXITCODE -eq 0) {
+        $routingGoldenStatus = 'passed'
+    }
+    else {
+        $routingGoldenStatus = 'failed'
+        Add-ValidationFailure 'Routing golden tests failed (scripts/validation/test-routing-selection.ps1).'
+    }
+}
+else {
+    $routingGoldenStatus = 'missing-script'
+    Add-ValidationWarning 'Routing golden test script not found: scripts/validation/test-routing-selection.ps1'
+}
+
 Write-Host ''
 Write-Host 'Validation summary' -ForegroundColor Cyan
+Write-Host ("  Skills checked: {0}" -f $skillStats.SkillsChecked)
+Write-Host ("  Skill files checked: {0}" -f $skillStats.SkillFilesChecked)
+Write-Host ("  Skill openai.yaml checked: {0}" -f $skillStats.OpenAiFilesChecked)
+Write-Host ("  Skill links checked: {0}" -f $skillStats.SkillLinkChecks)
+Write-Host ("  Routing golden tests: {0}" -f $routingGoldenStatus)
 Write-Host ("  Markdown files checked: {0}" -f $markdownFiles.Count)
 Write-Host ("  Markdown links checked: {0}" -f $checkedLinks)
 Write-Host ("  Warnings: {0}" -f $script:Warnings.Count)

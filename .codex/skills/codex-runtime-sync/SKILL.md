@@ -1,9 +1,6 @@
 ---
 name: codex-runtime-sync
 description: Sync shared repo assets into local ~/.github and ~/.codex, and apply MCP settings from the shared manifest.
-metadata:
-  owner: copilot-instructions
-  scope: local-runtime
 ---
 
 # Codex Runtime Sync

@@ -89,6 +89,7 @@ Use skills: `dotnet-backend-engineer`, `frontend-vue-quasar-engineer`, `rust-eng
 ### Layout
 
 - `<skill-name>/SKILL.md`: skill contract and execution behavior.
+- `<skill-name>/agents/openai.yaml`: skill UI metadata (display name, short description, default prompt).
 
 ---
 

@@ -1,9 +1,6 @@
 ---
 name: repo-context-router
 description: Route tasks using this repository's static routing catalog and load only the minimal context pack.
-metadata:
-  owner: copilot-instructions
-  scope: repository
 ---
 
 # Repo Context Router

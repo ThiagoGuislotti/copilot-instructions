@@ -101,10 +101,10 @@ Follow this order of operations on every task:
 - No secrets in repo; use User Secrets/Azure Key Vault; typed options via IOptions.
 
 # Changelog
-- .github changes: versioned CHANGELOG.md
-- Project changes: main CHANGELOG.md
+- Single source: root CHANGELOG.md for .github and project changes
 - Process: instructions/feedback-changelog.instructions.md
 - Mandatory versioning: every CHANGELOG entry must include semantic version [X.Y.Z] and date YYYY-MM-DD; no [Unreleased] accumulation; immediate versioning on changes.
+- Release tagging for rollback: after commit, create and push matching tag `copilot-vX.Y.Z` (for example: `git tag -a copilot-v1.1.3 -m "copilot instructions 1.1.3"` and `git push origin copilot-v1.1.3`).
 
 # STYLE (EOF and whitespace)
 - Do not leave a trailing blank line at the end of files.

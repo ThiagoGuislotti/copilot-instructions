@@ -1,0 +1,6 @@
+interface:
+  display_name: ".NET Backend Engineer"
+  short_description: "Build Clean Architecture backend in .NET/C#."
+  default_prompt: "Use $dotnet-backend-engineer to implement this ASP.NET/CQRS backend change with proper layering."
+policy:
+  allow_implicit_invocation: true

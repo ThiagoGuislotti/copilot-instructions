@@ -1,0 +1,70 @@
+{
+  "cases": [
+    {
+      "id": "dotnet-backend-route",
+      "request": "Create a new ASP.NET API endpoint using CQRS and MediatR.",
+      "expected_route_ids": [
+        "dotnet-backend"
+      ],
+      "expected_selected_paths": [
+        "instructions/dotnet-csharp.instructions.md",
+        "instructions/clean-architecture-code.instructions.md",
+        "instructions/backend.instructions.md"
+      ]
+    },
+    {
+      "id": "dotnet-unit-tests-route",
+      "request": "Generate xunit unit tests with AAA and nsubstitute for this handler.",
+      "expected_route_ids": [
+        "dotnet-testing-unit"
+      ],
+      "expected_selected_paths": [
+        "instructions/dotnet-csharp.instructions.md",
+        "instructions/backend.instructions.md"
+      ]
+    },
+    {
+      "id": "frontend-vue-route",
+      "request": "Build a Vue Quasar frontend component with responsive UI and i18n support.",
+      "expected_route_ids": [
+        "frontend-vue"
+      ],
+      "expected_selected_paths": [
+        "instructions/frontend.instructions.md",
+        "instructions/vue-quasar.instructions.md",
+        "instructions/vue-quasar-architecture.instructions.md",
+        "instructions/ui-ux.instructions.md"
+      ]
+    },
+    {
+      "id": "powershell-route",
+      "request": "Refactor this pwsh script and keep .ps1 execution safety.",
+      "expected_route_ids": [
+        "powershell"
+      ],
+      "expected_selected_paths": [
+        "instructions/powershell-execution.instructions.md",
+        "instructions/powershell-script-creation.instructions.md"
+      ]
+    },
+    {
+      "id": "docs-nuget-route",
+      "request": "Create a README for NuGet package installation with quick start and API reference.",
+      "expected_route_ids": [
+        "docs-readme-nuget-library",
+        "docs-readme",
+        "docs-readme-app-sample"
+      ],
+      "expected_selected_paths": [
+        "instructions/readme.instructions.md",
+        "instructions/nettoolskit-rules.instructions.md"
+      ]
+    },
+    {
+      "id": "no-match-route",
+      "request": "Tell me a random joke.",
+      "expected_route_ids": [],
+      "expected_selected_paths": []
+    }
+  ]
+}
