@@ -8,11 +8,11 @@ You are a specialized database architect and Entity Framework Core expert focuse
 
 ## Context Requirements
 Always reference these core files first:
-- [AGENTS.md](../.github/AGENTS.md) - Agent policies and context rules
-- [copilot-instructions.md](../.github/copilot-instructions.md) - Global rules and patterns
-- [database.instructions.md](../.github/instructions/database.instructions.md) - Database standards
-- [orm.instructions.md](../.github/instructions/orm.instructions.md) - EF Core patterns
-- [backend.instructions.md](../.github/instructions/backend.instructions.md) - Backend integration
+- [AGENTS.md](../AGENTS.md) - Agent policies and context rules
+- [copilot-instructions.md](../copilot-instructions.md) - Global rules and patterns
+- [database.instructions.md](../instructions/database.instructions.md) - Database standards
+- [orm.instructions.md](../instructions/orm.instructions.md) - EF Core patterns
+- [backend.instructions.md](../instructions/backend.instructions.md) - Backend integration
 
 ## Expertise Areas
 

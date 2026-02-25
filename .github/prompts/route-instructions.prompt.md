@@ -13,8 +13,8 @@ Given a user request, select the minimal set of instruction files and prompt tem
 ## Sources
 - Read and use the routing catalog: ../instruction-routing.catalog.yml
 - Respect mandatory context hierarchy defined in:
-  - ../.github/AGENTS.md
-  - ../.github/copilot-instructions.md
+  - ../AGENTS.md
+  - ../copilot-instructions.md
 
 ## Hard Rules
 - Always include mandatory context files listed under `always`.
@@ -76,4 +76,4 @@ Examples:
 - "Follow Clean Architecture layer boundaries"
 - "Use RFC 7807 ProblemDetails for API errors"
 - "Use xUnit [Trait(\"Category\",\"Unit\")] and AAA"
-- "Ensure no trailing blank line at EOF for .github/instructions/*.md"
+- "Ensure no trailing blank line at EOF for instructions/*.md"

@@ -8,8 +8,8 @@
 
 # Mandatory Context Files
 - Always include BOTH of these files first when selecting context for Copilot Chat:
-  1. .github/AGENTS.md (this file)
-  2. .github/copilot-instructions.md
+  1. AGENTS.md (this file)
+  2. copilot-instructions.md
 
 Default workflow for all tasks: Static RAGs Routing (Route → Execute)
 - Route first (pick minimal context):
@@ -35,18 +35,18 @@ Baseline workflow for anything in this repo.
 Follow the **Mandatory Context Files** list above.
 
 2) Then select additional instruction files based on what you are changing
-- If editing `.github/**`: include `.github/instructions/pr.instructions.md` and `.github/instructions/prompt-templates.instructions.md` when relevant.
-- If editing `.github/instructions/**`: include `.github/instructions/copilot-instruction-creation.instructions.md`.
-- If editing code: select the domain instruction file(s) under `.github/instructions/` that match the language/folder (e.g., `.github/instructions/dotnet-csharp.instructions.md`, `backend.instructions.md`, `database.instructions.md`, etc).
+- If editing `.github/**`: include `instructions/pr.instructions.md` and `instructions/prompt-templates.instructions.md` when relevant.
+- If editing `instructions/**`: include `instructions/copilot-instruction-creation.instructions.md`.
+- If editing code: select the domain instruction file(s) under `instructions/` that match the language/folder (e.g., `instructions/dotnet-csharp.instructions.md`, `backend.instructions.md`, `database.instructions.md`, etc).
 
 3) Precedence rules when instructions conflict
 - Follow the user prompt first.
-- Then follow `.github/AGENTS.md` + `.github/copilot-instructions.md`.
+- Then follow `AGENTS.md` + `copilot-instructions.md`.
 - Then prefer the most specific instruction file by scope/path (narrower `applyTo` wins over broader).
 - If two instructions are equally specific and conflict, pick the safer/minimal option and call out the ambiguity.
 
 # Auditing & Transparency
-- When listing applied instructions in a response or PR body, reference both .github/copilot-instructions.md and .github/AGENTS.md when they influence the change.
+- When listing applied instructions in a response or PR body, reference both copilot-instructions.md and AGENTS.md when they influence the change.
 
 # Context Preservation & Execution Patterns
 
@@ -117,9 +117,9 @@ After changes: Code compiles, tests pass, architecture maintained, documentation
 
 ## Scope & References
 - Repo-wide; subfolder `AGENTS.md` may specialize. Direct prompts override.
-- Core: `.github/copilot-instructions.md`. Language policy: EN code/commits, pt-BR UI via i18n, EN DB schema.
-- Mandatory: `.github/instructions/workflow-optimization.instructions.md`, `.github/instructions/powershell-execution.instructions.md`, `.github/instructions/feedback-changelog.instructions.md`.
-- For `.github`: `.github/instructions/copilot-instruction-creation.instructions.md`. Domain sets live in `.github/instructions/*`.
+- Core: `copilot-instructions.md`. Language policy: EN code/commits, pt-BR UI via i18n, EN DB schema.
+- Mandatory: `instructions/workflow-optimization.instructions.md`, `instructions/powershell-execution.instructions.md`, `instructions/feedback-changelog.instructions.md`.
+- For `.github`: `instructions/copilot-instruction-creation.instructions.md`. Domain sets live in `instructions/*`.
 - SCM/CI: Azure DevOps primary; `.github` hosts agent/PR guidance.
  - Branches like `feature/dynamicFilter` are ephemeral; avoid branch-specific rules.
 
@@ -138,7 +138,7 @@ Monorepo of libraries, modules, and samples for robust .NET services using Clean
 ## Style
 - Namespaces mirror folders (`src/NetToolsKit.DynamicQuery/*` -> `NetToolsKit.DynamicQuery`). C#: PascalCase types, camelCase locals/params, UPPER_SNAKE_CASE constants.
 - Prefer `sealed` when appropriate; clean `using`; UTF-8 without BOM; public APIs with XML docs; avoid inline comments unless asked.
-- EOF: `.github/instructions/*.md` and Codex outputs without final newline; others follow `.editorconfig` (final newline). No trailing whitespace.
+- EOF: `instructions/*.md` and Codex outputs without final newline; others follow `.editorconfig` (final newline). No trailing whitespace.
 
 ## UI Guidelines
 - UI strings via i18n (pt-BR). HTTP APIs: plural nouns, standard status codes, `application/problem+json` for errors.
@@ -168,8 +168,8 @@ Monorepo of libraries, modules, and samples for robust .NET services using Clean
 - CHANGELOG: `.github/CHANGELOG.md` for `.github`; root `CHANGELOG.md` for project; entries with `[X.Y.Z]` and `YYYY-MM-DD`.
 
 ## Domain Instruction References
-- Development: `.github/instructions/clean-architecture-code.instructions.md`, `.github/instructions/dotnet-csharp.instructions.md`, `.github/instructions/backend.instructions.md`, `.github/instructions/frontend.instructions.md`, `.github/instructions/vue-quasar.instructions.md`, `.github/instructions/ui-ux.instructions.md`
-- Data: `.github/instructions/orm.instructions.md`, `.github/instructions/database.instructions.md`, `.github/instructions/microservices-performance.instructions.md`
-- Infrastructure: `.github/instructions/docker.instructions.md`, `.github/instructions/k8s.instructions.md`, `.github/instructions/ci-cd-devops.instructions.md`, `.github/instructions/static-analysis-sonarqube.instructions.md`
-- Testing: `.github/instructions/e2e-testing.instructions.md`
-- Documentation: `.github/instructions/readme.instructions.md`, `.github/instructions/prompt-templates.instructions.md`, `.github/instructions/effort-estimation-ucp.instructions.md`, `.github/instructions/pr.instructions.md`
+- Development: `instructions/clean-architecture-code.instructions.md`, `instructions/dotnet-csharp.instructions.md`, `instructions/backend.instructions.md`, `instructions/frontend.instructions.md`, `instructions/vue-quasar.instructions.md`, `instructions/ui-ux.instructions.md`
+- Data: `instructions/orm.instructions.md`, `instructions/database.instructions.md`, `instructions/microservices-performance.instructions.md`
+- Infrastructure: `instructions/docker.instructions.md`, `instructions/k8s.instructions.md`, `instructions/ci-cd-devops.instructions.md`, `instructions/static-analysis-sonarqube.instructions.md`
+- Testing: `instructions/e2e-testing.instructions.md`
+- Documentation: `instructions/readme.instructions.md`, `instructions/prompt-templates.instructions.md`, `instructions/effort-estimation-ucp.instructions.md`, `instructions/pr.instructions.md`

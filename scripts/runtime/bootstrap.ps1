@@ -42,24 +42,6 @@ function Invoke-RobocopySync {
     }
 }
 
-function Copy-FileIfExists {
-    param(
-        [Parameter(Mandatory = $true)][string]$Source,
-        [Parameter(Mandatory = $true)][string]$Destination
-    )
-
-    if (!(Test-Path $Source)) {
-        return
-    }
-
-    $destinationDir = Split-Path -Parent $Destination
-    if (![string]::IsNullOrWhiteSpace($destinationDir)) {
-        New-Item -ItemType Directory -Path $destinationDir -Force | Out-Null
-    }
-
-    Copy-Item -Path $Source -Destination $Destination -Force
-}
-
 $sourceGithub = Join-Path $RepoRoot ".github"
 $sourceCodex = Join-Path $RepoRoot ".codex"
 
@@ -72,14 +54,6 @@ if (!(Test-Path $sourceCodex)) {
 }
 
 Invoke-RobocopySync -Source $sourceGithub -Destination $TargetGithubPath -Mirror:$Mirror
-
-# Sync root shared routing/context assets into ~/.github as compatibility layer.
-$sharedCatalog = Join-Path $RepoRoot "instruction-routing.catalog.yml"
-Copy-FileIfExists -Source $sharedCatalog -Destination (Join-Path $TargetGithubPath "instruction-routing.catalog.yml")
-Invoke-RobocopySync -Source (Join-Path $RepoRoot "prompts") -Destination (Join-Path $TargetGithubPath "prompts") -Mirror:$Mirror
-Invoke-RobocopySync -Source (Join-Path $RepoRoot "chatmodes") -Destination (Join-Path $TargetGithubPath "chatmodes") -Mirror:$Mirror
-Invoke-RobocopySync -Source (Join-Path $RepoRoot "schemas") -Destination (Join-Path $TargetGithubPath "schemas") -Mirror:$Mirror
-
 Invoke-RobocopySync -Source (Join-Path $sourceCodex "skills") -Destination (Join-Path $TargetCodexPath "skills") -Mirror:$Mirror
 Invoke-RobocopySync -Source (Join-Path $sourceCodex "mcp") -Destination (Join-Path $TargetCodexPath "shared-mcp") -Mirror:$Mirror
 Invoke-RobocopySync -Source (Join-Path $sourceCodex "scripts") -Destination (Join-Path $TargetCodexPath "shared-scripts") -Mirror:$Mirror
@@ -92,10 +66,6 @@ if (Test-Path $sharedReadme) {
 
 Write-Host "Sync complete."
 Write-Host "  .github -> $TargetGithubPath"
-Write-Host "  instruction-routing.catalog.yml -> $(Join-Path $TargetGithubPath 'instruction-routing.catalog.yml')"
-Write-Host "  prompts -> $(Join-Path $TargetGithubPath 'prompts')"
-Write-Host "  chatmodes -> $(Join-Path $TargetGithubPath 'chatmodes')"
-Write-Host "  schemas -> $(Join-Path $TargetGithubPath 'schemas')"
 Write-Host "  .codex/skills -> $(Join-Path $TargetCodexPath 'skills')"
 Write-Host "  .codex/mcp -> $(Join-Path $TargetCodexPath 'shared-mcp')"
 Write-Host "  .codex/scripts -> $(Join-Path $TargetCodexPath 'shared-scripts')"

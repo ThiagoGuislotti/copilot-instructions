@@ -17,7 +17,7 @@ Language: pt-BR for chat; EN for code/commits/docs/UI/database; pt-BR i18n outpu
 # Context Selection
 
 ## Hard rule
-- Always load `.github/AGENTS.md` first, then this file.
+- Always load `AGENTS.md` first, then this file.
 - If the workspace is available, do not proceed unless both files are loaded.
 
 # Static RAGs Routing
@@ -45,9 +45,9 @@ Follow this order of operations on every task:
 
 2) Apply instructions in this precedence order
 - User prompt (explicit constraints)
-- `.github/AGENTS.md` + this file
-- Domain instruction files under `.github/instructions/` (pick by language/folder)
-- Any additional, file-scoped instructions (e.g., `.github/instructions/copilot-instruction-creation.instructions.md` when editing `.github/instructions/*`)
+- `AGENTS.md` + this file
+- Domain instruction files under `instructions/` (pick by language/folder)
+- Any additional, file-scoped instructions (e.g., `instructions/copilot-instruction-creation.instructions.md` when editing `instructions/*`)
 
 3) Resolve conflicts
 - More specific scope wins (narrower `applyTo` beats broader)
@@ -58,35 +58,35 @@ Follow this order of operations on every task:
 ## How to use
 - Start with AGENTS.md for solution-specific details (stack, folders, commands).
 - Use this file for global rules and technology mappings.
-- Follow domain-specific files in .github/instructions/*.md for technical details.
+- Follow domain-specific files in instructions/*.md for technical details.
 
 # Mandatory Instructions
 
 ## Always Applied
-- .github/AGENTS.md (agents and context policy)
-- .github/instructions/workflow-optimization.instructions.md
-- .github/instructions/powershell-execution.instructions.md
-- .github/instructions/feedback-changelog.instructions.md
+- AGENTS.md (agents and context policy)
+- instructions/workflow-optimization.instructions.md
+- instructions/powershell-execution.instructions.md
+- instructions/feedback-changelog.instructions.md
 
 ## Only for .github Changes
-- .github/instructions/copilot-instruction-creation.instructions.md
+- instructions/copilot-instruction-creation.instructions.md
 
 # Domain Instructions
 
 ## Development
-- C#/.NET: .github/instructions/dotnet-csharp.instructions.md (e.g., namespaces, sealed classes, XML docs).
-- Architecture and backend: .github/instructions/clean-architecture-code.instructions.md; .github/instructions/backend.instructions.md (e.g., CQRS, mediator patterns).
-- Frontend and UI/UX: .github/instructions/frontend.instructions.md; .github/instructions/vue-quasar.instructions.md; .github/instructions/vue-quasar-architecture.instructions.md; .github/instructions/ui-ux.instructions.md (e.g., i18n pt-BR, responsive design, feature-first Clean Architecture).
+- C#/.NET: instructions/dotnet-csharp.instructions.md (e.g., namespaces, sealed classes, XML docs).
+- Architecture and backend: instructions/clean-architecture-code.instructions.md; instructions/backend.instructions.md (e.g., CQRS, mediator patterns).
+- Frontend and UI/UX: instructions/frontend.instructions.md; instructions/vue-quasar.instructions.md; instructions/vue-quasar-architecture.instructions.md; instructions/ui-ux.instructions.md (e.g., i18n pt-BR, responsive design, feature-first Clean Architecture).
 
 ## Data and Infrastructure
-- Data/ORM/Databases: .github/instructions/orm.instructions.md; .github/instructions/database.instructions.md (e.g., EF Core, migrations).
-- Microservices and performance: .github/instructions/microservices-performance.instructions.md (e.g., async patterns, caching).
-- Infrastructure and DevOps: .github/instructions/docker.instructions.md; .github/instructions/k8s.instructions.md; .github/instructions/ci-cd-devops.instructions.md; .github/instructions/static-analysis-sonarqube.instructions.md (e.g., pipelines, security scans).
+- Data/ORM/Databases: instructions/orm.instructions.md; instructions/database.instructions.md (e.g., EF Core, migrations).
+- Microservices and performance: instructions/microservices-performance.instructions.md (e.g., async patterns, caching).
+- Infrastructure and DevOps: instructions/docker.instructions.md; instructions/k8s.instructions.md; instructions/ci-cd-devops.instructions.md; instructions/static-analysis-sonarqube.instructions.md (e.g., pipelines, security scans).
 
 ## Testing and Documentation
-- Rust organization and testing: .github/instructions/rust-code-organization.instructions.md (e.g., mirror src/ structure, no inline tests, test_suite.rs entry point); .github/instructions/rust-testing.instructions.md (e.g., error_tests.rs mandatory, coverage requirements, templates).
-- E2E testing: .github/instructions/e2e-testing.instructions.md (e.g., Playwright, test categories).
-- Documentation and processes: .github/instructions/readme.instructions.md; .github/instructions/pr.instructions.md; .github/instructions/prompt-templates.instructions.md; .github/instructions/effort-estimation-ucp.instructions.md (e.g., README creation with template, PR guidelines, changelog versioning).
+- Rust organization and testing: instructions/rust-code-organization.instructions.md (e.g., mirror src/ structure, no inline tests, test_suite.rs entry point); instructions/rust-testing.instructions.md (e.g., error_tests.rs mandatory, coverage requirements, templates).
+- E2E testing: instructions/e2e-testing.instructions.md (e.g., Playwright, test categories).
+- Documentation and processes: instructions/readme.instructions.md; instructions/pr.instructions.md; instructions/prompt-templates.instructions.md; instructions/effort-estimation-ucp.instructions.md (e.g., README creation with template, PR guidelines, changelog versioning).
 
 # Transparency
 
@@ -102,10 +102,10 @@ Follow this order of operations on every task:
 # Changelog
 - .github changes: versioned CHANGELOG.md
 - Project changes: main CHANGELOG.md
-- Process: .github/instructions/feedback-changelog.instructions.md
+- Process: instructions/feedback-changelog.instructions.md
 - Mandatory versioning: every CHANGELOG entry must include semantic version [X.Y.Z] and date YYYY-MM-DD; no [Unreleased] accumulation; immediate versioning on changes.
 
 # STYLE (EOF and whitespace)
 - Do not leave a trailing blank line at the end of files.
-- For files under `.github/instructions/*.md` and Copilot/Codex instruction outputs: do NOT include a final newline (consistent with AGENTS.md).
+- For files under `instructions/*.md` and Copilot/Codex instruction outputs: do NOT include a final newline (consistent with AGENTS.md).
 - For other files, follow `.editorconfig` rules (final newline usually enforced); always avoid trailing whitespace.

@@ -99,10 +99,6 @@ scripts/
 
 `runtime/bootstrap.ps1` syncs:
 - `.github/` -> `~/.github`
-- `instruction-routing.catalog.yml` -> `~/.github/instruction-routing.catalog.yml`
-- `prompts/` -> `~/.github/prompts/`
-- `chatmodes/` -> `~/.github/chatmodes/`
-- `schemas/` -> `~/.github/schemas/`
 - `.codex/skills/` -> `~/.codex/skills`
 - `.codex/mcp/` -> `~/.codex/shared-mcp`
 - `.codex/scripts/` -> `~/.codex/shared-scripts`

@@ -18,8 +18,8 @@ Use this skill when the task should follow the repo routing model before executi
 ## Route Then Execute
 
 1. Route with:
-   - `instruction-routing.catalog.yml`
-   - `prompts/route-instructions.prompt.md`
+   - `.github/instruction-routing.catalog.yml`
+   - `.github/prompts/route-instructions.prompt.md`
 2. Build a minimal context pack.
 3. Execute using only the files selected by the context pack.
 

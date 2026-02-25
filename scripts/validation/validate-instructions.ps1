@@ -125,9 +125,9 @@ if (!(Test-Path $RepoRoot)) {
 $requiredFiles = @(
     ".github/AGENTS.md",
     ".github/copilot-instructions.md",
-    "instruction-routing.catalog.yml",
-    "prompts/route-instructions.prompt.md",
-    "schemas/instruction-routing.catalog.schema.json"
+    ".github/instruction-routing.catalog.yml",
+    ".github/prompts/route-instructions.prompt.md",
+    ".github/schemas/instruction-routing.catalog.schema.json"
 )
 
 foreach ($required in $requiredFiles) {
@@ -139,7 +139,7 @@ foreach ($required in $requiredFiles) {
     }
 }
 
-$catalogPath = Resolve-FromRepo -Path "instruction-routing.catalog.yml"
+$catalogPath = Resolve-FromRepo -Path ".github/instruction-routing.catalog.yml"
 if (Test-Path $catalogPath) {
     $catalogLines = Get-Content -Path $catalogPath
     $catalogPaths = New-Object System.Collections.Generic.List[string]
@@ -155,8 +155,13 @@ if (Test-Path $catalogPath) {
     if ($catalogPaths.Count -eq 0) {
         Add-Failure "No path entries found in instruction-routing.catalog.yml"
     } else {
+        $catalogDir = Split-Path -Parent $catalogPath
         foreach ($entry in ($catalogPaths | Select-Object -Unique)) {
-            $absolute = Resolve-FromRepo -Path $entry
+            if ([System.IO.Path]::IsPathRooted($entry)) {
+                $absolute = [System.IO.Path]::GetFullPath($entry)
+            } else {
+                $absolute = [System.IO.Path]::GetFullPath((Join-Path $catalogDir $entry))
+            }
             if (!(Test-Path $absolute)) {
                 Add-Failure "Catalog path not found: $entry"
             }
@@ -165,7 +170,7 @@ if (Test-Path $catalogPath) {
     }
 }
 
-$schema = Test-JsonFile -Path "schemas/instruction-routing.catalog.schema.json"
+$schema = Test-JsonFile -Path ".github/schemas/instruction-routing.catalog.schema.json"
 if ($null -ne $schema) {
     foreach ($prop in @("`$schema", "title", "type", "properties")) {
         if ($null -eq $schema.$prop) {
@@ -208,8 +213,8 @@ foreach ($relative in $explicitMarkdown) {
 
 $markdownFolders = @(
     ".github/instructions",
-    "chatmodes",
-    "prompts",
+    ".github/chatmodes",
+    ".github/prompts",
     ".codex/skills"
 )
 

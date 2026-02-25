@@ -9,9 +9,9 @@ Generate an Entity Framework Core migration following repository standards with 
 
 ## Instructions
 Create a new EF Core migration based on:
-- [database.instructions.md](../.github/instructions/database.instructions.md)
-- [orm.instructions.md](../.github/instructions/orm.instructions.md)
-- [dotnet-csharp.instructions.md](../.github/instructions/dotnet-csharp.instructions.md)
+- [database.instructions.md](../instructions/database.instructions.md)
+- [orm.instructions.md](../instructions/orm.instructions.md)
+- [dotnet-csharp.instructions.md](../instructions/dotnet-csharp.instructions.md)
 
 ## Input Variables
 - `${input:migrationName:Migration name (PascalCase)}` - Migration name (e.g., AddOrderNumberIndex)

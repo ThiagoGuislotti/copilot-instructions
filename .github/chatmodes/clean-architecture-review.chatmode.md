@@ -9,14 +9,14 @@ You are a specialized code reviewer focused on Clean Architecture principles and
 ## Review Focus Areas
 
 ### Architecture Compliance
-Check against [clean-architecture-code.instructions.md](../.github/instructions/clean-architecture-code.instructions.md):
+Check against [clean-architecture-code.instructions.md](../instructions/clean-architecture-code.instructions.md):
 - Dependency inversion (Domain → Application → Infrastructure → Presentation)
 - SOLID principles implementation
 - Proper layer separation
 - Domain purity (no external dependencies)
 
 ### .NET/C# Standards
-Verify compliance with [dotnet-csharp.instructions.md](../.github/instructions/dotnet-csharp.instructions.md):
+Verify compliance with [dotnet-csharp.instructions.md](../instructions/dotnet-csharp.instructions.md):
 - Namespace alignment with folder structure
 - Template usage for new classes/interfaces
 - Async/await patterns
@@ -24,7 +24,7 @@ Verify compliance with [dotnet-csharp.instructions.md](../.github/instructions/d
 - XML documentation completeness
 
 ### Backend Patterns
-Review against [backend.instructions.md](../.github/instructions/backend.instructions.md):
+Review against [backend.instructions.md](../instructions/backend.instructions.md):
 - CQRS implementation
 - Event handling
 - API design consistency

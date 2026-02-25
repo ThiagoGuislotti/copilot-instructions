@@ -9,9 +9,9 @@ Analyze existing code and refactor to Clean Architecture following SOLID princip
 
 ## Instructions
 Refactor code based on:
-- [clean-architecture-code.instructions.md](../.github/instructions/clean-architecture-code.instructions.md)
-- [backend.instructions.md](../.github/instructions/backend.instructions.md)
-- [dotnet-csharp.instructions.md](../.github/instructions/dotnet-csharp.instructions.md)
+- [clean-architecture-code.instructions.md](../instructions/clean-architecture-code.instructions.md)
+- [backend.instructions.md](../instructions/backend.instructions.md)
+- [dotnet-csharp.instructions.md](../instructions/dotnet-csharp.instructions.md)
 
 ## Input Variables
 - `${input:targetPath:Path to code to refactor}` - File or directory path

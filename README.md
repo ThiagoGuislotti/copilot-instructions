@@ -42,9 +42,9 @@ cp .github/copilot-instructions.md /path/to/your/project/.github/
 cp -r .github/instructions/ /path/to/your/project/.github/
 
 # Optional: Copy chat modes, prompts, and routing schema
-cp -r chatmodes/ /path/to/your/project/
-cp -r prompts/ /path/to/your/project/
-cp -r schemas/ /path/to/your/project/
+cp -r .github/chatmodes/ /path/to/your/project/.github/
+cp -r .github/prompts/ /path/to/your/project/.github/
+cp -r .github/schemas/ /path/to/your/project/.github/
 ```
 
 ### Repository Setup
@@ -58,10 +58,8 @@ cd copilot-instructions
 
 ```text
 copilot-instructions/
-├─ .github/   # shared Copilot + Codex instructions
+├─ .github/   # shared Copilot + Codex instructions, prompts, chatmodes, schemas
 ├─ .codex/    # shared Codex assets (skills/mcp/scripts)
-├─ chatmodes/ # reusable chat mode definitions
-├─ schemas/   # schema files (e.g., routing catalog schema)
 ├─ scripts/   # bootstrap + automation scripts
 ├─ README.md
 └─ .gitignore
@@ -76,7 +74,7 @@ pwsh -File .\scripts\runtime\bootstrap.ps1
 pwsh -File .\scripts\runtime\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
 ```
 
-This syncs versioned `.github/` and `.codex/` assets into your local runtime paths (`~/.github` and `~/.codex`), including shared routing assets (`instruction-routing.catalog.yml`, `prompts/`, `chatmodes/`, `schemas/`) into `~/.github`.
+This syncs versioned `.github/` and `.codex/` assets into your local runtime paths (`~/.github` and `~/.codex`).
 
 ---
 
@@ -93,13 +91,13 @@ Use a routing step to select a minimal “context pack” before doing any work.
 
 2. **Copy the routing assets (recommended):**
    ```bash
-   cp instruction-routing.catalog.yml /your/project/
-   cp prompts/route-instructions.prompt.md /your/project/prompts/
-   cp -r schemas/ /your/project/
+   cp .github/instruction-routing.catalog.yml /your/project/.github/
+   cp .github/prompts/route-instructions.prompt.md /your/project/.github/prompts/
+   cp -r .github/schemas/ /your/project/.github/
    ```
 
 3. **Route first, then execute:**
-   - Run the route-only prompt `prompts/route-instructions.prompt.md`.
+   - Run the route-only prompt `.github/prompts/route-instructions.prompt.md`.
    - Load ONLY the files from the returned Context Pack (mandatory + selected).
    - Execute the task using that minimal context.
 
@@ -167,7 +165,7 @@ Use a routing step to select a minimal “context pack” before doing any work.
 ### Using Prompt Templates
 
 ```text
-# Reference prompts/generate-unit-tests.prompt.md
+# Reference .github/prompts/generate-unit-tests.prompt.md
 "Generate xUnit tests for OrderService with AAA pattern and mocking"
 ```
 
@@ -211,18 +209,18 @@ Specialized mode for creating new instruction files following meta-conventions.
 
 ### Standard Templates (Markdown-based)
 
-Located in `prompts/`:
+Located in `.github/prompts/`:
 - **create-dotnet-class.prompt.md** - Generate Clean Architecture compliant classes
 - **generate-changelog.prompt.md** - Create semantic versioning CHANGELOG entries
 - **generate-unit-tests.prompt.md** - Generate comprehensive xUnit/NUnit tests
 
 ### POML Templates (XML-based)
 
-Located in `prompts/poml/templates/`:
+Located in `.github/prompts/poml/templates/`:
 - **changelog-entry.poml** - Structured CHANGELOG generator with versioning
 - **unit-test-generator.poml** - AAA pattern test generator with mocking
 
-**Learn more:** [POML Guide](./prompts/poml/prompt-engineering-poml.md)
+**Learn more:** [POML Guide](./.github/prompts/poml/prompt-engineering-poml.md)
 
 ---
 
@@ -262,8 +260,8 @@ This ensures consistent agent behavior and proper context hierarchy.
 ### Static RAGs Routing
 
 If you want a RAGs-style routing step (selecting a minimal “context pack” before execution), use:
-- `instruction-routing.catalog.yml` (single source of truth for routes)
-- `prompts/route-instructions.prompt.md` (route-only prompt that outputs a JSON context pack)
+- `.github/instruction-routing.catalog.yml` (single source of truth for routes)
+- `.github/prompts/route-instructions.prompt.md` (route-only prompt that outputs a JSON context pack)
 
 ---
 

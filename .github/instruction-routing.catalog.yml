@@ -18,17 +18,17 @@ owner: repo
 
 always:
   # Mandatory context files (load first)
-  - path: .github/AGENTS.md
+  - path: AGENTS.md
     reason: Mandatory context policy
-  - path: .github/copilot-instructions.md
+  - path: copilot-instructions.md
     reason: Global rules and domain mapping
 
   # Mandatory instruction files (always applied)
-  - path: .github/instructions/workflow-optimization.instructions.md
+  - path: instructions/workflow-optimization.instructions.md
     reason: Task breakdown and token efficiency
-  - path: .github/instructions/powershell-execution.instructions.md
+  - path: instructions/powershell-execution.instructions.md
     reason: When running or writing PowerShell
-  - path: .github/instructions/feedback-changelog.instructions.md
+  - path: instructions/feedback-changelog.instructions.md
     reason: When changing CHANGELOG/feedback
 
 routing:
@@ -42,11 +42,11 @@ routing:
       - "chatmode"
       - "template"
     include:
-      - path: .github/instructions/copilot-instruction-creation.instructions.md
-        when: editing .github/instructions/*
-      - path: .github/instructions/prompt-templates.instructions.md
+      - path: instructions/copilot-instruction-creation.instructions.md
+        when: editing instructions/*
+      - path: instructions/prompt-templates.instructions.md
         when: editing prompts or authoring prompts
-      - path: .github/instructions/pr.instructions.md
+      - path: instructions/pr.instructions.md
         when: creating/updating PR-related content
 
   - id: docs-readme
@@ -59,9 +59,9 @@ routing:
       - "quick start"
       - "usage examples"
     include:
-      - path: .github/instructions/readme.instructions.md
+      - path: instructions/readme.instructions.md
         reason: README structure, required sections, formatting
-      - path: .github/instructions/nettoolskit-rules.instructions.md
+      - path: instructions/nettoolskit-rules.instructions.md
         reason: Repo-specific README rules
 
   - id: docs-readme-nuget-library
@@ -74,9 +74,9 @@ routing:
       - "package reference"
       - "installation"
     include:
-      - path: .github/instructions/readme.instructions.md
+      - path: instructions/readme.instructions.md
         reason: README structure for packages
-      - path: .github/instructions/nettoolskit-rules.instructions.md
+      - path: instructions/nettoolskit-rules.instructions.md
         reason: Repo-specific README rules
     notes:
       - Focus README on package installation, minimal quick start, API reference, and build/test commands.
@@ -93,9 +93,9 @@ routing:
       - "how to run"
       - "run locally"
     include:
-      - path: .github/instructions/readme.instructions.md
+      - path: instructions/readme.instructions.md
         reason: README structure for runnable apps/samples
-      - path: .github/instructions/nettoolskit-rules.instructions.md
+      - path: instructions/nettoolskit-rules.instructions.md
         reason: Repo-specific README rules
     notes:
       - Focus README on prerequisites, run commands, environment variables, and troubleshooting.
@@ -108,7 +108,7 @@ routing:
       - "version"
       - "semver"
     include:
-      - path: .github/instructions/feedback-changelog.instructions.md
+      - path: instructions/feedback-changelog.instructions.md
         reason: CHANGELOG process and versioning rules
 
   - id: dotnet-backend
@@ -127,11 +127,11 @@ routing:
       - "swagger"
       - "openapi"
     include:
-      - path: .github/instructions/dotnet-csharp.instructions.md
+      - path: instructions/dotnet-csharp.instructions.md
         reason: C# conventions, XML docs, namespaces, TFMs
-      - path: .github/instructions/clean-architecture-code.instructions.md
+      - path: instructions/clean-architecture-code.instructions.md
         reason: Layering and dependency rules
-      - path: .github/instructions/backend.instructions.md
+      - path: instructions/backend.instructions.md
         reason: API conventions, errors, resilience, security
 
   - id: dotnet-testing-unit
@@ -152,9 +152,9 @@ routing:
       - "theory"
       - "fact"
     include:
-      - path: .github/instructions/dotnet-csharp.instructions.md
+      - path: instructions/dotnet-csharp.instructions.md
         reason: C# conventions used in tests
-      - path: .github/instructions/backend.instructions.md
+      - path: instructions/backend.instructions.md
         reason: Testing strategy notes (when relevant)
     notes:
       - Prefer prompt prompts/generate-unit-tests.prompt.md for test generation.
@@ -171,9 +171,9 @@ routing:
       - "playwright"
       - "testcontainers"
     include:
-      - path: .github/instructions/e2e-testing.instructions.md
+      - path: instructions/e2e-testing.instructions.md
         reason: E2E testing guidance
-      - path: .github/instructions/backend.instructions.md
+      - path: instructions/backend.instructions.md
         reason: Testing strategy patterns
     notes:
       - Keep integration tests focused; prefer testcontainers for realistic dependencies when available.
@@ -190,9 +190,9 @@ routing:
       - "net8"
       - "net9"
     include:
-      - path: .github/instructions/dotnet-csharp.instructions.md
+      - path: instructions/dotnet-csharp.instructions.md
         reason: Multi-target guidance and conventions
-      - path: .github/instructions/ci-cd-devops.instructions.md
+      - path: instructions/ci-cd-devops.instructions.md
         when: changes include pipelines/workflows
 
   - id: database-orm
@@ -207,9 +207,9 @@ routing:
       - "entity framework"
       - "index"
     include:
-      - path: .github/instructions/database.instructions.md
+      - path: instructions/database.instructions.md
         reason: Database patterns and schema guidance
-      - path: .github/instructions/orm.instructions.md
+      - path: instructions/orm.instructions.md
         reason: ORM patterns and repository/context conventions
 
   - id: devops-containers
@@ -225,11 +225,11 @@ routing:
       - "github actions"
       - "azure devops"
     include:
-      - path: .github/instructions/docker.instructions.md
+      - path: instructions/docker.instructions.md
         reason: Dockerfile conventions
-      - path: .github/instructions/k8s.instructions.md
+      - path: instructions/k8s.instructions.md
         reason: Kubernetes manifests guidance
-      - path: .github/instructions/ci-cd-devops.instructions.md
+      - path: instructions/ci-cd-devops.instructions.md
         reason: CI/CD conventions and gates
 
   - id: quality-static-analysis
@@ -241,7 +241,7 @@ routing:
       - "lint"
       - "quality gate"
     include:
-      - path: .github/instructions/static-analysis-sonarqube.instructions.md
+      - path: instructions/static-analysis-sonarqube.instructions.md
         reason: Static analysis and quality gate conventions
 
   - id: frontend-vue
@@ -255,13 +255,13 @@ routing:
       - "ux"
       - "i18n"
     include:
-      - path: .github/instructions/frontend.instructions.md
+      - path: instructions/frontend.instructions.md
         reason: Frontend conventions
-      - path: .github/instructions/vue-quasar.instructions.md
+      - path: instructions/vue-quasar.instructions.md
         reason: Vue/Quasar specifics
-      - path: .github/instructions/vue-quasar-architecture.instructions.md
+      - path: instructions/vue-quasar-architecture.instructions.md
         reason: Vue/Quasar architecture
-      - path: .github/instructions/ui-ux.instructions.md
+      - path: instructions/ui-ux.instructions.md
         reason: UI/UX constraints
 
   - id: rust
@@ -272,9 +272,9 @@ routing:
       - "crate"
       - "cargo test"
     include:
-      - path: .github/instructions/rust-code-organization.instructions.md
+      - path: instructions/rust-code-organization.instructions.md
         reason: Rust project organization
-      - path: .github/instructions/rust-testing.instructions.md
+      - path: instructions/rust-testing.instructions.md
         reason: Rust testing patterns
 
   - id: powershell
@@ -284,7 +284,7 @@ routing:
       - "pwsh"
       - ".ps1"
     include:
-      - path: .github/instructions/powershell-execution.instructions.md
+      - path: instructions/powershell-execution.instructions.md
         reason: PowerShell execution safety and conventions
 
 prompts:
