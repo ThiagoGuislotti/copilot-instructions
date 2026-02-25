@@ -1,68 +1,162 @@
-[CmdletBinding()]
+<#
+.SYNOPSIS
+    Validates routing and documentation assets used by shared Copilot/Codex instructions.
+
+.DESCRIPTION
+    Performs static validation for repository instruction assets:
+    - Required files existence
+    - instruction-routing.catalog.yml path entries
+    - JSON parsing for schema/manifest/snippets
+    - Markdown link integrity for core docs and instruction folders
+
+    Returns exit code 1 when failures are found, otherwise 0.
+
+.PARAMETER RepoRoot
+    Optional repository root. If omitted, the script auto-detects a root containing .github and .codex.
+
+.PARAMETER Verbose
+    Prints detailed diagnostics during validation.
+
+.EXAMPLE
+    pwsh -File scripts/validation/validate-instructions.ps1
+
+.EXAMPLE
+    pwsh -File scripts/validation/validate-instructions.ps1 -Verbose
+
+.NOTES
+    Version: 1.1
+    Requirements: PowerShell 7+.
+#>
+
 param(
-    [string]$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+    [string] $RepoRoot,
+    [switch] $Verbose
 )
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = 'Stop'
+$script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
+$script:Failures = New-Object System.Collections.Generic.List[string]
+$script:Warnings = New-Object System.Collections.Generic.List[string]
 
-$failures = New-Object System.Collections.Generic.List[string]
-$warnings = New-Object System.Collections.Generic.List[string]
+# -------------------------------
+# Helpers
+# -------------------------------
+function Write-VerboseColor {
+    param(
+        [string] $Message,
+        [ConsoleColor] $Color = [ConsoleColor]::Gray
+    )
 
-function Add-Failure {
-    param([Parameter(Mandatory = $true)][string]$Message)
-    $failures.Add($Message)
-    Write-Host "[FAIL] $Message" -ForegroundColor Red
+    if ($Verbose) {
+        Write-Host $Message -ForegroundColor $Color
+    }
 }
 
-function Add-Warning {
-    param([Parameter(Mandatory = $true)][string]$Message)
-    $warnings.Add($Message)
-    Write-Host "[WARN] $Message" -ForegroundColor Yellow
+function Set-CorrectWorkingDirectory {
+    param(
+        [string] $RequestedRoot
+    )
+
+    $candidates = @()
+
+    if (-not [string]::IsNullOrWhiteSpace($RequestedRoot)) {
+        try {
+            $candidates += (Resolve-Path -LiteralPath $RequestedRoot).Path
+        }
+        catch {
+            throw "Invalid RepoRoot path: $RequestedRoot"
+        }
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($script:ScriptRoot)) {
+        $candidates += (Resolve-Path -LiteralPath (Join-Path $script:ScriptRoot '..\..')).Path
+    }
+
+    $candidates += (Get-Location).Path
+
+    foreach ($candidate in ($candidates | Select-Object -Unique)) {
+        $current = $candidate
+        for ($i = 0; $i -lt 6 -and -not [string]::IsNullOrWhiteSpace($current); $i++) {
+            $hasLayout = (Test-Path -LiteralPath (Join-Path $current '.github')) -and (Test-Path -LiteralPath (Join-Path $current '.codex'))
+            if ($hasLayout) {
+                Set-Location -Path $current
+                Write-VerboseColor ("Repository root detected: {0}" -f $current) 'Green'
+                return $current
+            }
+
+            $current = Split-Path -Path $current -Parent
+        }
+    }
+
+    throw 'Could not detect repository root containing both .github and .codex.'
 }
 
-function Resolve-FromRepo {
-    param([Parameter(Mandatory = $true)][string]$Path)
+function Add-ValidationFailure {
+    param(
+        [string] $Message
+    )
+
+    $script:Failures.Add($Message) | Out-Null
+    Write-Host ("[FAIL] {0}" -f $Message) -ForegroundColor Red
+}
+
+function Add-ValidationWarning {
+    param(
+        [string] $Message
+    )
+
+    $script:Warnings.Add($Message) | Out-Null
+    Write-Host ("[WARN] {0}" -f $Message) -ForegroundColor Yellow
+}
+
+function Resolve-RepoPath {
+    param(
+        [string] $Root,
+        [string] $Path
+    )
 
     if ([System.IO.Path]::IsPathRooted($Path)) {
         return [System.IO.Path]::GetFullPath($Path)
     }
 
-    return [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $Path))
+    return [System.IO.Path]::GetFullPath((Join-Path $Root $Path))
 }
 
 function Should-ValidateLinkTarget {
-    param([Parameter(Mandatory = $true)][string]$Target)
+    param(
+        [string] $Target
+    )
 
     $value = $Target.Trim()
     if ([string]::IsNullOrWhiteSpace($value)) { return $false }
-    if ($value.StartsWith("#")) { return $false }
-    if ($value -match "^(https?|mailto|ftp):") { return $false }
-    if ($value -match "^\[[A-Z0-9_\- ]+\]$") { return $false } # placeholders like [PARAM]
-    if ($value -match "\$\{.+\}") { return $false } # snippets/placeholders
+    if ($value.StartsWith('#')) { return $false }
+    if ($value -match '^(https?|mailto|ftp):') { return $false }
+    if ($value -match '^\[[A-Z0-9_\- ]+\]$') { return $false }
+    if ($value -match '\$\{.+\}') { return $false }
 
-    # Practical heuristic: only validate targets that look like file paths.
-    if ($value.StartsWith("./") -or $value.StartsWith("../") -or $value.StartsWith("/")) { return $true }
-    if ($value -match "[/\\]") { return $true }
-    if ($value -match "\.[A-Za-z0-9]{1,10}([#?].*)?$") { return $true }
-    if ($value -match "^(\.github|\.codex|prompts|chatmodes|schemas|scripts|src|templates)/") { return $true }
+    if ($value.StartsWith('./') -or $value.StartsWith('../') -or $value.StartsWith('/')) { return $true }
+    if ($value -match '[/\\]') { return $true }
+    if ($value -match '\.[A-Za-z0-9]{1,10}([#?].*)?$') { return $true }
+    if ($value -match '^(\.github|\.codex|prompts|chatmodes|schemas|scripts|src|templates)/') { return $true }
 
     return $false
 }
 
 function Resolve-MarkdownTarget {
     param(
-        [Parameter(Mandatory = $true)][string]$SourceFilePath,
-        [Parameter(Mandatory = $true)][string]$Target
+        [string] $SourceFilePath,
+        [string] $Target,
+        [string] $Root
     )
 
-    $pathPart = $Target.Split("#")[0].Split("?")[0].Trim()
+    $pathPart = $Target.Split('#')[0].Split('?')[0].Trim()
     if ([string]::IsNullOrWhiteSpace($pathPart)) {
         return $null
     }
 
-    if ($pathPart.StartsWith("/")) {
-        $relative = $pathPart.TrimStart("/", "\")
-        return [System.IO.Path]::GetFullPath((Join-Path $RepoRoot $relative))
+    if ($pathPart.StartsWith('/')) {
+        $relative = $pathPart.TrimStart('/', '\')
+        return [System.IO.Path]::GetFullPath((Join-Path $Root $relative))
     }
 
     if ([System.IO.Path]::IsPathRooted($pathPart)) {
@@ -73,189 +167,253 @@ function Resolve-MarkdownTarget {
     return [System.IO.Path]::GetFullPath((Join-Path $sourceDir $pathPart))
 }
 
-function Get-MarkdownTargets {
-    param([Parameter(Mandatory = $true)][string]$Path)
+function Get-MarkdownLinkTargets {
+    param(
+        [string] $Path
+    )
 
-    $content = Get-Content -Raw -Path $Path
-    $matches = [regex]::Matches($content, "\[[^\]]+\]\(([^)]+)\)")
+    $content = Get-Content -Raw -LiteralPath $Path
+    $matches = [regex]::Matches($content, '\[[^\]]+\]\(([^)]+)\)')
     $targets = New-Object System.Collections.Generic.List[string]
 
     foreach ($match in $matches) {
         $raw = $match.Groups[1].Value.Trim()
-        if ([string]::IsNullOrWhiteSpace($raw)) { continue }
-
-        if ($raw.StartsWith("<") -and $raw.EndsWith(">")) {
-            $raw = $raw.TrimStart("<").TrimEnd(">")
+        if ([string]::IsNullOrWhiteSpace($raw)) {
+            continue
         }
 
-        # Remove optional markdown title: path "title"
-        if ($raw -match '^(?<path>\S+)\s+(?:"[^"]*"|''[^'']*'')$') {
-            $raw = $Matches["path"]
+        if ($raw.StartsWith('<') -and $raw.EndsWith('>')) {
+            $raw = $raw.TrimStart('<').TrimEnd('>')
         }
 
-        $targets.Add($raw)
+        $titleMatch = [regex]::Match($raw, '^(?<path>\S+)\s+(?:"[^"]*"|''[^'']*'')$')
+        if ($titleMatch.Success) {
+            $raw = $titleMatch.Groups['path'].Value
+        }
+
+        $targets.Add($raw) | Out-Null
     }
 
     return $targets
 }
 
 function Test-JsonFile {
-    param([Parameter(Mandatory = $true)][string]$Path)
+    param(
+        [string] $Root,
+        [string] $Path
+    )
 
-    $absolute = Resolve-FromRepo -Path $Path
-    if (!(Test-Path $absolute)) {
-        Add-Failure "Missing JSON file: $Path"
+    $absolute = Resolve-RepoPath -Root $Root -Path $Path
+    if (-not (Test-Path -LiteralPath $absolute)) {
+        Add-ValidationFailure "Missing JSON file: $Path"
         return $null
     }
 
     try {
-        $obj = Get-Content -Raw -Path $absolute | ConvertFrom-Json -Depth 100
-        Write-Host "[OK] JSON parse: $Path" -ForegroundColor Green
-        return $obj
-    } catch {
-        Add-Failure "Invalid JSON in $Path :: $($_.Exception.Message)"
+        $json = Get-Content -Raw -LiteralPath $absolute | ConvertFrom-Json -Depth 100
+        Write-Host ("[OK] JSON parse: {0}" -f $Path) -ForegroundColor Green
+        return $json
+    }
+    catch {
+        Add-ValidationFailure ("Invalid JSON in {0} :: {1}" -f $Path, $_.Exception.Message)
         return $null
     }
 }
 
-if (!(Test-Path $RepoRoot)) {
-    throw "Repo root not found: $RepoRoot"
-}
+function Test-RequiredFiles {
+    param(
+        [string] $Root,
+        [string[]] $RequiredFiles
+    )
 
-$requiredFiles = @(
-    ".github/AGENTS.md",
-    ".github/copilot-instructions.md",
-    ".github/instruction-routing.catalog.yml",
-    ".github/prompts/route-instructions.prompt.md",
-    ".github/schemas/instruction-routing.catalog.schema.json"
-)
+    foreach ($required in $RequiredFiles) {
+        $absolute = Resolve-RepoPath -Root $Root -Path $required
+        if (-not (Test-Path -LiteralPath $absolute)) {
+            Add-ValidationFailure "Required file not found: $required"
+            continue
+        }
 
-foreach ($required in $requiredFiles) {
-    $absolute = Resolve-FromRepo -Path $required
-    if (!(Test-Path $absolute)) {
-        Add-Failure "Required file not found: $required"
-    } else {
-        Write-Host "[OK] Required file: $required" -ForegroundColor Green
+        Write-Host ("[OK] Required file: {0}" -f $required) -ForegroundColor Green
     }
 }
 
-$catalogPath = Resolve-FromRepo -Path ".github/instruction-routing.catalog.yml"
-if (Test-Path $catalogPath) {
-    $catalogLines = Get-Content -Path $catalogPath
+function Test-CatalogPaths {
+    param(
+        [string] $Root,
+        [string] $CatalogRelativePath
+    )
+
+    $catalogPath = Resolve-RepoPath -Root $Root -Path $CatalogRelativePath
+    if (-not (Test-Path -LiteralPath $catalogPath)) {
+        return
+    }
+
+    $catalogLines = Get-Content -LiteralPath $catalogPath
     $catalogPaths = New-Object System.Collections.Generic.List[string]
+
     foreach ($line in $catalogLines) {
-        if ($line -match "^\s*-\s*path:\s*(?<value>.+?)\s*$" -or $line -match "^\s*path:\s*(?<value>.+?)\s*$") {
-            $pathValue = $Matches["value"].Trim().Trim("'").Trim('"')
-            if (![string]::IsNullOrWhiteSpace($pathValue)) {
-                $catalogPaths.Add($pathValue)
-            }
+        $pathMatch = [regex]::Match($line, '^\s*-\s*path:\s*(?<value>.+?)\s*$')
+        if (-not $pathMatch.Success) {
+            $pathMatch = [regex]::Match($line, '^\s*path:\s*(?<value>.+?)\s*$')
+        }
+
+        if (-not $pathMatch.Success) {
+            continue
+        }
+
+        $pathValue = $pathMatch.Groups['value'].Value.Trim().Trim("'").Trim('"')
+        if (-not [string]::IsNullOrWhiteSpace($pathValue)) {
+            $catalogPaths.Add($pathValue) | Out-Null
         }
     }
 
     if ($catalogPaths.Count -eq 0) {
-        Add-Failure "No path entries found in instruction-routing.catalog.yml"
-    } else {
-        $catalogDir = Split-Path -Parent $catalogPath
-        foreach ($entry in ($catalogPaths | Select-Object -Unique)) {
-            if ([System.IO.Path]::IsPathRooted($entry)) {
-                $absolute = [System.IO.Path]::GetFullPath($entry)
-            } else {
-                $absolute = [System.IO.Path]::GetFullPath((Join-Path $catalogDir $entry))
-            }
-            if (!(Test-Path $absolute)) {
-                Add-Failure "Catalog path not found: $entry"
-            }
-        }
-        Write-Host "[OK] Catalog paths checked: $($catalogPaths.Count)" -ForegroundColor Green
+        Add-ValidationFailure 'No path entries found in instruction-routing.catalog.yml'
+        return
     }
-}
 
-$schema = Test-JsonFile -Path ".github/schemas/instruction-routing.catalog.schema.json"
-if ($null -ne $schema) {
-    foreach ($prop in @("`$schema", "title", "type", "properties")) {
-        if ($null -eq $schema.$prop) {
-            Add-Failure "Schema missing expected property: $prop"
+    $catalogDir = Split-Path -Parent $catalogPath
+    foreach ($entry in ($catalogPaths | Select-Object -Unique)) {
+        $absolute = $null
+        if ([System.IO.Path]::IsPathRooted($entry)) {
+            $absolute = [System.IO.Path]::GetFullPath($entry)
+        }
+        else {
+            $absolute = [System.IO.Path]::GetFullPath((Join-Path $catalogDir $entry))
+        }
+
+        if (-not (Test-Path -LiteralPath $absolute)) {
+            Add-ValidationFailure ("Catalog path not found: {0}" -f $entry)
         }
     }
+
+    Write-Host ("[OK] Catalog paths checked: {0}" -f $catalogPaths.Count) -ForegroundColor Green
 }
 
-$manifest = Test-JsonFile -Path ".codex/mcp/servers.manifest.json"
-if ($null -ne $manifest) {
-    if ($null -eq $manifest.servers -or @($manifest.servers).Count -eq 0) {
-        Add-Failure "MCP manifest must contain at least one server."
-    }
-}
+function Get-MarkdownFilesForValidation {
+    param(
+        [string] $Root
+    )
 
-[void](Test-JsonFile -Path ".vscode/snippets/codex-cli.code-snippets")
-[void](Test-JsonFile -Path ".vscode/snippets/copilot.code-snippets")
+    $markdownFiles = New-Object System.Collections.Generic.HashSet[string]([System.StringComparer]::OrdinalIgnoreCase)
 
-$markdownFiles = New-Object System.Collections.Generic.HashSet[string]([System.StringComparer]::OrdinalIgnoreCase)
+    $explicitMarkdown = @(
+        'README.md',
+        'scripts/README.md',
+        '.github/AGENTS.md',
+        '.github/copilot-instructions.md',
+        '.codex/README.md',
+        '.codex/mcp/README.md',
+        '.codex/scripts/README.md',
+        '.codex/skills/README.md'
+    )
 
-$explicitMarkdown = @(
-    "README.md",
-    "scripts/README.md",
-    ".github/AGENTS.md",
-    ".github/copilot-instructions.md",
-    ".codex/README.md",
-    ".codex/mcp/README.md",
-    ".codex/scripts/README.md",
-    ".codex/skills/README.md"
-)
-
-foreach ($relative in $explicitMarkdown) {
-    $absolute = Resolve-FromRepo -Path $relative
-    if (Test-Path $absolute) {
-        [void]$markdownFiles.Add($absolute)
-    } else {
-        Add-Warning "Skipping missing markdown file in set: $relative"
-    }
-}
-
-$markdownFolders = @(
-    ".github/instructions",
-    ".github/chatmodes",
-    ".github/prompts",
-    ".codex/skills"
-)
-
-foreach ($folder in $markdownFolders) {
-    $absoluteFolder = Resolve-FromRepo -Path $folder
-    if (!(Test-Path $absoluteFolder)) {
-        Add-Warning "Skipping missing markdown folder: $folder"
-        continue
+    foreach ($relative in $explicitMarkdown) {
+        $absolute = Resolve-RepoPath -Root $Root -Path $relative
+        if (Test-Path -LiteralPath $absolute) {
+            $markdownFiles.Add($absolute) | Out-Null
+        }
+        else {
+            Add-ValidationWarning "Skipping missing markdown file in set: $relative"
+        }
     }
 
-    Get-ChildItem -Path $absoluteFolder -Recurse -File -Filter "*.md" | ForEach-Object {
-        [void]$markdownFiles.Add($_.FullName)
-    }
-}
+    $markdownFolders = @(
+        '.github/instructions',
+        '.github/chatmodes',
+        '.github/prompts',
+        '.codex/skills'
+    )
 
-$checkedLinks = 0
-foreach ($file in ($markdownFiles | Sort-Object)) {
-    foreach ($target in (Get-MarkdownTargets -Path $file)) {
-        if (!(Should-ValidateLinkTarget -Target $target)) {
+    foreach ($folder in $markdownFolders) {
+        $absoluteFolder = Resolve-RepoPath -Root $Root -Path $folder
+        if (-not (Test-Path -LiteralPath $absoluteFolder)) {
+            Add-ValidationWarning "Skipping missing markdown folder: $folder"
             continue
         }
 
-        $checkedLinks++
-        $resolved = Resolve-MarkdownTarget -SourceFilePath $file -Target $target
-        if ($null -eq $resolved -or !(Test-Path $resolved)) {
-            $relativeFile = [System.IO.Path]::GetRelativePath($RepoRoot, $file)
-            Add-Failure "Broken markdown link in $relativeFile -> $target"
+        Get-ChildItem -LiteralPath $absoluteFolder -Recurse -File -Filter '*.md' | ForEach-Object {
+            $markdownFiles.Add($_.FullName) | Out-Null
+        }
+    }
+
+    return $markdownFiles
+}
+
+function Test-MarkdownLinks {
+    param(
+        [string] $Root,
+        [System.Collections.Generic.HashSet[string]] $MarkdownFiles
+    )
+
+    $checkedLinks = 0
+
+    foreach ($file in ($MarkdownFiles | Sort-Object)) {
+        foreach ($target in (Get-MarkdownLinkTargets -Path $file)) {
+            if (-not (Should-ValidateLinkTarget -Target $target)) {
+                continue
+            }
+
+            $checkedLinks++
+            $resolved = Resolve-MarkdownTarget -SourceFilePath $file -Target $target -Root $Root
+            if ($null -eq $resolved -or -not (Test-Path -LiteralPath $resolved)) {
+                $relativeFile = [System.IO.Path]::GetRelativePath($Root, $file)
+                Add-ValidationFailure ("Broken markdown link in {0} -> {1}" -f $relativeFile, $target)
+            }
+        }
+    }
+
+    return $checkedLinks
+}
+
+# -------------------------------
+# Main execution
+# -------------------------------
+$resolvedRepoRoot = Set-CorrectWorkingDirectory -RequestedRoot $RepoRoot
+
+$requiredFiles = @(
+    '.github/AGENTS.md',
+    '.github/copilot-instructions.md',
+    '.github/instruction-routing.catalog.yml',
+    '.github/prompts/route-instructions.prompt.md',
+    '.github/schemas/instruction-routing.catalog.schema.json'
+)
+
+Test-RequiredFiles -Root $resolvedRepoRoot -RequiredFiles $requiredFiles
+Test-CatalogPaths -Root $resolvedRepoRoot -CatalogRelativePath '.github/instruction-routing.catalog.yml'
+
+$schema = Test-JsonFile -Root $resolvedRepoRoot -Path '.github/schemas/instruction-routing.catalog.schema.json'
+if ($null -ne $schema) {
+    foreach ($property in @('$schema', 'title', 'type', 'properties')) {
+        if ($null -eq $schema.$property) {
+            Add-ValidationFailure ("Schema missing expected property: {0}" -f $property)
         }
     }
 }
 
-Write-Host ""
-Write-Host "Validation summary" -ForegroundColor Cyan
-Write-Host "  Markdown files checked: $($markdownFiles.Count)"
-Write-Host "  Markdown links checked: $checkedLinks"
-Write-Host "  Warnings: $($warnings.Count)"
-Write-Host "  Failures: $($failures.Count)"
+$manifest = Test-JsonFile -Root $resolvedRepoRoot -Path '.codex/mcp/servers.manifest.json'
+if ($null -ne $manifest) {
+    if ($null -eq $manifest.servers -or @($manifest.servers).Count -eq 0) {
+        Add-ValidationFailure 'MCP manifest must contain at least one server.'
+    }
+}
 
-if ($failures.Count -gt 0) {
+[void](Test-JsonFile -Root $resolvedRepoRoot -Path '.vscode/snippets/codex-cli.code-snippets')
+[void](Test-JsonFile -Root $resolvedRepoRoot -Path '.vscode/snippets/copilot.code-snippets')
+
+$markdownFiles = Get-MarkdownFilesForValidation -Root $resolvedRepoRoot
+$checkedLinks = Test-MarkdownLinks -Root $resolvedRepoRoot -MarkdownFiles $markdownFiles
+
+Write-Host ''
+Write-Host 'Validation summary' -ForegroundColor Cyan
+Write-Host ("  Markdown files checked: {0}" -f $markdownFiles.Count)
+Write-Host ("  Markdown links checked: {0}" -f $checkedLinks)
+Write-Host ("  Warnings: {0}" -f $script:Warnings.Count)
+Write-Host ("  Failures: {0}" -f $script:Failures.Count)
+
+if ($script:Failures.Count -gt 0) {
     exit 1
 }
 
-Write-Host "All instruction validations passed." -ForegroundColor Green
+Write-Host 'All instruction validations passed.' -ForegroundColor Green
 exit 0

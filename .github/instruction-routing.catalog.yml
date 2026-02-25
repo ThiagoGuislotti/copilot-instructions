@@ -286,6 +286,8 @@ routing:
     include:
       - path: instructions/powershell-execution.instructions.md
         reason: PowerShell execution safety and conventions
+      - path: instructions/powershell-script-creation.instructions.md
+        reason: PowerShell script authoring standards for scripts/*
 
 prompts:
   - id: route-instructions
