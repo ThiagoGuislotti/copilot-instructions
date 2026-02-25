@@ -25,7 +25,7 @@
     pwsh -File scripts/validation/validate-instructions.ps1 -Verbose
 
 .NOTES
-    Version: 1.3
+    Version: 1.4
     Requirements: PowerShell 7+.
 #>
 
@@ -218,6 +218,93 @@ function Test-JsonFile {
     catch {
         Add-ValidationFailure ("Invalid JSON in {0} :: {1}" -f $Path, $_.Exception.Message)
         return $null
+    }
+}
+
+function Get-StringValuesFromObject {
+    param(
+        [object] $InputObject,
+        [System.Collections.Generic.List[string]] $Collector
+    )
+
+    if ($null -eq $InputObject) {
+        return
+    }
+
+    if ($InputObject -is [string]) {
+        $Collector.Add($InputObject) | Out-Null
+        return
+    }
+
+    if ($InputObject -is [System.Collections.IDictionary]) {
+        foreach ($key in $InputObject.Keys) {
+            Get-StringValuesFromObject -InputObject $InputObject[$key] -Collector $Collector
+        }
+        return
+    }
+
+    if (($InputObject -is [System.Collections.IEnumerable]) -and (-not ($InputObject -is [string]))) {
+        foreach ($item in $InputObject) {
+            Get-StringValuesFromObject -InputObject $item -Collector $Collector
+        }
+        return
+    }
+
+    foreach ($property in $InputObject.PSObject.Properties) {
+        Get-StringValuesFromObject -InputObject $property.Value -Collector $Collector
+    }
+}
+
+function Get-SnippetPathCandidates {
+    param(
+        [string] $Text
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Text)) {
+        return @()
+    }
+
+    $matches = [regex]::Matches($Text, '(?<path>\.(?:github|codex|vscode)/[A-Za-z0-9._\-/]+)')
+    $paths = New-Object System.Collections.Generic.HashSet[string]([System.StringComparer]::OrdinalIgnoreCase)
+
+    foreach ($match in $matches) {
+        $path = $match.Groups['path'].Value.Trim()
+        if (-not [string]::IsNullOrWhiteSpace($path)) {
+            $paths.Add($path) | Out-Null
+        }
+    }
+
+    return @($paths)
+}
+
+function Test-SnippetReferences {
+    param(
+        [string] $Root,
+        [hashtable] $SnippetFiles
+    )
+
+    foreach ($relativePath in ($SnippetFiles.Keys | Sort-Object)) {
+        $snippetObject = $SnippetFiles[$relativePath]
+        if ($null -eq $snippetObject) {
+            continue
+        }
+
+        $stringValues = New-Object System.Collections.Generic.List[string]
+        Get-StringValuesFromObject -InputObject $snippetObject -Collector $stringValues
+
+        $pathsInFile = New-Object System.Collections.Generic.HashSet[string]([System.StringComparer]::OrdinalIgnoreCase)
+        foreach ($value in $stringValues) {
+            foreach ($candidate in (Get-SnippetPathCandidates -Text $value)) {
+                $pathsInFile.Add($candidate) | Out-Null
+            }
+        }
+
+        foreach ($candidatePath in ($pathsInFile | Sort-Object)) {
+            $resolved = Resolve-RepoPath -Root $Root -Path $candidatePath
+            if (-not (Test-Path -LiteralPath $resolved)) {
+                Add-ValidationFailure ("Broken snippet path in {0} -> {1}" -f $relativePath, $candidatePath)
+            }
+        }
     }
 }
 
@@ -672,8 +759,8 @@ if ($null -ne $manifest) {
     }
 }
 
-[void](Test-JsonFile -Root $resolvedRepoRoot -Path '.vscode/snippets/codex-cli.code-snippets')
-[void](Test-JsonFile -Root $resolvedRepoRoot -Path '.vscode/snippets/copilot.code-snippets')
+$codexCliSnippets = Test-JsonFile -Root $resolvedRepoRoot -Path '.vscode/snippets/codex-cli.code-snippets'
+$copilotSnippets = Test-JsonFile -Root $resolvedRepoRoot -Path '.vscode/snippets/copilot.code-snippets'
 $vscodeSettings = Test-JsonFile -Root $resolvedRepoRoot -Path '.vscode/settings.tamplate.jsonc'
 $vscodeMcp = Test-JsonFile -Root $resolvedRepoRoot -Path '.vscode/mcp.tamplate.jsonc'
 
@@ -684,6 +771,10 @@ if ($null -ne $vscodeMcp) {
 }
 
 Test-VscodeSettingsReferences -Root $resolvedRepoRoot -Settings $vscodeSettings
+Test-SnippetReferences -Root $resolvedRepoRoot -SnippetFiles @{
+    '.vscode/snippets/codex-cli.code-snippets' = $codexCliSnippets
+    '.vscode/snippets/copilot.code-snippets' = $copilotSnippets
+}
 
 $skillStats = Test-SkillDefinitions -Root $resolvedRepoRoot
 $markdownFiles = Get-MarkdownFilesForValidation -Root $resolvedRepoRoot

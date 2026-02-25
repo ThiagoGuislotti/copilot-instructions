@@ -77,6 +77,12 @@ pwsh -File .\scripts\runtime\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
 
 This syncs versioned `.github/` and `.codex/` assets into your local runtime paths (`~/.github` and `~/.codex`).
 
+To apply active VS Code workspace files from templates:
+
+```powershell
+pwsh -File .\scripts\runtime\apply-vscode-templates.ps1 -Force
+```
+
 ---
 
 ## Git Hooks
@@ -99,6 +105,16 @@ pwsh -File .\scripts\git-hooks\setup-git-hooks.ps1
 
 - Runs `scripts/runtime/bootstrap.ps1` (best effort) to sync `~/.github` and `~/.codex`
 - If `.codex/mcp/servers.manifest.json` changed in `HEAD`, can optionally apply MCP config
+
+### post-merge
+
+- Runs `scripts/validation/validate-instructions.ps1` (validation-only)
+- Does not run runtime sync
+
+### post-checkout
+
+- Runs `scripts/validation/validate-instructions.ps1` (validation-only)
+- Does not run runtime sync
 
 Environment variables:
 - `CODEX_SKIP_POST_COMMIT_SYNC=1`: skip runtime sync

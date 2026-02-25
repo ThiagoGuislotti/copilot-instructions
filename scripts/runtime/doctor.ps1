@@ -46,7 +46,7 @@
     pwsh -File scripts/runtime/doctor.ps1 -SyncOnDrift
 
 .NOTES
-    Version: 1.0
+    Version: 1.1
     Requirements: PowerShell 7+.
 #>
 
@@ -257,6 +257,14 @@ function Invoke-Doctor {
     return $reports
 }
 
+function Test-HasExtraRuntimeFiles {
+    param(
+        [object[]] $Reports
+    )
+
+    return @($Reports | Where-Object { @($_.ExtraInRuntime).Count -gt 0 }).Count -gt 0
+}
+
 $resolvedRepoRoot = Set-CorrectWorkingDirectory -RequestedRoot $RepoRoot
 Write-Host 'Runtime doctor report' -ForegroundColor Cyan
 Write-Host ("  repo root: {0}" -f $resolvedRepoRoot)
@@ -267,6 +275,7 @@ foreach ($report in $reports) {
 }
 
 $hasDrift = @($reports | Where-Object { -not $_.IsHealthy }).Count -gt 0
+$hasExtras = Test-HasExtraRuntimeFiles -Reports $reports
 
 if ($hasDrift -and $SyncOnDrift) {
     Write-Host 'Drift detected. Running bootstrap sync...' -ForegroundColor Yellow
@@ -281,12 +290,27 @@ if ($hasDrift -and $SyncOnDrift) {
         Write-MappingReport -Report $report
     }
     $hasDrift = @($reports | Where-Object { -not $_.IsHealthy }).Count -gt 0
+    $hasExtras = Test-HasExtraRuntimeFiles -Reports $reports
 }
 
 Write-Host ''
-$statusText = if ($hasDrift) { 'detected' } else { 'clean' }
-$statusColor = if ($hasDrift) { 'Yellow' } else { 'Green' }
+$statusText = if ($hasDrift) {
+    'detected'
+}
+elseif ($hasExtras) {
+    'clean-with-extras'
+}
+else {
+    'clean'
+}
+
+$statusColor = if ($hasDrift -or $hasExtras) { 'Yellow' } else { 'Green' }
 Write-Host ("Drift status: {0}" -f $statusText) -ForegroundColor $statusColor
+
+if ($hasExtras -and (-not $StrictExtras)) {
+    Write-Host 'Runtime has extra files not tracked by source mappings.' -ForegroundColor Yellow
+    Write-Host 'Use -Detailed to inspect extras and -StrictExtras to fail on extras.'
+}
 
 if ($hasDrift) {
     exit 1

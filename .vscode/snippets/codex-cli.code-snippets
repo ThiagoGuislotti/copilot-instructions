@@ -104,7 +104,7 @@
         "prefix": "codexprompt",
         "description": "Create/update prompt templates per prompt-templates.instructions.md",
         "body": [
-            "codex \"Prompt template task: ${1:short description}; Follow .github/instructions/prompt-templates.instructions.md; Use templates under .github/templates/; provide Context | Objective | Requirements | Acceptance | Expected output; File ${2:.github/templates/new-template.md}; no trailing blank line\"$3 ;exit"
+            "codex \"Prompt template task: ${1:short description}; Follow .github/instructions/prompt-templates.instructions.md; Use templates under .github/templates/; provide Context | Objective | Requirements | Acceptance | Expected output; File ${2:.github/templates/changelog-entry-template.md}; no trailing blank line\"$3 ;exit"
         ]
     },
     "Codex K8s Task": {

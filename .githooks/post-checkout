@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+set -eu
+
+# Resolve repository root independently of caller directory.
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$REPO_ROOT"
+
+echo "[post-checkout] Running instruction validation..."
+
+# Validate instruction/routing/skills contracts after checkout/switch.
+if command -v pwsh >/dev/null 2>&1; then
+  pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-instructions.ps1
+  exit $?
+fi
+
+# Windows PowerShell fallback.
+if command -v powershell >/dev/null 2>&1; then
+  powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\validation\\validate-instructions.ps1
+  exit $?
+fi
+
+echo "[post-checkout] PowerShell not found. Install pwsh to run instruction validation." >&2
+exit 1

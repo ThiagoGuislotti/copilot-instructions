@@ -46,6 +46,7 @@ Regenerate MCP template from the shared manifest:
 
 ```powershell
 pwsh -File .\.codex\scripts\render-vscode-mcp.ps1 -OutputPath .\.vscode\mcp.tamplate.jsonc
+pwsh -File .\scripts\runtime\apply-vscode-templates.ps1
 ```
 
 ---
@@ -64,6 +65,12 @@ pwsh -File .\scripts\validation\validate-instructions.ps1
 Get-ChildItem .\.vscode\snippets\*.code-snippets
 ```
 
+### Example 3: Apply active VS Code files from templates
+
+```powershell
+pwsh -File .\scripts\runtime\apply-vscode-templates.ps1 -Force
+```
+
 ---
 
 ## API Reference
@@ -72,6 +79,7 @@ Get-ChildItem .\.vscode\snippets\*.code-snippets
 - `mcp.tamplate.jsonc`: base VS Code MCP servers map derived from `.codex/mcp/servers.manifest.json`.
 - `snippets/codex-cli.code-snippets`: Codex CLI prompt/snippet catalog.
 - `snippets/copilot.code-snippets`: Copilot chat and workflow snippets.
+- `scripts/runtime/apply-vscode-templates.ps1`: applies templates into active `settings.json` and `mcp.json`.
 
 ---
 
@@ -85,9 +93,10 @@ pwsh -File .\scripts\validation\validate-instructions.ps1
 
 ## Contributing
 
-- Keep template files valid JSON.
+- Keep template files valid JSON/JSONC.
 - Do not commit active `settings.json` or `mcp.json`.
 - When MCP servers change, regenerate `mcp.tamplate.jsonc` from manifest.
+- Apply templates locally when needed with `scripts/runtime/apply-vscode-templates.ps1`.
 
 ---
 
@@ -102,4 +111,5 @@ pwsh -File .\scripts\validation\validate-instructions.ps1
 
 - `.codex/mcp/servers.manifest.json`
 - `.codex/scripts/render-vscode-mcp.ps1`
+- `scripts/runtime/apply-vscode-templates.ps1`
 - `scripts/validation/validate-instructions.ps1`
