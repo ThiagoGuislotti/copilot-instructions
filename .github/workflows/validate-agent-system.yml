@@ -20,10 +20,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate agent orchestration contracts
+      - name: Run unified validation suite
         shell: pwsh
         run: |
-          pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-agent-orchestration.ps1 `
+          pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-all.ps1 `
             -RepoRoot $PWD
 
       - name: Execute multi-agent pipeline smoke test

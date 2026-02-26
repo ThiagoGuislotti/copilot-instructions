@@ -6,9 +6,10 @@
     Removes transient runtime data under the local Codex home folder:
     - tmp/
     - vendor_imports/
-    - log/ files older than the configured retention window
+    - log/ files older than the configured retention window (based on LastWriteTime)
 
-    Optionally prunes old files under sessions/ using a retention window.
+    Optionally prunes old files under sessions/ using a retention window
+    based on LastWriteTime (last update timestamp).
     Default behavior is preview-only. Use -Apply to perform deletions.
 
 .PARAMETER CodexHome
@@ -18,10 +19,12 @@
     Includes session-file cleanup based on SessionRetentionDays.
 
 .PARAMETER SessionRetentionDays
-    Number of days of session history to keep when IncludeSessions is used.
+    Number of days of session history to keep when IncludeSessions is used
+    (based on LastWriteTime).
 
 .PARAMETER LogRetentionDays
-    Number of days of log history to keep for .codex/log and sandbox.log.
+    Number of days of log history to keep for .codex/log and sandbox.log
+    (based on LastWriteTime).
 
 .PARAMETER Apply
     Executes deletions. When omitted, script runs in preview mode only.
@@ -33,21 +36,21 @@
     pwsh -File scripts/runtime/clean-codex-runtime.ps1
 
 .EXAMPLE
-    pwsh -File scripts/runtime/clean-codex-runtime.ps1 -LogRetentionDays 7
+    pwsh -File scripts/runtime/clean-codex-runtime.ps1 -LogRetentionDays 30
 
 .EXAMPLE
-    pwsh -File scripts/runtime/clean-codex-runtime.ps1 -IncludeSessions -SessionRetentionDays 60 -LogRetentionDays 7 -Apply
+    pwsh -File scripts/runtime/clean-codex-runtime.ps1 -IncludeSessions -SessionRetentionDays 30 -LogRetentionDays 30 -Apply
 
 .NOTES
-    Version: 1.1
+    Version: 1.2
     Requirements: PowerShell 7+.
 #>
 
 param(
     [string] $CodexHome = "$env:USERPROFILE\.codex",
     [switch] $IncludeSessions,
-    [ValidateRange(1, 3650)] [int] $SessionRetentionDays = 90,
-    [ValidateRange(1, 3650)] [int] $LogRetentionDays = 7,
+    [ValidateRange(1, 3650)] [int] $SessionRetentionDays = 30,
+    [ValidateRange(1, 3650)] [int] $LogRetentionDays = 30,
     [switch] $Apply,
     [switch] $DetailedOutput
 )
@@ -268,6 +271,7 @@ Write-Output 'Codex runtime cleanup plan'
 Write-Output ("  CodexHome: {0}" -f $resolvedCodexHome)
 $executionMode = if ($Apply) { 'apply' } else { 'preview' }
 Write-Output ("  Mode: {0}" -f $executionMode)
+Write-Output '  RetentionReference: LastWriteTime'
 Write-Output ("  LogRetentionDays: {0}" -f $LogRetentionDays)
 Write-Output ("  IncludeSessions: {0}" -f [bool] $IncludeSessions)
 if ($IncludeSessions) {

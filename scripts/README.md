@@ -19,6 +19,7 @@ This folder centralizes operational scripts used by this repository. It includes
 - ✅ Multi-agent contract and orchestration validation
 - ✅ Multi-agent pipeline runner with guardrails and deterministic stage handoffs
 - ✅ Release governance checks (CODEOWNERS, changelog contracts, branch-protection baseline)
+- ✅ Unified validation suite runner (`validate-all`) for local hooks and CI
 - ✅ Healthcheck and self-heal flows with JSON reports and execution logs
 
 ---
@@ -147,6 +148,12 @@ Runtime-sensitive files such as `~/.codex/auth.json`, `~/.codex/sessions/`, and 
 | `validation/validate-agent-orchestration.ps1` | Validates multi-agent contracts (`.codex/orchestration/*`) against schemas and cross-file integrity rules. | `pwsh -File scripts/validation/validate-agent-orchestration.ps1` |
 | `validation/validate-policy.ps1` | Validates policy contracts declared in `.github/policies/*.json` (required files/directories/hooks). | `pwsh -File scripts/validation/validate-policy.ps1` |
 | `validation/validate-release-governance.ps1` | Validates release-governance baseline (`CHANGELOG`, `CODEOWNERS`, branch-protection baseline, governance docs). | `pwsh -File scripts/validation/validate-release-governance.ps1` |
+| `validation/validate-readme-standards.ps1` | Validates README structure/formatting using `.github/governance/readme-standards.baseline.json`. | `pwsh -File scripts/validation/validate-readme-standards.ps1` |
+| `validation/validate-powershell-standards.ps1` | Validates script standards for PowerShell files (help, param block, function docs, approved verbs). | `pwsh -File scripts/validation/validate-powershell-standards.ps1` |
+| `validation/validate-dotnet-standards.ps1` | Validates .NET template standards under `.github/templates/*.cs`. | `pwsh -File scripts/validation/validate-dotnet-standards.ps1` |
+| `validation/validate-architecture-boundaries.ps1` | Validates architecture boundaries from `.github/governance/architecture-boundaries.baseline.json`. | `pwsh -File scripts/validation/validate-architecture-boundaries.ps1` |
+| `validation/validate-instruction-metadata.ps1` | Validates frontmatter metadata for `.github/instructions`, `.github/prompts`, and `.github/chatmodes`. | `pwsh -File scripts/validation/validate-instruction-metadata.ps1` |
+| `validation/validate-all.ps1` | Runs the complete validation suite in deterministic order with a single command. | `pwsh -File scripts/validation/validate-all.ps1` |
 | `validation/export-audit-report.ps1` | Runs health baseline and exports consolidated JSON audit report with git metadata and policy inventory. | `pwsh -File scripts/validation/export-audit-report.ps1` |
 | `validation/test-routing-selection.ps1` | Runs deterministic golden tests for static routing behavior based on catalog + fixtures. | `pwsh -File scripts/validation/test-routing-selection.ps1` |
 | `governance/set-branch-protection.ps1` | Validates or applies branch protection from `.github/governance/branch-protection.baseline.json` using GitHub CLI. | `pwsh -File scripts/governance/set-branch-protection.ps1 -Apply` |
@@ -156,7 +163,7 @@ Runtime-sensitive files such as `~/.codex/auth.json`, `~/.codex/sessions/`, and 
 | `runtime/healthcheck.ps1` | Executes end-to-end validation (`validate-instructions`, `validate-policy`, `validate-agent-orchestration`, `validate-release-governance`, `doctor`) and writes log/report artifacts. | `pwsh -File scripts/runtime/healthcheck.ps1 -StrictExtras` |
 | `runtime/self-heal.ps1` | Runs controlled repair flow (bootstrap + optional templates) and validates final state via healthcheck. | `pwsh -File scripts/runtime/self-heal.ps1 -Mirror -StrictExtras` |
 | `runtime/run-agent-pipeline.ps1` | Executes default multi-agent pipeline with blocked-command, allowed-path, and budget guardrails; writes run artifacts under `.temp/runs/<traceId>/`. | `pwsh -File scripts/runtime/run-agent-pipeline.ps1 -RequestText "Implement and validate change"` |
-| `runtime/clean-codex-runtime.ps1` | Cleans local Codex runtime garbage (`tmp`, `vendor_imports`) and prunes `log` files older than retention (default 7 days); optionally prunes old `sessions`. | `pwsh -File scripts/runtime/clean-codex-runtime.ps1 -IncludeSessions -SessionRetentionDays 60 -LogRetentionDays 7 -Apply` |
+| `runtime/clean-codex-runtime.ps1` | Cleans local Codex runtime garbage (`tmp`, `vendor_imports`) and prunes `log`/`sessions` files older than retention using `LastWriteTime` (default 30 days). | `pwsh -File scripts/runtime/clean-codex-runtime.ps1 -IncludeSessions -SessionRetentionDays 30 -LogRetentionDays 30 -Apply` |
 | `orchestration/stages/*.ps1` | Stage executors (`plan`, `implement`, `validate`, `review`) consumed by `run-agent-pipeline.ps1`. | `pwsh -File scripts/runtime/run-agent-pipeline.ps1 -RequestText "Smoke run"` |
 | `maintenance/clean-build-artifacts.ps1` | Deletes `.build`, `.deployment`, `bin`, and `obj` directories. Supports dry-run and prompts for confirmation. | `pwsh -File scripts/maintenance/clean-build-artifacts.ps1 -DryRun` |
 | `maintenance/generate-http-from-openapi.ps1` | Generates a REST Client .http file from OpenAPI (default) or Swagger JSON. | `pwsh -File scripts/maintenance/generate-http-from-openapi.ps1 -Source http://localhost:5000` |
@@ -191,13 +198,16 @@ pwsh -File .\scripts\runtime\self-heal.ps1 -Mirror -StrictExtras
 pwsh -File .\scripts\runtime\run-agent-pipeline.ps1 -RequestText "Run pipeline smoke test"
 
 # preview/runtime cleanup (no deletion)
-pwsh -File .\scripts\runtime\clean-codex-runtime.ps1 -IncludeSessions -SessionRetentionDays 60 -LogRetentionDays 7
+pwsh -File .\scripts\runtime\clean-codex-runtime.ps1 -IncludeSessions -SessionRetentionDays 30 -LogRetentionDays 30
 
 # apply runtime cleanup and session retention
-pwsh -File .\scripts\runtime\clean-codex-runtime.ps1 -IncludeSessions -SessionRetentionDays 60 -LogRetentionDays 7 -Apply
+pwsh -File .\scripts\runtime\clean-codex-runtime.ps1 -IncludeSessions -SessionRetentionDays 30 -LogRetentionDays 30 -Apply
 
 # validate instruction assets and static routing references
 pwsh -File .\scripts\validation\validate-instructions.ps1
+
+# run full validation suite (hooks baseline)
+pwsh -File .\scripts\validation\validate-all.ps1
 
 # validate policy contracts
 pwsh -File .\scripts\validation\validate-policy.ps1
@@ -225,17 +235,19 @@ Get-Help .\scripts\runtime\bootstrap.ps1 -Full
 ```
 
 After setup, hooks behavior is:
-- `pre-commit`: runs `validate-instructions` + `validate-policy` + `validate-agent-orchestration` + `validate-release-governance` and blocks commit on failures
+- `pre-commit`: runs `validate-all` and blocks commit on failures
 - `post-commit`: runs `scripts/runtime/bootstrap.ps1 -Mirror` to sync and clean drift in `~/.github` and managed `~/.codex` folders (best effort)
-- `post-commit`: runs `scripts/runtime/clean-codex-runtime.ps1 -LogRetentionDays 7 -Apply` (best effort)
-- `post-merge`: runs `validate-instructions` + `validate-policy` + `validate-agent-orchestration` + `validate-release-governance`
-- `post-merge`: runs `scripts/runtime/clean-codex-runtime.ps1 -LogRetentionDays 7 -Apply` (best effort)
-- `post-checkout`: runs `validate-instructions` + `validate-policy` + `validate-agent-orchestration` + `validate-release-governance` (validation-only)
+- `post-commit`: runs `scripts/runtime/clean-codex-runtime.ps1 -LogRetentionDays 30 -IncludeSessions -SessionRetentionDays 30 -Apply` (best effort)
+- `post-merge`: runs `validate-all`
+- `post-merge`: runs `scripts/runtime/clean-codex-runtime.ps1 -LogRetentionDays 30 -IncludeSessions -SessionRetentionDays 30 -Apply` (best effort)
+- `post-checkout`: runs `validate-all` (validation-only)
 - `post-commit` optional MCP apply on manifest changes: set `CODEX_APPLY_MCP_ON_POST_COMMIT=1`
 - `post-commit` MCP backup control: `CODEX_BACKUP_MCP_CONFIG=1|0` (`1` default)
 - `post-commit` mirror control: `CODEX_POST_COMMIT_MIRROR=0|1` (`1` default)
 - `post-commit` and `post-merge` cleanup bypass: `CODEX_SKIP_RUNTIME_CLEANUP=1`
-- `post-commit` and `post-merge` log retention: `CODEX_LOG_RETENTION_DAYS=<n>` (`7` default)
+- `post-commit` and `post-merge` log retention: `CODEX_LOG_RETENTION_DAYS=<n>` (`30` default, by `LastWriteTime`)
+- `post-commit` and `post-merge` session cleanup toggle: `CODEX_INCLUDE_SESSIONS_CLEANUP=0|1` (`1` default)
+- `post-commit` and `post-merge` session retention: `CODEX_SESSION_RETENTION_DAYS=<n>` (`30` default, by `LastWriteTime`)
 
 To skip sync for a single shell session:
 ```powershell

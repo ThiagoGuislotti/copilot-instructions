@@ -50,7 +50,9 @@ run_sync() {
 # Clean local Codex runtime garbage and keep only recent logs.
 # Controlled by:
 # - CODEX_SKIP_RUNTIME_CLEANUP=1
-# - CODEX_LOG_RETENTION_DAYS=<days> (default 7)
+# - CODEX_LOG_RETENTION_DAYS=<days> (default 30)
+# - CODEX_INCLUDE_SESSIONS_CLEANUP=0|1 (default 1)
+# - CODEX_SESSION_RETENTION_DAYS=<days> (default 30)
 run_runtime_cleanup() {
   cmd="$1"
 
@@ -59,10 +61,17 @@ run_runtime_cleanup() {
     return 0
   fi
 
-  log_retention_days="${CODEX_LOG_RETENTION_DAYS:-7}"
+  log_retention_days="${CODEX_LOG_RETENTION_DAYS:-30}"
+  include_sessions_cleanup="${CODEX_INCLUDE_SESSIONS_CLEANUP:-1}"
+  session_retention_days="${CODEX_SESSION_RETENTION_DAYS:-30}"
   echo "[post-commit] Running runtime cleanup (log retention: ${log_retention_days} days)..."
 
-  if ! "$cmd" -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/runtime/clean-codex-runtime.ps1 -LogRetentionDays "$log_retention_days" -Apply; then
+  cleanup_args="-LogRetentionDays $log_retention_days -Apply"
+  if [ "$include_sessions_cleanup" = "1" ]; then
+    cleanup_args="$cleanup_args -IncludeSessions -SessionRetentionDays $session_retention_days"
+  fi
+
+  if ! "$cmd" -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/runtime/clean-codex-runtime.ps1 $cleanup_args; then
     echo "[post-commit] Warning: runtime cleanup failed." >&2
     return 0
   fi

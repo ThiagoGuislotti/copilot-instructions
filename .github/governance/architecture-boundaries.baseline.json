@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "pipeline-stage-script-boundary",
+      "description": "Pipeline execution scripts must stay within scripts/orchestration/stages.",
+      "severity": "failure",
+      "files": [
+        ".codex/orchestration/pipelines/default.pipeline.json"
+      ],
+      "requiredPatterns": [
+        "\"scriptPath\"\\s*:\\s*\"scripts/orchestration/stages/.+?\\.ps1\""
+      ],
+      "forbiddenPatterns": [
+        "\"scriptPath\"\\s*:\\s*\"scripts/runtime/",
+        "\"scriptPath\"\\s*:\\s*\"scripts/validation/"
+      ]
+    },
+    {
+      "id": "skills-runtime-reference-boundary",
+      "description": "Versioned skill files should not reference temporary runtime mirrors.",
+      "severity": "failure",
+      "files": [
+        ".codex/skills/**/*.md",
+        ".codex/skills/**/*.yaml"
+      ],
+      "forbiddenPatterns": [
+        "\\.temp/runtime/",
+        "C:/Users/.+?/\\.temp/runtime"
+      ]
+    },
+    {
+      "id": "docs-absolute-path-warning",
+      "description": "Documentation should avoid machine-specific absolute paths except controlled runtime examples.",
+      "severity": "warning",
+      "files": [
+        "README.md",
+        "scripts/README.md",
+        ".codex/README.md",
+        ".codex/orchestration/README.md",
+        ".codex/skills/README.md",
+        ".github/**/*.md"
+      ],
+      "forbiddenPatterns": [
+        "C:\\\\Users\\\\[^\\\\]+\\\\",
+        "/Users/[^/]+/",
+        "/home/[^/]+/"
+      ],
+      "allowedPatterns": [
+        "C:/Users/tguis/\\.github",
+        "C:/Users/tguis/\\.codex",
+        "\\$env:USERPROFILE"
+      ]
+    }
+  ]
+}

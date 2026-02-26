@@ -5,23 +5,17 @@ set -eu
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 cd "$REPO_ROOT"
 
-echo "[post-checkout] Running instruction validation..."
+echo "[post-checkout] Running validation suite..."
 
 # Validate instruction/routing/skills contracts after checkout/switch.
 if command -v pwsh >/dev/null 2>&1; then
-  pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-instructions.ps1
-  pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-policy.ps1
-  pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-agent-orchestration.ps1
-  pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-release-governance.ps1
+  pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-all.ps1
   exit $?
 fi
 
 # Windows PowerShell fallback.
 if command -v powershell >/dev/null 2>&1; then
-  powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\validation\\validate-instructions.ps1
-  powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\validation\\validate-policy.ps1
-  powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\validation\\validate-agent-orchestration.ps1
-  powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\validation\\validate-release-governance.ps1
+  powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\validation\\validate-all.ps1
   exit $?
 fi
 

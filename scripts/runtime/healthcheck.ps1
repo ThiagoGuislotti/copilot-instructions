@@ -10,6 +10,11 @@
 
     Checks:
     - scripts/validation/validate-instructions.ps1
+    - scripts/validation/validate-readme-standards.ps1
+    - scripts/validation/validate-powershell-standards.ps1
+    - scripts/validation/validate-dotnet-standards.ps1
+    - scripts/validation/validate-architecture-boundaries.ps1
+    - scripts/validation/validate-instruction-metadata.ps1
     - scripts/validation/validate-policy.ps1
     - scripts/validation/validate-agent-orchestration.ps1
     - scripts/validation/validate-release-governance.ps1
@@ -268,6 +273,11 @@ $checks = New-Object System.Collections.Generic.List[object]
 
 $bootstrapScript = Join-Path $resolvedRepoRoot 'scripts/runtime/bootstrap.ps1'
 $validateInstructionsScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-instructions.ps1'
+$validateReadmeStandardsScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-readme-standards.ps1'
+$validatePowershellStandardsScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-powershell-standards.ps1'
+$validateDotnetStandardsScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-dotnet-standards.ps1'
+$validateArchitectureBoundariesScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-architecture-boundaries.ps1'
+$validateInstructionMetadataScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-instruction-metadata.ps1'
 $validatePolicyScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-policy.ps1'
 $validateAgentOrchestrationScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-agent-orchestration.ps1'
 $validateReleaseGovernanceScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-release-governance.ps1'
@@ -287,6 +297,11 @@ if ($SyncRuntime) {
 }
 
 $checks.Add((Invoke-ScriptCheck -Name 'validate-instructions' -ScriptPath $validateInstructionsScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
+$checks.Add((Invoke-ScriptCheck -Name 'validate-readme-standards' -ScriptPath $validateReadmeStandardsScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
+$checks.Add((Invoke-ScriptCheck -Name 'validate-powershell-standards' -ScriptPath $validatePowershellStandardsScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
+$checks.Add((Invoke-ScriptCheck -Name 'validate-dotnet-standards' -ScriptPath $validateDotnetStandardsScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
+$checks.Add((Invoke-ScriptCheck -Name 'validate-architecture-boundaries' -ScriptPath $validateArchitectureBoundariesScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
+$checks.Add((Invoke-ScriptCheck -Name 'validate-instruction-metadata' -ScriptPath $validateInstructionMetadataScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
 $checks.Add((Invoke-ScriptCheck -Name 'validate-policy' -ScriptPath $validatePolicyScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
 $checks.Add((Invoke-ScriptCheck -Name 'validate-agent-orchestration' -ScriptPath $validateAgentOrchestrationScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
 $checks.Add((Invoke-ScriptCheck -Name 'validate-release-governance' -ScriptPath $validateReleaseGovernanceScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null

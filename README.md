@@ -13,6 +13,7 @@ Structured AI agent guidelines for software development projects. Focuses on rep
 - ✅ **Prompt Templates:** POML-based templates with CoT, SoT, ToT patterns
 - ✅ **Multi-Agent Contracts:** Versioned orchestration manifests, schemas, and runtime artifacts
 - ✅ **Guardrailed Multi-Agent Runner:** Deterministic pipeline execution with handoffs, budgets, and allowed-path enforcement
+- ✅ **Unified Validation Suite:** Single `validate-all` command for hooks/CI governance checks
 
 ---
 
@@ -102,10 +103,7 @@ pwsh -File .\scripts\git-hooks\setup-git-hooks.ps1
 
 ### pre-commit
 
-- Runs `scripts/validation/validate-instructions.ps1`
-- Runs `scripts/validation/validate-policy.ps1`
-- Runs `scripts/validation/validate-agent-orchestration.ps1`
-- Runs `scripts/validation/validate-release-governance.ps1`
+- Runs `scripts/validation/validate-all.ps1`
 - Blocks commit when validation fails
 - Requires `pwsh` or `powershell`
 
@@ -113,23 +111,17 @@ pwsh -File .\scripts\git-hooks\setup-git-hooks.ps1
 
 - Runs `scripts/runtime/bootstrap.ps1 -Mirror` (best effort) to sync and clean drift in `~/.github` and managed `~/.codex` folders
 - If `.codex/mcp/servers.manifest.json` changed in `HEAD`, can optionally apply MCP config
-- Runs `scripts/runtime/clean-codex-runtime.ps1 -LogRetentionDays 7 -Apply` (best effort) to keep runtime garbage cleaned and log retention capped
+- Runs `scripts/runtime/clean-codex-runtime.ps1 -LogRetentionDays 30 -IncludeSessions -SessionRetentionDays 30 -Apply` (best effort) to clean runtime garbage and stale session/history files by **LastWriteTime** (last update)
 
 ### post-merge
 
-- Runs `scripts/validation/validate-instructions.ps1`
-- Runs `scripts/validation/validate-policy.ps1`
-- Runs `scripts/validation/validate-agent-orchestration.ps1`
-- Runs `scripts/validation/validate-release-governance.ps1`
-- Runs `scripts/runtime/clean-codex-runtime.ps1 -LogRetentionDays 7 -Apply` (best effort)
+- Runs `scripts/validation/validate-all.ps1`
+- Runs `scripts/runtime/clean-codex-runtime.ps1 -LogRetentionDays 30 -IncludeSessions -SessionRetentionDays 30 -Apply` (best effort)
 - Does not run runtime sync
 
 ### post-checkout
 
-- Runs `scripts/validation/validate-instructions.ps1` (validation-only)
-- Runs `scripts/validation/validate-policy.ps1` (validation-only)
-- Runs `scripts/validation/validate-agent-orchestration.ps1` (validation-only)
-- Runs `scripts/validation/validate-release-governance.ps1` (validation-only)
+- Runs `scripts/validation/validate-all.ps1` (validation-only)
 - Does not run runtime sync
 
 Environment variables:
@@ -138,13 +130,18 @@ Environment variables:
 - `CODEX_BACKUP_MCP_CONFIG=1|0`: backup control before MCP apply (`1` default)
 - `CODEX_POST_COMMIT_MIRROR=0|1`: controls mirror cleanup on post-commit sync (`1` default)
 - `CODEX_SKIP_RUNTIME_CLEANUP=1`: skip automatic runtime cleanup in `post-commit` and `post-merge`
-- `CODEX_LOG_RETENTION_DAYS=<n>`: log retention window in days for automatic runtime cleanup (`7` default)
+- `CODEX_LOG_RETENTION_DAYS=<n>`: log retention window in days for automatic runtime cleanup (`30` default, by `LastWriteTime`)
+- `CODEX_INCLUDE_SESSIONS_CLEANUP=0|1`: enable cleanup for old session/history files (`1` default)
+- `CODEX_SESSION_RETENTION_DAYS=<n>`: retention window for session/history cleanup (`30` default, by `LastWriteTime`)
 
 ### Enterprise Ops
 
 ```powershell
 # run end-to-end checks and generate .temp/healthcheck-report.json + logs
 pwsh -File .\scripts\runtime\healthcheck.ps1 -StrictExtras
+
+# run full validation suite (instructions, policies, orchestration, docs standards)
+pwsh -File .\scripts\validation\validate-all.ps1
 
 # validate release governance contracts (CHANGELOG + CODEOWNERS + baseline)
 pwsh -File .\scripts\validation\validate-release-governance.ps1
@@ -165,7 +162,7 @@ pwsh -File .\scripts\governance\set-branch-protection.ps1 -Apply
 pwsh -File .\scripts\runtime\self-heal.ps1 -Mirror -StrictExtras
 
 # clean local Codex runtime garbage and prune sessions by retention window
-pwsh -File .\scripts\runtime\clean-codex-runtime.ps1 -IncludeSessions -SessionRetentionDays 60 -LogRetentionDays 7 -Apply
+pwsh -File .\scripts\runtime\clean-codex-runtime.ps1 -IncludeSessions -SessionRetentionDays 30 -LogRetentionDays 30 -Apply
 
 # export consolidated audit report with git metadata and policy inventory
 pwsh -File .\scripts\validation\export-audit-report.ps1 -StrictExtras
