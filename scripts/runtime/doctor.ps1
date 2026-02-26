@@ -8,6 +8,7 @@
     - .codex/skills -> ~/.codex/skills
     - .codex/mcp -> ~/.codex/shared-mcp
     - .codex/scripts -> ~/.codex/shared-scripts
+    - .codex/orchestration -> ~/.codex/shared-orchestration
 
     For each mapping, reports:
     - missing files in runtime
@@ -249,6 +250,12 @@ function Invoke-Doctor {
             Name = '.codex/scripts -> runtime'
             Source = Join-Path $ResolvedRepoRoot '.codex\scripts'
             Target = Join-Path $TargetCodexPath 'shared-scripts'
+            IgnoreExtraPrefixes = @()
+        },
+        [pscustomobject]@{
+            Name = '.codex/orchestration -> runtime'
+            Source = Join-Path $ResolvedRepoRoot '.codex\orchestration'
+            Target = Join-Path $TargetCodexPath 'shared-orchestration'
             IgnoreExtraPrefixes = @()
         }
     )

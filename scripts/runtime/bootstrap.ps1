@@ -8,6 +8,7 @@
     - $env:USERPROFILE\.codex\skills
     - $env:USERPROFILE\.codex\shared-mcp
     - $env:USERPROFILE\.codex\shared-scripts
+    - $env:USERPROFILE\.codex\shared-orchestration
 
     When -ApplyMcpConfig is specified, applies MCP servers from the shared manifest
     into the local Codex config.toml file.
@@ -237,6 +238,7 @@ Invoke-DirectorySync -Source $sourceGithub -Destination $TargetGithubPath -Mirro
 Invoke-DirectorySync -Source (Join-Path $sourceCodex 'skills') -Destination (Join-Path $TargetCodexPath 'skills') -MirrorMode:$Mirror
 Invoke-DirectorySync -Source (Join-Path $sourceCodex 'mcp') -Destination (Join-Path $TargetCodexPath 'shared-mcp') -MirrorMode:$Mirror
 Invoke-DirectorySync -Source (Join-Path $sourceCodex 'scripts') -Destination (Join-Path $TargetCodexPath 'shared-scripts') -MirrorMode:$Mirror
+Invoke-DirectorySync -Source (Join-Path $sourceCodex 'orchestration') -Destination (Join-Path $TargetCodexPath 'shared-orchestration') -MirrorMode:$Mirror
 
 $sharedReadme = Join-Path $sourceCodex 'README.md'
 if (Test-Path -LiteralPath $sharedReadme) {
@@ -249,7 +251,10 @@ Write-Output ("  .github -> {0}" -f $TargetGithubPath)
 Write-Output ("  .codex/skills -> {0}" -f (Join-Path $TargetCodexPath 'skills'))
 Write-Output ("  .codex/mcp -> {0}" -f (Join-Path $TargetCodexPath 'shared-mcp'))
 Write-Output ("  .codex/scripts -> {0}" -f (Join-Path $TargetCodexPath 'shared-scripts'))
+Write-Output ("  .codex/orchestration -> {0}" -f (Join-Path $TargetCodexPath 'shared-orchestration'))
 
 if ($ApplyMcpConfig) {
     Invoke-McpConfigApply -ResolvedRepoRoot $resolvedRepoRoot -CodexPath $TargetCodexPath -CreateBackup:$BackupConfig
 }
+
+exit 0

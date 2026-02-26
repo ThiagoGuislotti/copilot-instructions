@@ -11,6 +11,7 @@ Structured AI agent guidelines for software development projects. Focuses on rep
 - ✅ **Tool Integration:** Git, CLI tools, CI/CD pipelines, static analysis
 - ✅ **Custom Chat Modes:** Architecture review, instruction generation
 - ✅ **Prompt Templates:** POML-based templates with CoT, SoT, ToT patterns
+- ✅ **Multi-Agent Contracts:** Versioned orchestration manifests, schemas, and runtime artifacts
 
 ---
 
@@ -60,7 +61,7 @@ cd copilot-instructions
 ```text
 copilot-instructions/
 ├─ .github/   # shared Copilot + Codex instructions, prompts, chatmodes, schemas
-├─ .codex/    # shared Codex assets (skills/mcp/scripts)
+├─ .codex/    # shared Codex assets (skills/mcp/scripts/orchestration)
 ├─ scripts/   # bootstrap + automation scripts
 ├─ README.md
 └─ .gitignore
@@ -74,7 +75,7 @@ pwsh -File .\scripts\runtime\bootstrap.ps1
 # optional: also apply shared MCP servers to ~/.codex/config.toml
 pwsh -File .\scripts\runtime\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
 
-# enterprise healthcheck (instructions + policy + release governance + runtime doctor)
+# enterprise healthcheck (instructions + policy + agent orchestration + release governance + runtime doctor)
 pwsh -File .\scripts\runtime\healthcheck.ps1 -StrictExtras
 ```
 
@@ -102,6 +103,7 @@ pwsh -File .\scripts\git-hooks\setup-git-hooks.ps1
 
 - Runs `scripts/validation/validate-instructions.ps1`
 - Runs `scripts/validation/validate-policy.ps1`
+- Runs `scripts/validation/validate-agent-orchestration.ps1`
 - Runs `scripts/validation/validate-release-governance.ps1`
 - Blocks commit when validation fails
 - Requires `pwsh` or `powershell`
@@ -115,6 +117,7 @@ pwsh -File .\scripts\git-hooks\setup-git-hooks.ps1
 
 - Runs `scripts/validation/validate-instructions.ps1` (validation-only)
 - Runs `scripts/validation/validate-policy.ps1` (validation-only)
+- Runs `scripts/validation/validate-agent-orchestration.ps1` (validation-only)
 - Runs `scripts/validation/validate-release-governance.ps1` (validation-only)
 - Does not run runtime sync
 
@@ -122,6 +125,7 @@ pwsh -File .\scripts\git-hooks\setup-git-hooks.ps1
 
 - Runs `scripts/validation/validate-instructions.ps1` (validation-only)
 - Runs `scripts/validation/validate-policy.ps1` (validation-only)
+- Runs `scripts/validation/validate-agent-orchestration.ps1` (validation-only)
 - Runs `scripts/validation/validate-release-governance.ps1` (validation-only)
 - Does not run runtime sync
 
@@ -138,6 +142,9 @@ pwsh -File .\scripts\runtime\healthcheck.ps1 -StrictExtras
 
 # validate release governance contracts (CHANGELOG + CODEOWNERS + baseline)
 pwsh -File .\scripts\validation\validate-release-governance.ps1
+
+# validate multi-agent contracts and orchestration integrity
+pwsh -File .\scripts\validation\validate-agent-orchestration.ps1
 
 # validate branch protection drift against baseline (no mutation)
 pwsh -File .\scripts\governance\set-branch-protection.ps1

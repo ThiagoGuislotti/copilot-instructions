@@ -11,6 +11,7 @@
     Checks:
     - scripts/validation/validate-instructions.ps1
     - scripts/validation/validate-policy.ps1
+    - scripts/validation/validate-agent-orchestration.ps1
     - scripts/validation/validate-release-governance.ps1
     - scripts/runtime/doctor.ps1
 
@@ -236,6 +237,8 @@ function Invoke-ScriptCheck {
 $resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
 Set-Location -Path $resolvedRepoRoot
 $resolvedOutputPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $OutputPath
+$resolvedTargetGithubPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $TargetGithubPath
+$resolvedTargetCodexPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $TargetCodexPath
 
 $resolvedLogPath = if ([string]::IsNullOrWhiteSpace($LogPath)) {
     $timestampToken = Get-Date -Format 'yyyyMMdd-HHmmss'
@@ -266,14 +269,15 @@ $checks = New-Object System.Collections.Generic.List[object]
 $bootstrapScript = Join-Path $resolvedRepoRoot 'scripts/runtime/bootstrap.ps1'
 $validateInstructionsScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-instructions.ps1'
 $validatePolicyScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-policy.ps1'
+$validateAgentOrchestrationScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-agent-orchestration.ps1'
 $validateReleaseGovernanceScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-release-governance.ps1'
 $doctorScript = Join-Path $resolvedRepoRoot 'scripts/runtime/doctor.ps1'
 
 if ($SyncRuntime) {
     $bootstrapArgs = @{
         RepoRoot = $resolvedRepoRoot
-        TargetGithubPath = $TargetGithubPath
-        TargetCodexPath = $TargetCodexPath
+        TargetGithubPath = $resolvedTargetGithubPath
+        TargetCodexPath = $resolvedTargetCodexPath
     }
     if ($Mirror) {
         $bootstrapArgs.Mirror = $true
@@ -284,12 +288,13 @@ if ($SyncRuntime) {
 
 $checks.Add((Invoke-ScriptCheck -Name 'validate-instructions' -ScriptPath $validateInstructionsScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
 $checks.Add((Invoke-ScriptCheck -Name 'validate-policy' -ScriptPath $validatePolicyScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
+$checks.Add((Invoke-ScriptCheck -Name 'validate-agent-orchestration' -ScriptPath $validateAgentOrchestrationScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
 $checks.Add((Invoke-ScriptCheck -Name 'validate-release-governance' -ScriptPath $validateReleaseGovernanceScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
 
 $doctorArgs = @{
     RepoRoot = $resolvedRepoRoot
-    TargetGithubPath = $TargetGithubPath
-    TargetCodexPath = $TargetCodexPath
+    TargetGithubPath = $resolvedTargetGithubPath
+    TargetCodexPath = $resolvedTargetCodexPath
 }
 if ($StrictExtras) {
     $doctorArgs.StrictExtras = $true
@@ -306,8 +311,8 @@ $report = [ordered]@{
     generatedAt = (Get-Date).ToString('o')
     repoRoot = $resolvedRepoRoot
     targets = [ordered]@{
-        github = $TargetGithubPath
-        codex = $TargetCodexPath
+        github = $resolvedTargetGithubPath
+        codex = $resolvedTargetCodexPath
     }
     options = [ordered]@{
         syncRuntime = [bool] $SyncRuntime

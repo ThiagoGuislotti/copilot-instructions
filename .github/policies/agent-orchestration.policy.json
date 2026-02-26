@@ -1,0 +1,24 @@
+{
+  "id": "agent-orchestration-baseline",
+  "description": "Required contracts, templates, and validation script for multi-agent orchestration.",
+  "requiredFiles": [
+    ".codex/orchestration/README.md",
+    ".codex/orchestration/agents.manifest.json",
+    ".codex/orchestration/pipelines/default.pipeline.json",
+    ".codex/orchestration/templates/handoff.template.json",
+    ".codex/orchestration/templates/run-artifact.template.json",
+    ".codex/orchestration/evals/golden-tests.json",
+    ".github/schemas/agent.contract.schema.json",
+    ".github/schemas/agent.pipeline.schema.json",
+    ".github/schemas/agent.handoff.schema.json",
+    ".github/schemas/agent.run-artifact.schema.json",
+    ".github/schemas/agent.evals.schema.json",
+    "scripts/validation/validate-agent-orchestration.ps1"
+  ],
+  "requiredDirectories": [
+    ".codex/orchestration",
+    ".codex/orchestration/pipelines",
+    ".codex/orchestration/templates",
+    ".codex/orchestration/evals"
+  ]
+}

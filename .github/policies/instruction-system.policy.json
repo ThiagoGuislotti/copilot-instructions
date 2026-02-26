@@ -7,7 +7,13 @@
     ".github/instruction-routing.catalog.yml",
     ".github/prompts/route-instructions.prompt.md",
     ".github/schemas/instruction-routing.catalog.schema.json",
+    ".github/schemas/agent.contract.schema.json",
+    ".github/schemas/agent.pipeline.schema.json",
+    ".github/schemas/agent.handoff.schema.json",
+    ".github/schemas/agent.run-artifact.schema.json",
+    ".github/schemas/agent.evals.schema.json",
     "scripts/validation/validate-instructions.ps1",
+    "scripts/validation/validate-agent-orchestration.ps1",
     "scripts/validation/validate-policy.ps1",
     "scripts/validation/export-audit-report.ps1",
     "scripts/runtime/healthcheck.ps1",
@@ -18,6 +24,7 @@
     ".github/prompts",
     ".github/policies",
     ".codex/skills",
+    ".codex/orchestration",
     "scripts/runtime",
     "scripts/validation"
   ]

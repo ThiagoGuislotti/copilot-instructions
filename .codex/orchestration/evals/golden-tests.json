@@ -1,0 +1,39 @@
+{
+  "$schema": "../../../.github/schemas/agent.evals.schema.json",
+  "version": 1,
+  "cases": [
+    {
+      "id": "feature-implementation",
+      "request": "Implement a new backend feature with tests and docs updates.",
+      "expectedPipelineId": "default-dev-flow",
+      "expectedStageOrder": [
+        "plan",
+        "implement",
+        "validate",
+        "review"
+      ],
+      "requiredAgents": [
+        "planner",
+        "executor",
+        "tester",
+        "reviewer"
+      ]
+    },
+    {
+      "id": "policy-and-script-update",
+      "request": "Update validation scripts and governance policies without changing source code behavior.",
+      "expectedPipelineId": "default-dev-flow",
+      "expectedStageOrder": [
+        "plan",
+        "implement",
+        "validate",
+        "review"
+      ],
+      "requiredAgents": [
+        "planner",
+        "executor",
+        "reviewer"
+      ]
+    }
+  ]
+}

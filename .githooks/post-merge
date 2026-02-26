@@ -11,6 +11,7 @@ echo "[post-merge] Running instruction validation..."
 if command -v pwsh >/dev/null 2>&1; then
   pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-instructions.ps1
   pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-policy.ps1
+  pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-agent-orchestration.ps1
   pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-release-governance.ps1
   exit $?
 fi
@@ -19,6 +20,7 @@ fi
 if command -v powershell >/dev/null 2>&1; then
   powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\validation\\validate-instructions.ps1
   powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\validation\\validate-policy.ps1
+  powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\validation\\validate-agent-orchestration.ps1
   powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\validation\\validate-release-governance.ps1
   exit $?
 fi

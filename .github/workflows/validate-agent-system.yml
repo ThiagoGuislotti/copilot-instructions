@@ -13,12 +13,18 @@ permissions:
 
 jobs:
   validate:
-    name: Validate Instructions Runtime and Policies
+    name: Validate Instructions Runtime, Policies, and Orchestration
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Validate agent orchestration contracts
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-agent-orchestration.ps1 `
+            -RepoRoot $PWD
 
       - name: Run healthcheck
         shell: pwsh

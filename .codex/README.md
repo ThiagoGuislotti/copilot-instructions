@@ -15,6 +15,7 @@ This folder centralizes shared Codex assets to keep local runtime setup reproduc
 - ✅ Shared skills stored as source (`skills/*/SKILL.md`)
 - ✅ Single MCP source of truth (`mcp/servers.manifest.json`)
 - ✅ Reusable scripts to apply config into local runtime
+- ✅ Versioned multi-agent orchestration contracts and templates
 
 ---
 
@@ -75,6 +76,7 @@ pwsh -File .\scripts\runtime\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
 - `skills/`: reusable skills for routing and runtime sync.
 - `mcp/`: manifest and templates for Codex/VS Code MCP configuration.
 - `scripts/`: scripts that render/apply MCP config from the shared manifest.
+- `orchestration/`: agent contracts, pipeline manifests, run templates, and eval fixtures.
 
 ### Current Skills
 
@@ -91,6 +93,9 @@ pwsh -File .\.codex\scripts\render-vscode-mcp.ps1 -OutputPath .\.temp\vscode.mcp
 
 # preview MCP changes to local config without writing
 pwsh -File .\.codex\scripts\sync-mcp-to-codex-config.ps1 -DryRun
+
+# validate orchestration contracts and templates
+pwsh -File .\scripts\validation\validate-agent-orchestration.ps1
 ```
 
 ---
@@ -116,6 +121,7 @@ pwsh -File .\.codex\scripts\sync-mcp-to-codex-config.ps1 -DryRun
 - `.codex/scripts/sync-mcp-to-codex-config.ps1`
 - `.codex/scripts/render-vscode-mcp.ps1`
 - `.codex/skills/README.md`
+- `.codex/orchestration/README.md`
 
 ---
 

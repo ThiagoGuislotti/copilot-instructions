@@ -1,0 +1,139 @@
+{
+  "$schema": "../../.github/schemas/agent.contract.schema.json",
+  "version": 1,
+  "owner": "copilot-instructions",
+  "defaults": {
+    "maxRetries": 1,
+    "timeoutMinutes": 30,
+    "approvalRequired": false
+  },
+  "agents": [
+    {
+      "id": "planner",
+      "displayName": "Task Planner",
+      "role": "planner",
+      "skill": "task-planner",
+      "model": "gpt-5",
+      "tools": [
+        "read",
+        "search",
+        "plan"
+      ],
+      "allowedPaths": [
+        ".github/**",
+        ".codex/**",
+        "scripts/**",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "blockedCommands": [
+        "git reset --hard",
+        "git checkout --"
+      ],
+      "budget": {
+        "maxSteps": 20,
+        "maxDurationMinutes": 20,
+        "maxFileEdits": 10,
+        "maxTokens": 60000
+      },
+      "fallbackAgentId": "executor",
+      "notes": "Builds plan and context pack; avoids broad code mutation."
+    },
+    {
+      "id": "executor",
+      "displayName": "Software Engineer",
+      "role": "executor",
+      "skill": "software-engineer",
+      "model": "gpt-5",
+      "tools": [
+        "read",
+        "search",
+        "edit",
+        "shell",
+        "run-tests"
+      ],
+      "allowedPaths": [
+        "src/**",
+        "scripts/**",
+        ".github/**",
+        ".codex/**",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "blockedCommands": [
+        "git reset --hard",
+        "git checkout --"
+      ],
+      "budget": {
+        "maxSteps": 40,
+        "maxDurationMinutes": 45,
+        "maxFileEdits": 40,
+        "maxTokens": 180000
+      },
+      "fallbackAgentId": "tester",
+      "notes": "Implements requested changes and performs targeted verification."
+    },
+    {
+      "id": "tester",
+      "displayName": "Test Engineer",
+      "role": "tester",
+      "skill": "test-engineer",
+      "model": "gpt-5",
+      "tools": [
+        "read",
+        "search",
+        "shell",
+        "run-tests"
+      ],
+      "allowedPaths": [
+        "tests/**",
+        "src/**",
+        "scripts/**",
+        ".github/**"
+      ],
+      "blockedCommands": [
+        "git reset --hard",
+        "git checkout --"
+      ],
+      "budget": {
+        "maxSteps": 25,
+        "maxDurationMinutes": 30,
+        "maxFileEdits": 20,
+        "maxTokens": 120000
+      },
+      "fallbackAgentId": "reviewer",
+      "notes": "Executes and validates test coverage and risk scenarios."
+    },
+    {
+      "id": "reviewer",
+      "displayName": "Code Review Engineer",
+      "role": "reviewer",
+      "skill": "code-review-engineer",
+      "model": "gpt-5",
+      "tools": [
+        "read",
+        "search",
+        "review"
+      ],
+      "allowedPaths": [
+        "src/**",
+        "scripts/**",
+        ".github/**",
+        ".codex/**",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "blockedCommands": [
+        "git reset --hard",
+        "git checkout --"
+      ],
+      "budget": {
+        "maxSteps": 20,
+        "maxDurationMinutes": 25,
+        "maxFileEdits": 10,
+        "maxTokens": 90000
+      },
+      "notes": "Performs final risk-focused review and release recommendation."
+    }
+  ]
+}

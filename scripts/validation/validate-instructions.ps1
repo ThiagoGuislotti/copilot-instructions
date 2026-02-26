@@ -501,6 +501,7 @@ function Get-MarkdownFilesForValidation {
         '.codex/README.md',
         '.codex/mcp/README.md',
         '.codex/scripts/README.md',
+        '.codex/orchestration/README.md',
         '.codex/skills/README.md'
     )
 
@@ -760,7 +761,18 @@ $requiredFiles = @(
     '.github/copilot-instructions.md',
     '.github/instruction-routing.catalog.yml',
     '.github/prompts/route-instructions.prompt.md',
-    '.github/schemas/instruction-routing.catalog.schema.json'
+    '.github/schemas/instruction-routing.catalog.schema.json',
+    '.github/schemas/agent.contract.schema.json',
+    '.github/schemas/agent.pipeline.schema.json',
+    '.github/schemas/agent.handoff.schema.json',
+    '.github/schemas/agent.run-artifact.schema.json',
+    '.github/schemas/agent.evals.schema.json',
+    '.codex/orchestration/agents.manifest.json',
+    '.codex/orchestration/pipelines/default.pipeline.json',
+    '.codex/orchestration/templates/handoff.template.json',
+    '.codex/orchestration/templates/run-artifact.template.json',
+    '.codex/orchestration/evals/golden-tests.json',
+    'scripts/validation/validate-agent-orchestration.ps1'
 )
 
 Test-RequiredFiles -Root $resolvedRepoRoot -RequiredFiles $requiredFiles
@@ -786,6 +798,23 @@ $codexCliSnippets = Test-JsonFile -Root $resolvedRepoRoot -Path '.vscode/snippet
 $copilotSnippets = Test-JsonFile -Root $resolvedRepoRoot -Path '.vscode/snippets/copilot.code-snippets'
 $vscodeSettings = Test-JsonFile -Root $resolvedRepoRoot -Path '.vscode/settings.tamplate.jsonc'
 $vscodeMcp = Test-JsonFile -Root $resolvedRepoRoot -Path '.vscode/mcp.tamplate.jsonc'
+
+$orchestrationJsonFiles = @(
+    '.github/schemas/agent.contract.schema.json',
+    '.github/schemas/agent.pipeline.schema.json',
+    '.github/schemas/agent.handoff.schema.json',
+    '.github/schemas/agent.run-artifact.schema.json',
+    '.github/schemas/agent.evals.schema.json',
+    '.codex/orchestration/agents.manifest.json',
+    '.codex/orchestration/pipelines/default.pipeline.json',
+    '.codex/orchestration/templates/handoff.template.json',
+    '.codex/orchestration/templates/run-artifact.template.json',
+    '.codex/orchestration/evals/golden-tests.json'
+)
+
+foreach ($jsonPath in $orchestrationJsonFiles) {
+    Test-JsonFile -Root $resolvedRepoRoot -Path $jsonPath | Out-Null
+}
 
 if ($null -ne $vscodeMcp) {
     if ($null -eq $vscodeMcp.servers -or @($vscodeMcp.servers.PSObject.Properties).Count -eq 0) {

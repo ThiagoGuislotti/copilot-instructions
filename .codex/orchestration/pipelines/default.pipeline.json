@@ -1,0 +1,101 @@
+{
+  "$schema": "../../../.github/schemas/agent.pipeline.schema.json",
+  "id": "default-dev-flow",
+  "version": 1,
+  "description": "Deterministic planner -> executor -> tester -> reviewer flow.",
+  "stages": [
+    {
+      "id": "plan",
+      "agentId": "planner",
+      "mode": "plan",
+      "inputArtifacts": [
+        "request"
+      ],
+      "outputArtifacts": [
+        "task-plan",
+        "context-pack"
+      ],
+      "onFailure": "stop"
+    },
+    {
+      "id": "implement",
+      "agentId": "executor",
+      "mode": "execute",
+      "inputArtifacts": [
+        "request",
+        "task-plan",
+        "context-pack"
+      ],
+      "outputArtifacts": [
+        "changeset",
+        "implementation-log"
+      ],
+      "onFailure": "retry-once"
+    },
+    {
+      "id": "validate",
+      "agentId": "tester",
+      "mode": "validate",
+      "inputArtifacts": [
+        "changeset",
+        "implementation-log"
+      ],
+      "outputArtifacts": [
+        "validation-report"
+      ],
+      "onFailure": "retry-once"
+    },
+    {
+      "id": "review",
+      "agentId": "reviewer",
+      "mode": "review",
+      "inputArtifacts": [
+        "changeset",
+        "validation-report"
+      ],
+      "outputArtifacts": [
+        "review-report",
+        "decision-log"
+      ],
+      "onFailure": "stop"
+    }
+  ],
+  "handoffs": [
+    {
+      "fromStage": "plan",
+      "toStage": "implement",
+      "requiredArtifacts": [
+        "task-plan",
+        "context-pack"
+      ]
+    },
+    {
+      "fromStage": "implement",
+      "toStage": "validate",
+      "requiredArtifacts": [
+        "changeset",
+        "implementation-log"
+      ]
+    },
+    {
+      "fromStage": "validate",
+      "toStage": "review",
+      "requiredArtifacts": [
+        "validation-report"
+      ]
+    }
+  ],
+  "completionCriteria": {
+    "requiredStages": [
+      "plan",
+      "implement",
+      "validate",
+      "review"
+    ],
+    "requiredArtifacts": [
+      "validation-report",
+      "review-report",
+      "decision-log"
+    ]
+  }
+}

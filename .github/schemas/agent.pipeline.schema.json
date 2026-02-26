@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/agent.pipeline.schema.json",
+  "title": "Multi-Agent Orchestration Pipeline",
+  "type": "object",
+  "required": [
+    "id",
+    "version",
+    "description",
+    "stages",
+    "handoffs",
+    "completionCriteria"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]{2,64}$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stages": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "$ref": "#/$defs/stage"
+      }
+    },
+    "handoffs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/handoff"
+      }
+    },
+    "completionCriteria": {
+      "$ref": "#/$defs/completionCriteria"
+    }
+  },
+  "$defs": {
+    "stage": {
+      "type": "object",
+      "required": [
+        "id",
+        "agentId",
+        "mode",
+        "inputArtifacts",
+        "outputArtifacts",
+        "onFailure"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{2,64}$"
+        },
+        "agentId": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{2,64}$"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "plan",
+            "execute",
+            "validate",
+            "review"
+          ]
+        },
+        "inputArtifacts": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "outputArtifacts": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "onFailure": {
+          "type": "string",
+          "enum": [
+            "stop",
+            "retry-once",
+            "continue"
+          ]
+        }
+      }
+    },
+    "handoff": {
+      "type": "object",
+      "required": [
+        "fromStage",
+        "toStage",
+        "requiredArtifacts"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "fromStage": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{2,64}$"
+        },
+        "toStage": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{2,64}$"
+        },
+        "requiredArtifacts": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "completionCriteria": {
+      "type": "object",
+      "required": [
+        "requiredStages",
+        "requiredArtifacts"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "requiredStages": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "requiredArtifacts": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}
