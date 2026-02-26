@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Validates whether test method names follow the triple-underscore convention (e.g., Feature_Context_Result).
 
@@ -60,7 +60,16 @@ if ($RequiredUnderscores -lt 1) {
 }
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
+$script:IsVerboseEnabled = [bool] $Verbose
 
 $testAttributePattern = [regex]'(?i)\[(Fact|Theory|Test|TestMethod|DataTestMethod|TestCase|TestCaseSource|SkippableFact|SkippableTheory|Property|Combinatorial|Sequential)\b'
 $methodPattern = '(?ms)((?:\s*\[[^\]]+\]\s*)+)\s*public\s+(?:async\s+)?(?:Task|ValueTask|void)\s+(?<name>[A-Za-z_][A-Za-z0-9_]*)\s*\('
@@ -75,13 +84,13 @@ function Write-VerboseColor {
         [ConsoleColor] $Color = [ConsoleColor]::Gray
     )
 
-    if ($Verbose) {
-        Write-Host $Message -ForegroundColor $Color
+    if ($script:IsVerboseEnabled) {
+        Write-StyledOutput ("[VERBOSE:{0}] {1}" -f $Color, $Message)
     }
 }
 
-# Resolves and sets the working directory to the repository root.
-function Set-CorrectWorkingDirectory {
+# Resolves the repository root using explicit and fallback location candidates.
+function Resolve-SolutionRoot {
     param (
         [string] $StartPath
     )
@@ -110,8 +119,7 @@ function Set-CorrectWorkingDirectory {
             $hasLayout = (Test-Path (Join-Path -Path $current -ChildPath 'src')) -and (Test-Path (Join-Path -Path $current -ChildPath '.github'))
 
             if ($hasSln -or $hasLayout) {
-                Set-Location -Path $current
-                Write-Host ("Solution root found: {0}" -f $PWD) -ForegroundColor Green
+                Write-StyledOutput ("Solution root found: {0}" -f $current)
                 return $current
             }
 
@@ -123,7 +131,7 @@ function Set-CorrectWorkingDirectory {
 }
 
 # Resolves target test project files from explicit inputs or defaults.
-function Resolve-TestProjects {
+function Resolve-TestProject {
     param (
         [string] $Root,
         [string[]] $RequestedProjects
@@ -173,7 +181,7 @@ function Resolve-TestProjects {
 }
 
 # Collects test source files from resolved test project directories.
-function Get-TestFiles {
+function Get-TestFile {
     param (
         [string] $ProjectDirectory
     )
@@ -193,10 +201,10 @@ function Get-TestMethodsFromFile {
     )
 
     $content = Get-Content -LiteralPath $FilePath -Raw
-    $matches = [regex]::Matches($content, $methodPattern)
+    $methodMatches = [regex]::Matches($content, $methodPattern)
     $methods = New-Object System.Collections.Generic.List[string]
 
-    foreach ($match in $matches) {
+    foreach ($match in $methodMatches) {
         $attributesBlock = $match.Groups[1].Value
 
         if (-not $testAttributePattern.IsMatch($attributesBlock)) {
@@ -212,16 +220,17 @@ function Get-TestMethodsFromFile {
 # -------------------------------
 # Discovery Phase
 # -------------------------------
-$repoRoot = Set-CorrectWorkingDirectory -StartPath $Path
+$repoRoot = Resolve-SolutionRoot -StartPath $Path
+Set-Location -Path $repoRoot
 
-$projects = Resolve-TestProjects -Root $repoRoot -RequestedProjects $Projects
+$projects = Resolve-TestProject -Root $repoRoot -RequestedProjects $Projects
 
 if (-not $projects -or $projects.Count -eq 0) {
-    Write-Host "No test projects selected for validation." -ForegroundColor Yellow
+    Write-StyledOutput "No test projects selected for validation."
     exit 0
 }
 
-Write-Host ("Projects selected: {0}" -f ($projects.Name -join ', ')) -ForegroundColor Blue
+Write-StyledOutput ("Projects selected: {0}" -f ($projects.Name -join ', '))
 
 # -------------------------------
 # Validation Phase
@@ -231,7 +240,7 @@ $violations = New-Object System.Collections.Generic.List[pscustomobject]
 foreach ($project in $projects) {
     Write-VerboseColor ("Scanning project: {0}" -f $project.Name) 'Cyan'
 
-    $files = Get-TestFiles -ProjectDirectory $project.Directory
+    $files = Get-TestFile -ProjectDirectory $project.Directory
     Write-VerboseColor ("  Files found: {0}" -f $files.Count) 'Cyan'
 
     foreach ($file in $files) {
@@ -263,16 +272,16 @@ foreach ($project in $projects) {
 # Reporting
 # -------------------------------
 if ($violations.Count -gt 0) {
-    Write-Host ("Found {0} test method(s) violating the underscore convention (required: {1})." -f $violations.Count, $RequiredUnderscores) -ForegroundColor Red
+    Write-StyledOutput ("Found {0} test method(s) violating the underscore convention (required: {1})." -f $violations.Count, $RequiredUnderscores)
 
     $violations |
         Sort-Object Project, File, Method |
         ForEach-Object {
-            Write-Host ("- {0} :: {1} :: {2} (underscores: {3})" -f $_.Project, $_.File, $_.Method, $_.Underscores) -ForegroundColor Red
+            Write-StyledOutput ("- {0} :: {1} :: {2} (underscores: {3})" -f $_.Project, $_.File, $_.Method, $_.Underscores)
         }
 
     exit 1
 }
 
-Write-Host ("All test method names satisfy the underscore convention (>= {0})." -f $RequiredUnderscores) -ForegroundColor Green
+Write-StyledOutput ("All test method names satisfy the underscore convention (>= {0})." -f $RequiredUnderscores)
 exit 0

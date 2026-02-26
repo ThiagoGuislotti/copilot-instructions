@@ -60,6 +60,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:IsVerboseEnabled = [bool] $Verbose
 $script:Failures = New-Object System.Collections.Generic.List[string]
@@ -72,7 +80,7 @@ function Write-VerboseLog {
     )
 
     if ($script:IsVerboseEnabled) {
-        Write-Output ("[VERBOSE] {0}" -f $Message)
+        Write-StyledOutput ("[VERBOSE] {0}" -f $Message)
     }
 }
 
@@ -83,7 +91,7 @@ function Add-ValidationFailure {
     )
 
     $script:Failures.Add($Message) | Out-Null
-    Write-Output ("[FAIL] {0}" -f $Message)
+    Write-StyledOutput ("[FAIL] {0}" -f $Message)
 }
 
 # Registers a validation warning.
@@ -93,7 +101,7 @@ function Add-ValidationWarning {
     )
 
     $script:Warnings.Add($Message) | Out-Null
-    Write-Output ("[WARN] {0}" -f $Message)
+    Write-StyledOutput ("[WARN] {0}" -f $Message)
 }
 
 # Resolves a path from repo root.
@@ -379,13 +387,13 @@ if (-not (Test-Path -LiteralPath $resolvedSkillsRoot -PathType Container)) {
 }
 
 if ($script:Failures.Count -gt 0) {
-    Write-Output ''
-    Write-Output 'Agent-skill alignment validation summary'
-    Write-Output '  Agents checked: 0'
-    Write-Output '  Stage checks: 0'
-    Write-Output '  Eval case checks: 0'
-    Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-    Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+    Write-StyledOutput ''
+    Write-StyledOutput 'Agent-skill alignment validation summary'
+    Write-StyledOutput '  Agents checked: 0'
+    Write-StyledOutput '  Stage checks: 0'
+    Write-StyledOutput '  Eval case checks: 0'
+    Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+    Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
     exit 1
 }
 
@@ -435,17 +443,17 @@ foreach ($stage in $stageList) {
 Test-StageRoleAlignment -StageList $stageList -AgentMap $agentMap
 Test-EvalAgentReference -EvalCaseList $evalCaseList -AgentMap $agentMap -PipelineAgentSet $pipelineAgentSet
 
-Write-Output ''
-Write-Output 'Agent-skill alignment validation summary'
-Write-Output ("  Agents checked: {0}" -f $agentList.Count)
-Write-Output ("  Stage checks: {0}" -f $stageList.Count)
-Write-Output ("  Eval case checks: {0}" -f $evalCaseList.Count)
-Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+Write-StyledOutput ''
+Write-StyledOutput 'Agent-skill alignment validation summary'
+Write-StyledOutput ("  Agents checked: {0}" -f $agentList.Count)
+Write-StyledOutput ("  Stage checks: {0}" -f $stageList.Count)
+Write-StyledOutput ("  Eval case checks: {0}" -f $evalCaseList.Count)
+Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
 
 if ($script:Failures.Count -gt 0) {
     exit 1
 }
 
-Write-Output 'Agent-skill alignment validation passed.'
+Write-StyledOutput 'Agent-skill alignment validation passed.'
 exit 0

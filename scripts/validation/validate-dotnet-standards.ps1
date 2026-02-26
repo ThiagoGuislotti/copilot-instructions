@@ -39,6 +39,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:IsVerboseEnabled = [bool] $Verbose
 $script:Failures = New-Object System.Collections.Generic.List[string]
@@ -54,7 +62,7 @@ function Write-VerboseLog {
     )
 
     if ($script:IsVerboseEnabled) {
-        Write-Output ("[VERBOSE] {0}" -f $Message)
+        Write-StyledOutput ("[VERBOSE] {0}" -f $Message)
     }
 }
 
@@ -65,7 +73,7 @@ function Add-ValidationFailure {
     )
 
     $script:Failures.Add($Message) | Out-Null
-    Write-Output ("[FAIL] {0}" -f $Message)
+    Write-StyledOutput ("[FAIL] {0}" -f $Message)
 }
 
 # Registers a validation warning.
@@ -75,7 +83,7 @@ function Add-ValidationWarning {
     )
 
     $script:Warnings.Add($Message) | Out-Null
-    Write-Output ("[WARN] {0}" -f $Message)
+    Write-StyledOutput ("[WARN] {0}" -f $Message)
 }
 
 # Resolves a path from repo root.
@@ -218,11 +226,11 @@ Set-Location -Path $resolvedRepoRoot
 $resolvedTemplateDirectory = Resolve-RepoPath -Root $resolvedRepoRoot -Path $TemplateDirectory
 if (-not (Test-Path -LiteralPath $resolvedTemplateDirectory -PathType Container)) {
     Add-ValidationFailure ("Template directory not found: {0}" -f $TemplateDirectory)
-    Write-Output ''
-    Write-Output 'Dotnet standards validation summary'
-    Write-Output ("  Templates checked: 0")
-    Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-    Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+    Write-StyledOutput ''
+    Write-StyledOutput 'Dotnet standards validation summary'
+    Write-StyledOutput ("  Templates checked: 0")
+    Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+    Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
     exit 1
 }
 
@@ -271,15 +279,15 @@ foreach ($templateFile in $allTemplateFiles) {
     Write-VerboseLog ("Validated template: {0}" -f $relativePath)
 }
 
-Write-Output ''
-Write-Output 'Dotnet standards validation summary'
-Write-Output ("  Templates checked: {0}" -f $allTemplateFiles.Count)
-Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+Write-StyledOutput ''
+Write-StyledOutput 'Dotnet standards validation summary'
+Write-StyledOutput ("  Templates checked: {0}" -f $allTemplateFiles.Count)
+Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
 
 if ($script:Failures.Count -gt 0) {
     exit 1
 }
 
-Write-Output 'Dotnet standards validation passed.'
+Write-StyledOutput 'Dotnet standards validation passed.'
 exit 0

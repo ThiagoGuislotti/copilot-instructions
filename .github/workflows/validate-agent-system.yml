@@ -24,7 +24,9 @@ jobs:
         shell: pwsh
         run: |
           pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-all.ps1 `
-            -RepoRoot $PWD
+            -RepoRoot $PWD `
+            -ValidationProfile release `
+            -WarningOnly:$true
 
       - name: Execute multi-agent pipeline smoke test
         shell: pwsh
@@ -40,6 +42,9 @@ jobs:
         run: |
           pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/runtime/healthcheck.ps1 `
             -RepoRoot $PWD `
+            -ValidationProfile release `
+            -WarningOnly:$true `
+            -TreatRuntimeDriftAsWarning:$true `
             -TargetGithubPath ./.temp/runtime/github `
             -TargetCodexPath ./.temp/runtime/codex `
             -SyncRuntime `

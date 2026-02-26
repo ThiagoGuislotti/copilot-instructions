@@ -57,6 +57,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:IsVerboseEnabled = [bool] $Verbose
 
@@ -71,7 +79,7 @@ function Write-VerboseColor {
     )
 
     if ($script:IsVerboseEnabled) {
-        Write-Output ("[VERBOSE:{0}] {1}" -f $Color, $Message)
+        Write-StyledOutput ("[VERBOSE:{0}] {1}" -f $Color, $Message)
     }
 }
 
@@ -379,9 +387,9 @@ if ($null -eq $expectedProtection) {
 $expectedNormalized = ConvertTo-NormalizedProtection -Protection $expectedProtection
 $apiRoute = "repos/{0}/branches/{1}/protection" -f $effectiveRepository, $effectiveBranch
 
-Write-Output ("[INFO] Repository: {0}" -f $effectiveRepository)
-Write-Output ("[INFO] Branch: {0}" -f $effectiveBranch)
-Write-Output ("[INFO] Mode: {0}" -f ($(if ($Apply) { 'apply' } else { 'validate' })))
+Write-StyledOutput ("[INFO] Repository: {0}" -f $effectiveRepository)
+Write-StyledOutput ("[INFO] Branch: {0}" -f $effectiveBranch)
+Write-StyledOutput ("[INFO] Mode: {0}" -f ($(if ($Apply) { 'apply' } else { 'validate' })))
 
 $currentProtection = Invoke-GitHubApi -Method 'GET' -Route $apiRoute
 $currentNormalized = ConvertTo-NormalizedProtection -Protection $currentProtection
@@ -392,11 +400,11 @@ $isAlignedBeforeApply = ($expectedJson -eq $currentJson)
 
 if (-not $Apply) {
     if ($isAlignedBeforeApply) {
-        Write-Output 'Branch protection is aligned with baseline.'
+        Write-StyledOutput 'Branch protection is aligned with baseline.'
     }
     else {
-        Write-Output 'Branch protection drift detected.'
-        Write-Output 'Run with -Apply to enforce baseline.'
+        Write-StyledOutput 'Branch protection drift detected.'
+        Write-StyledOutput 'Run with -Apply to enforce baseline.'
     }
 }
 else {
@@ -406,7 +414,7 @@ else {
         New-Item -ItemType Directory -Path $payloadParent -Force | Out-Null
     }
     Set-Content -LiteralPath $payloadPath -Value ($expectedProtection | ConvertTo-Json -Depth 100)
-    Write-Output '[INFO] Applying baseline branch protection via GitHub API...'
+    Write-StyledOutput '[INFO] Applying baseline branch protection via GitHub API...'
     [void](Invoke-GitHubApi -Method 'PUT' -Route $apiRoute -InputPath $payloadPath)
 
     $currentProtection = Invoke-GitHubApi -Method 'GET' -Route $apiRoute
@@ -415,10 +423,10 @@ else {
     $isAlignedBeforeApply = ($expectedJson -eq $currentJson)
 
     if ($isAlignedBeforeApply) {
-        Write-Output 'Branch protection applied and validated successfully.'
+        Write-StyledOutput 'Branch protection applied and validated successfully.'
     }
     else {
-        Write-Output 'Branch protection apply completed but baseline drift still exists.'
+        Write-StyledOutput 'Branch protection apply completed but baseline drift still exists.'
     }
 }
 
@@ -436,7 +444,7 @@ $report = [ordered]@{
 }
 
 Set-Content -LiteralPath $resolvedOutputPath -Value ($report | ConvertTo-Json -Depth 100)
-Write-Output ("Report generated: {0}" -f $resolvedOutputPath)
+Write-StyledOutput ("Report generated: {0}" -f $resolvedOutputPath)
 
 if (-not $isAlignedBeforeApply) {
     exit 1

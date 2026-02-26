@@ -35,7 +35,16 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
+$script:IsVerboseEnabled = [bool] $Verbose
 $script:Failures = New-Object System.Collections.Generic.List[string]
 $script:Warnings = New-Object System.Collections.Generic.List[string]
 
@@ -49,13 +58,13 @@ function Write-VerboseColor {
         [ConsoleColor] $Color = [ConsoleColor]::Gray
     )
 
-    if ($Verbose) {
-        Write-Host $Message -ForegroundColor $Color
+    if ($script:IsVerboseEnabled) {
+        Write-StyledOutput ("[VERBOSE:{0}] {1}" -f $Color, $Message)
     }
 }
 
-# Resolves and sets the working directory to the repository root.
-function Set-CorrectWorkingDirectory {
+# Resolves repository root from input and fallback location candidates.
+function Resolve-RepositoryRoot {
     param(
         [string] $RequestedRoot
     )
@@ -82,7 +91,6 @@ function Set-CorrectWorkingDirectory {
         for ($i = 0; $i -lt 6 -and -not [string]::IsNullOrWhiteSpace($current); $i++) {
             $hasLayout = (Test-Path -LiteralPath (Join-Path $current '.github')) -and (Test-Path -LiteralPath (Join-Path $current '.codex'))
             if ($hasLayout) {
-                Set-Location -Path $current
                 Write-VerboseColor ("Repository root detected: {0}" -f $current) 'Green'
                 return $current
             }
@@ -101,7 +109,7 @@ function Add-ValidationFailure {
     )
 
     $script:Failures.Add($Message) | Out-Null
-    Write-Host ("[FAIL] {0}" -f $Message) -ForegroundColor Red
+    Write-StyledOutput ("[FAIL] {0}" -f $Message)
 }
 
 # Registers a validation warning and prints a standardized warning message.
@@ -111,7 +119,7 @@ function Add-ValidationWarning {
     )
 
     $script:Warnings.Add($Message) | Out-Null
-    Write-Host ("[WARN] {0}" -f $Message) -ForegroundColor Yellow
+    Write-StyledOutput ("[WARN] {0}" -f $Message)
 }
 
 # Builds an absolute path from repository root and relative path input.
@@ -129,7 +137,7 @@ function Resolve-RepoPath {
 }
 
 # Determines whether a markdown link target should be validated.
-function Should-ValidateLinkTarget {
+function Test-IsLinkTargetValidatable {
     param(
         [string] $Target
     )
@@ -176,16 +184,16 @@ function Resolve-MarkdownTarget {
 }
 
 # Extracts markdown link targets from document content.
-function Get-MarkdownLinkTargets {
+function Get-MarkdownLinkTarget {
     param(
         [string] $Path
     )
 
     $content = Get-Content -Raw -LiteralPath $Path
-    $matches = [regex]::Matches($content, '\[[^\]]+\]\(([^)]+)\)')
+    $regexMatches = [regex]::Matches($content, '\[[^\]]+\]\(([^)]+)\)')
     $targets = New-Object System.Collections.Generic.List[string]
 
-    foreach ($match in $matches) {
+    foreach ($match in $regexMatches) {
         $raw = $match.Groups[1].Value.Trim()
         if ([string]::IsNullOrWhiteSpace($raw)) {
             continue
@@ -221,7 +229,7 @@ function Test-JsonFile {
 
     try {
         $json = Get-Content -Raw -LiteralPath $absolute | ConvertFrom-Json -Depth 100
-        Write-Host ("[OK] JSON parse: {0}" -f $Path) -ForegroundColor Green
+        Write-StyledOutput ("[OK] JSON parse: {0}" -f $Path)
         return $json
     }
     catch {
@@ -266,7 +274,7 @@ function Get-StringValuesFromObject {
 }
 
 # Builds candidate snippet file paths from configuration references.
-function Get-SnippetPathCandidates {
+function Get-SnippetPathCandidate {
     param(
         [string] $Text
     )
@@ -275,10 +283,10 @@ function Get-SnippetPathCandidates {
         return @()
     }
 
-    $matches = [regex]::Matches($Text, '(?<path>\.(?:github|codex|vscode)/[A-Za-z0-9._\-/]+)')
+    $pathMatches = [regex]::Matches($Text, '(?<path>\.(?:github|codex|vscode)/[A-Za-z0-9._\-/]+)')
     $paths = New-Object System.Collections.Generic.HashSet[string]([System.StringComparer]::OrdinalIgnoreCase)
 
-    foreach ($match in $matches) {
+    foreach ($match in $pathMatches) {
         $path = $match.Groups['path'].Value.Trim()
         if (-not [string]::IsNullOrWhiteSpace($path)) {
             $paths.Add($path) | Out-Null
@@ -289,7 +297,7 @@ function Get-SnippetPathCandidates {
 }
 
 # Validates snippet file references used by editor configuration files.
-function Test-SnippetReferences {
+function Test-SnippetReference {
     param(
         [string] $Root,
         [hashtable] $SnippetFiles
@@ -306,7 +314,7 @@ function Test-SnippetReferences {
 
         $pathsInFile = New-Object System.Collections.Generic.HashSet[string]([System.StringComparer]::OrdinalIgnoreCase)
         foreach ($value in $stringValues) {
-            foreach ($candidate in (Get-SnippetPathCandidates -Text $value)) {
+            foreach ($candidate in (Get-SnippetPathCandidate -Text $value)) {
                 $pathsInFile.Add($candidate) | Out-Null
             }
         }
@@ -351,7 +359,7 @@ function Convert-UserProfileReferenceToRepoPath {
 }
 
 # Validates file references declared in VS Code settings content.
-function Test-VscodeSettingsReferences {
+function Test-VscodeSettingsReference {
     param(
         [string] $Root,
         [object] $Settings
@@ -414,7 +422,7 @@ function Test-VscodeSettingsReferences {
 }
 
 # Verifies required governance and instruction files exist in the repository.
-function Test-RequiredFiles {
+function Test-RequiredFile {
     param(
         [string] $Root,
         [string[]] $RequiredFiles
@@ -427,12 +435,12 @@ function Test-RequiredFiles {
             continue
         }
 
-        Write-Host ("[OK] Required file: {0}" -f $required) -ForegroundColor Green
+        Write-StyledOutput ("[OK] Required file: {0}" -f $required)
     }
 }
 
 # Validates that catalog-referenced files and directories exist.
-function Test-CatalogPaths {
+function Test-CatalogPath {
     param(
         [string] $Root,
         [string] $CatalogRelativePath
@@ -482,7 +490,7 @@ function Test-CatalogPaths {
         }
     }
 
-    Write-Host ("[OK] Catalog paths checked: {0}" -f $catalogPaths.Count) -ForegroundColor Green
+    Write-StyledOutput ("[OK] Catalog paths checked: {0}" -f $catalogPaths.Count)
 }
 
 # Collects markdown files that must be checked by validators.
@@ -538,7 +546,7 @@ function Get-MarkdownFilesForValidation {
 }
 
 # Validates markdown links and reports missing or invalid targets.
-function Test-MarkdownLinks {
+function Test-MarkdownLink {
     param(
         [string] $Root,
         [System.Collections.Generic.HashSet[string]] $MarkdownFiles
@@ -547,8 +555,8 @@ function Test-MarkdownLinks {
     $checkedLinks = 0
 
     foreach ($file in ($MarkdownFiles | Sort-Object)) {
-        foreach ($target in (Get-MarkdownLinkTargets -Path $file)) {
-            if (-not (Should-ValidateLinkTarget -Target $target)) {
+        foreach ($target in (Get-MarkdownLinkTarget -Path $file)) {
+            if (-not (Test-IsLinkTargetValidatable -Target $target)) {
                 continue
             }
 
@@ -635,7 +643,7 @@ function Convert-FrontmatterToMap {
 }
 
 # Discovers SKILL.md files under configured skill root directories.
-function Get-SkillMarkdownFiles {
+function Get-SkillMarkdownFile {
     param(
         [string] $Root
     )
@@ -662,7 +670,7 @@ function Convert-PathListToHashSet {
 }
 
 # Validates skill declarations against discovered skill markdown files.
-function Test-SkillDefinitions {
+function Test-SkillDefinition {
     param(
         [string] $Root
     )
@@ -745,9 +753,9 @@ function Test-SkillDefinitions {
         }
     }
 
-    $skillMarkdownFiles = Get-SkillMarkdownFiles -Root $Root
+    $skillMarkdownFiles = Get-SkillMarkdownFile -Root $Root
     $skillMarkdownSet = Convert-PathListToHashSet -Paths $skillMarkdownFiles
-    $stats.SkillLinkChecks = Test-MarkdownLinks -Root $Root -MarkdownFiles $skillMarkdownSet
+    $stats.SkillLinkChecks = Test-MarkdownLink -Root $Root -MarkdownFiles $skillMarkdownSet
 
     return $stats
 }
@@ -755,7 +763,8 @@ function Test-SkillDefinitions {
 # -------------------------------
 # Main execution
 # -------------------------------
-$resolvedRepoRoot = Set-CorrectWorkingDirectory -RequestedRoot $RepoRoot
+$resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
+Set-Location -Path $resolvedRepoRoot
 
 $requiredFiles = @(
     '.github/AGENTS.md',
@@ -808,8 +817,8 @@ $requiredFiles = @(
     'scripts/orchestration/stages/review-stage.ps1'
 )
 
-Test-RequiredFiles -Root $resolvedRepoRoot -RequiredFiles $requiredFiles
-Test-CatalogPaths -Root $resolvedRepoRoot -CatalogRelativePath '.github/instruction-routing.catalog.yml'
+Test-RequiredFile -Root $resolvedRepoRoot -RequiredFiles $requiredFiles
+Test-CatalogPath -Root $resolvedRepoRoot -CatalogRelativePath '.github/instruction-routing.catalog.yml'
 
 $schema = Test-JsonFile -Root $resolvedRepoRoot -Path '.github/schemas/instruction-routing.catalog.schema.json'
 if ($null -ne $schema) {
@@ -855,15 +864,15 @@ if ($null -ne $vscodeMcp) {
     }
 }
 
-Test-VscodeSettingsReferences -Root $resolvedRepoRoot -Settings $vscodeSettings
-Test-SnippetReferences -Root $resolvedRepoRoot -SnippetFiles @{
+Test-VscodeSettingsReference -Root $resolvedRepoRoot -Settings $vscodeSettings
+Test-SnippetReference -Root $resolvedRepoRoot -SnippetFiles @{
     '.vscode/snippets/codex-cli.code-snippets' = $codexCliSnippets
     '.vscode/snippets/copilot.code-snippets' = $copilotSnippets
 }
 
-$skillStats = Test-SkillDefinitions -Root $resolvedRepoRoot
+$skillStats = Test-SkillDefinition -Root $resolvedRepoRoot
 $markdownFiles = Get-MarkdownFilesForValidation -Root $resolvedRepoRoot
-$checkedLinks = Test-MarkdownLinks -Root $resolvedRepoRoot -MarkdownFiles $markdownFiles
+$checkedLinks = Test-MarkdownLink -Root $resolvedRepoRoot -MarkdownFiles $markdownFiles
 
 $routingGoldenStatus = 'not-run'
 $routingGoldenScript = Resolve-RepoPath -Root $resolvedRepoRoot -Path 'scripts/validation/test-routing-selection.ps1'
@@ -882,21 +891,21 @@ else {
     Add-ValidationWarning 'Routing golden test script not found: scripts/validation/test-routing-selection.ps1'
 }
 
-Write-Host ''
-Write-Host 'Validation summary' -ForegroundColor Cyan
-Write-Host ("  Skills checked: {0}" -f $skillStats.SkillsChecked)
-Write-Host ("  Skill files checked: {0}" -f $skillStats.SkillFilesChecked)
-Write-Host ("  Skill openai.yaml checked: {0}" -f $skillStats.OpenAiFilesChecked)
-Write-Host ("  Skill links checked: {0}" -f $skillStats.SkillLinkChecks)
-Write-Host ("  Routing golden tests: {0}" -f $routingGoldenStatus)
-Write-Host ("  Markdown files checked: {0}" -f $markdownFiles.Count)
-Write-Host ("  Markdown links checked: {0}" -f $checkedLinks)
-Write-Host ("  Warnings: {0}" -f $script:Warnings.Count)
-Write-Host ("  Failures: {0}" -f $script:Failures.Count)
+Write-StyledOutput ''
+Write-StyledOutput 'Validation summary'
+Write-StyledOutput ("  Skills checked: {0}" -f $skillStats.SkillsChecked)
+Write-StyledOutput ("  Skill files checked: {0}" -f $skillStats.SkillFilesChecked)
+Write-StyledOutput ("  Skill openai.yaml checked: {0}" -f $skillStats.OpenAiFilesChecked)
+Write-StyledOutput ("  Skill links checked: {0}" -f $skillStats.SkillLinkChecks)
+Write-StyledOutput ("  Routing golden tests: {0}" -f $routingGoldenStatus)
+Write-StyledOutput ("  Markdown files checked: {0}" -f $markdownFiles.Count)
+Write-StyledOutput ("  Markdown links checked: {0}" -f $checkedLinks)
+Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
 
 if ($script:Failures.Count -gt 0) {
     exit 1
 }
 
-Write-Host 'All instruction validations passed.' -ForegroundColor Green
+Write-StyledOutput 'All instruction validations passed.'
 exit 0

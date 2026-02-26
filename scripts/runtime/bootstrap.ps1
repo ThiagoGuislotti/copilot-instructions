@@ -59,6 +59,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:IsVerboseEnabled = [bool] $Verbose
 
@@ -73,7 +81,7 @@ function Write-VerboseColor {
     )
 
     if ($script:IsVerboseEnabled) {
-        Write-Output ("[VERBOSE:{0}] {1}" -f $Color, $Message)
+        Write-StyledOutput ("[VERBOSE:{0}] {1}" -f $Color, $Message)
     }
 }
 
@@ -246,12 +254,12 @@ if (Test-Path -LiteralPath $sharedReadme) {
     Copy-Item -LiteralPath $sharedReadme -Destination (Join-Path $TargetCodexPath 'README.shared.md') -Force
 }
 
-Write-Output 'Sync complete.'
-Write-Output ("  .github -> {0}" -f $TargetGithubPath)
-Write-Output ("  .codex/skills -> {0}" -f (Join-Path $TargetCodexPath 'skills'))
-Write-Output ("  .codex/mcp -> {0}" -f (Join-Path $TargetCodexPath 'shared-mcp'))
-Write-Output ("  .codex/scripts -> {0}" -f (Join-Path $TargetCodexPath 'shared-scripts'))
-Write-Output ("  .codex/orchestration -> {0}" -f (Join-Path $TargetCodexPath 'shared-orchestration'))
+Write-StyledOutput 'Sync complete.'
+Write-StyledOutput ("  .github -> {0}" -f $TargetGithubPath)
+Write-StyledOutput ("  .codex/skills -> {0}" -f (Join-Path $TargetCodexPath 'skills'))
+Write-StyledOutput ("  .codex/mcp -> {0}" -f (Join-Path $TargetCodexPath 'shared-mcp'))
+Write-StyledOutput ("  .codex/scripts -> {0}" -f (Join-Path $TargetCodexPath 'shared-scripts'))
+Write-StyledOutput ("  .codex/orchestration -> {0}" -f (Join-Path $TargetCodexPath 'shared-orchestration'))
 
 if ($ApplyMcpConfig) {
     Invoke-McpConfigApply -ResolvedRepoRoot $resolvedRepoRoot -CodexPath $TargetCodexPath -CreateBackup:$BackupConfig

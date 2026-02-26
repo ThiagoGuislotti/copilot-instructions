@@ -39,7 +39,16 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
+$script:IsVerboseEnabled = [bool] $Verbose
 
 # Writes verbose diagnostics with a logical color label.
 function Write-VerboseColor {
@@ -48,13 +57,13 @@ function Write-VerboseColor {
         [ConsoleColor] $Color = [ConsoleColor]::Gray
     )
 
-    if ($Verbose) {
-        Write-Host $Message -ForegroundColor $Color
+    if ($script:IsVerboseEnabled) {
+        Write-StyledOutput ("[VERBOSE:{0}] {1}" -f $Color, $Message)
     }
 }
 
-# Resolves and sets the working directory to the repository root.
-function Set-CorrectWorkingDirectory {
+# Resolves repository root from input and fallback location candidates.
+function Resolve-RepositoryRoot {
     param(
         [string] $RequestedRoot
     )
@@ -81,7 +90,6 @@ function Set-CorrectWorkingDirectory {
         for ($i = 0; $i -lt 6 -and -not [string]::IsNullOrWhiteSpace($current); $i++) {
             $hasLayout = (Test-Path -LiteralPath (Join-Path $current '.github')) -and (Test-Path -LiteralPath (Join-Path $current '.codex'))
             if ($hasLayout) {
-                Set-Location -Path $current
                 return $current
             }
             $current = Split-Path -Path $current -Parent
@@ -375,7 +383,7 @@ function Get-RouteSelection {
 }
 
 # Compares two arrays for length and element-wise equality.
-function Test-ArrayEquals {
+function Test-ArrayEqual {
     param(
         [string[]] $Expected,
         [string[]] $Actual
@@ -394,7 +402,8 @@ function Test-ArrayEquals {
     return $true
 }
 
-$resolvedRepoRoot = Set-CorrectWorkingDirectory -RequestedRoot $RepoRoot
+$resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
+Set-Location -Path $resolvedRepoRoot
 $catalogPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path '.github/instruction-routing.catalog.yml'
 $fixtureAbsolutePath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $FixturePath
 
@@ -427,8 +436,8 @@ foreach ($case in $fixture.cases) {
 
     Write-VerboseColor ("Case '{0}' -> routes=[{1}] paths=[{2}]" -f $case.id, ($result.RouteIds -join ', '), ($result.Paths -join ', ')) 'Gray'
 
-    $routeMatch = Test-ArrayEquals -Expected $expectedRouteIds -Actual @($result.RouteIds)
-    $pathMatch = Test-ArrayEquals -Expected $expectedSelectedPaths -Actual @($result.Paths)
+    $routeMatch = Test-ArrayEqual -Expected $expectedRouteIds -Actual @($result.RouteIds)
+    $pathMatch = Test-ArrayEqual -Expected $expectedSelectedPaths -Actual @($result.Paths)
 
     if ($routeMatch -and $pathMatch) {
         $passed++
@@ -445,17 +454,17 @@ foreach ($case in $fixture.cases) {
     ) | Out-Null
 }
 
-Write-Host 'Routing golden test summary' -ForegroundColor Cyan
-Write-Host ("  Cases: {0}" -f $total)
-Write-Host ("  Passed: {0}" -f $passed)
-Write-Host ("  Failed: {0}" -f $failures.Count)
+Write-StyledOutput 'Routing golden test summary'
+Write-StyledOutput ("  Cases: {0}" -f $total)
+Write-StyledOutput ("  Passed: {0}" -f $passed)
+Write-StyledOutput ("  Failed: {0}" -f $failures.Count)
 
 if ($failures.Count -gt 0) {
     foreach ($failure in $failures) {
-        Write-Host ("[FAIL] {0}" -f $failure) -ForegroundColor Red
+        Write-StyledOutput ("[FAIL] {0}" -f $failure)
     }
     exit 1
 }
 
-Write-Host 'All routing golden tests passed.' -ForegroundColor Green
+Write-StyledOutput 'All routing golden tests passed.'
 exit 0

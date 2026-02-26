@@ -53,13 +53,47 @@ param (
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
+$script:IsVerboseEnabled = [bool] $Verbose
 
 # -------------------------------
 # Helpers
 # -------------------------------
-# Resolves and sets the working directory to the repository root.
-function Set-CorrectWorkingDirectory {
+# Writes output text using ANSI color sequences when available.
+function Write-ColorLine {
+    param(
+        [string] $Message,
+        [ConsoleColor] $Color = [ConsoleColor]::Gray
+    )
+
+    if ($null -eq $PSStyle) {
+        Microsoft.PowerShell.Utility\Write-Output $Message
+        return
+    }
+
+    $ansiColor = switch ($Color) {
+        ([ConsoleColor]::Blue) { $PSStyle.Foreground.Blue; break }
+        ([ConsoleColor]::Cyan) { $PSStyle.Foreground.Cyan; break }
+        ([ConsoleColor]::Green) { $PSStyle.Foreground.Green; break }
+        ([ConsoleColor]::Yellow) { $PSStyle.Foreground.Yellow; break }
+        ([ConsoleColor]::Red) { $PSStyle.Foreground.Red; break }
+        ([ConsoleColor]::DarkGray) { $PSStyle.Foreground.BrightBlack; break }
+        default { $PSStyle.Foreground.White }
+    }
+
+    Microsoft.PowerShell.Utility\Write-Output ("{0}{1}{2}" -f $ansiColor, $Message, $PSStyle.Reset)
+}
+
+# Resolves the repository root using explicit and fallback location candidates.
+function Resolve-SolutionRoot {
     param (
         [string] $StartPath
     )
@@ -87,8 +121,6 @@ function Set-CorrectWorkingDirectory {
             $hasLayout = (Test-Path (Join-Path -Path $current -ChildPath 'src')) -and (Test-Path (Join-Path -Path $current -ChildPath '.github'))
 
             if ($hasSln -or $hasLayout) {
-                Set-Location -Path $current
-                Write-Host ("Solution root found: {0}" -f $PWD) -ForegroundColor Green
                 return $current
             }
 
@@ -106,8 +138,8 @@ function Write-VerboseColor {
         [ConsoleColor] $Color = [ConsoleColor]::Gray
     )
 
-    if ($Verbose) {
-        Write-Host $Message -ForegroundColor $Color
+    if ($script:IsVerboseEnabled) {
+        Write-ColorLine -Message ("[VERBOSE:{0}] {1}" -f $Color, $Message) -Color $Color
     }
 }
 
@@ -147,10 +179,12 @@ function Get-TargetPath {
 # -------------------------------
 # Main execution
 # -------------------------------
-$repoRoot = Set-CorrectWorkingDirectory -StartPath $Path
+$repoRoot = Resolve-SolutionRoot -StartPath $Path
+Set-Location -Path $repoRoot
 $targetPath = Get-TargetPath -RequestedPath $Path -RepoRoot $repoRoot
 
-Write-Host ("Scanning from: {0}" -f $targetPath) -ForegroundColor Blue
+Write-ColorLine -Message ("Solution root found: {0}" -f $repoRoot) -Color Blue
+Write-ColorLine -Message ("Scanning from: {0}" -f $targetPath) -Color Blue
 
 $artifactNames = @(
     '.build',
@@ -162,21 +196,21 @@ $artifactNames = @(
 $directories = Get-ChildItem -Path $targetPath -Recurse -Directory |
     Where-Object { $artifactNames -contains $_.Name }
 
-Write-Host ("Directories found: {0}" -f $directories.Count) -ForegroundColor Yellow
+Write-ColorLine -Message ("Directories found: {0}" -f $directories.Count) -Color Yellow
 
 if ($directories.Count -eq 0) {
-    Write-Host "No build artifacts found." -ForegroundColor Green
+    Write-ColorLine -Message 'No build artifacts found.' -Color Green
     exit 0
 }
 
 if ($DryRun) {
-    Write-Host "Dry run mode. The following directories would be removed:" -ForegroundColor Cyan
-    $directories | ForEach-Object { Write-Host $_.FullName }
+    Write-ColorLine -Message 'Dry run mode. The following directories would be removed:' -Color Yellow
+    $directories | ForEach-Object { Write-StyledOutput $_.FullName }
     exit 0
 }
 
 if (-not (Confirm-Deletion -Prompt "Delete the listed directories?" -SkipPrompt:$Force)) {
-    Write-Host "Operation cancelled by user." -ForegroundColor Yellow
+    Write-ColorLine -Message 'Operation cancelled by user.' -Color Yellow
     exit 0
 }
 
@@ -190,4 +224,4 @@ foreach ($dir in $directories) {
     }
 }
 
-Write-Host "Cleanup completed." -ForegroundColor Green
+Write-ColorLine -Message 'Cleanup completed.' -Color Green

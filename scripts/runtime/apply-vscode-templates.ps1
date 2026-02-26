@@ -52,7 +52,16 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
+$script:IsVerboseEnabled = [bool] $Verbose
 
 # -------------------------------
 # Helpers
@@ -64,13 +73,13 @@ function Write-VerboseColor {
         [ConsoleColor] $Color = [ConsoleColor]::Gray
     )
 
-    if ($Verbose) {
-        Write-Host $Message -ForegroundColor $Color
+    if ($script:IsVerboseEnabled) {
+        Write-StyledOutput ("[VERBOSE:{0}] {1}" -f $Color, $Message)
     }
 }
 
-# Resolves and sets the working directory to the repository root.
-function Set-CorrectWorkingDirectory {
+# Resolves repository root from input and fallback location candidates.
+function Resolve-RepositoryRoot {
     param(
         [string] $RequestedRoot
     )
@@ -97,7 +106,6 @@ function Set-CorrectWorkingDirectory {
         for ($i = 0; $i -lt 6 -and -not [string]::IsNullOrWhiteSpace($current); $i++) {
             $hasLayout = (Test-Path -LiteralPath (Join-Path $current '.github')) -and (Test-Path -LiteralPath (Join-Path $current '.codex'))
             if ($hasLayout) {
-                Set-Location -Path $current
                 Write-VerboseColor ("Repository root detected: {0}" -f $current) 'Green'
                 return $current
             }
@@ -123,7 +131,7 @@ function Copy-TemplateFile {
 
     $targetExists = Test-Path -LiteralPath $TargetPath
     if ($targetExists -and (-not $Overwrite)) {
-        Write-Host ("[SKIP] Target exists (use -Force): {0}" -f $TargetPath) -ForegroundColor Yellow
+        Write-StyledOutput ("[SKIP] Target exists (use -Force): {0}" -f $TargetPath)
         return $false
     }
 
@@ -133,14 +141,15 @@ function Copy-TemplateFile {
     }
 
     Copy-Item -LiteralPath $SourcePath -Destination $TargetPath -Force
-    Write-Host ("[OK] Applied template: {0} -> {1}" -f $SourcePath, $TargetPath) -ForegroundColor Green
+    Write-StyledOutput ("[OK] Applied template: {0} -> {1}" -f $SourcePath, $TargetPath)
     return $true
 }
 
 # -------------------------------
 # Main execution
 # -------------------------------
-$resolvedRepoRoot = Set-CorrectWorkingDirectory -RequestedRoot $RepoRoot
+$resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
+Set-Location -Path $resolvedRepoRoot
 $resolvedVscodePath = if ([string]::IsNullOrWhiteSpace($VscodePath)) {
     Join-Path $resolvedRepoRoot '.vscode'
 }
@@ -188,9 +197,9 @@ else {
     Write-VerboseColor 'Skipping MCP template by request.' 'Yellow'
 }
 
-Write-Host ''
-Write-Host 'VS Code template apply summary' -ForegroundColor Cyan
-Write-Host ("  applied: {0}" -f $applied)
-Write-Host ("  skipped: {0}" -f $skipped)
+Write-StyledOutput ''
+Write-StyledOutput 'VS Code template apply summary'
+Write-StyledOutput ("  applied: {0}" -f $applied)
+Write-StyledOutput ("  skipped: {0}" -f $skipped)
 
 exit 0

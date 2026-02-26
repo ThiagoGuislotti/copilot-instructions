@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Audits C# projects to detect types missing XML <summary> documentation.
 
@@ -69,13 +69,22 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
+$script:IncludeTestProjects = [bool] $IncludeTests
+
 # Helper: discover projects automatically
 # Enumerates project files under a folder while honoring exclusion rules.
 function Get-ProjectsFromFolder {
     param([string]$Folder)
 
     if (-not (Test-Path $Folder)) {
-        Write-Host "⚠ Folder not found: $Folder" -ForegroundColor Yellow
+        Write-StyledOutput "⚠ Folder not found: $Folder"
         return @()
     }
 
@@ -84,7 +93,7 @@ function Get-ProjectsFromFolder {
                    Where-Object {
                        $_.FullName -notmatch '\\obj\\' -and
                        $_.FullName -notmatch '\\bin\\' -and
-                       ($IncludeTests -or $_.Name -notmatch 'Test')
+                       ($script:IncludeTestProjects -or $_.Name -notmatch 'Test')
                    }
 
     foreach ($csproj in $csprojFiles) {
@@ -100,43 +109,43 @@ function Get-ProjectsFromFolder {
 $projectPaths = @{}
 
 if ($Projects.Count -gt 0) {
-    Write-Host "📋 Mode: explicit project list ($($Projects.Count) item(s))" -ForegroundColor Cyan
+    Write-StyledOutput "📋 Mode: explicit project list ($($Projects.Count) item(s))"
     foreach ($proj in $Projects) {
         if (Test-Path $proj) {
             $projectName = Split-Path -Leaf $proj
             $projectPaths[$projectName] = $proj
         } else {
-            Write-Host "⚠ Project not found: $proj" -ForegroundColor Yellow
+            Write-StyledOutput "⚠ Project not found: $proj"
         }
     }
 }
 elseif ($ProjectPath -ne "") {
     if (Test-Path $ProjectPath) {
         if (Test-Path "$ProjectPath\*.csproj") {
-            Write-Host "📁 Mode: single project" -ForegroundColor Cyan
+            Write-StyledOutput "📁 Mode: single project"
             $projectName = Split-Path -Leaf $ProjectPath
             $projectPaths[$projectName] = $ProjectPath
         }
         elseif ((Get-ChildItem -Path $ProjectPath -Filter "*.csproj" -Recurse -ErrorAction SilentlyContinue).Count -gt 0) {
-            Write-Host "📂 Mode: project folder" -ForegroundColor Cyan
+            Write-StyledOutput "📂 Mode: project folder"
             $projectPaths = Get-ProjectsFromFolder -Folder $ProjectPath
         }
         else {
-            Write-Host "⚠ No project found at: $ProjectPath" -ForegroundColor Yellow
+            Write-StyledOutput "⚠ No project found at: $ProjectPath"
             exit 1
         }
     } else {
-        Write-Host "⚠ Path not found: $ProjectPath" -ForegroundColor Yellow
+        Write-StyledOutput "⚠ Path not found: $ProjectPath"
         exit 1
     }
 }
 else {
-    Write-Host "🔍 Mode: automatic discovery under '$SourceFolder'" -ForegroundColor Cyan
+    Write-StyledOutput "🔍 Mode: automatic discovery under '$SourceFolder'"
     $projectPaths = Get-ProjectsFromFolder -Folder $SourceFolder
 
     if ($projectPaths.Count -eq 0) {
-        Write-Host "⚠ Nenhum projeto encontrado na pasta '$SourceFolder'" -ForegroundColor Yellow
-        Write-Host "💡 Dica: Use -ProjectPath para especificar um caminho ou -Projects para uma lista" -ForegroundColor Gray
+        Write-StyledOutput "⚠ Nenhum projeto encontrado na pasta '$SourceFolder'"
+        Write-StyledOutput "💡 Dica: Use -ProjectPath para especificar um caminho ou -Projects para uma lista"
         exit 1
     }
 }
@@ -198,42 +207,42 @@ function Test-FileDocumentation {
         }
 
     } catch {
-        Write-Host "  ✗ ERROR analyzing: $fileName - $($_.Exception.Message)" -ForegroundColor Red
+        Write-StyledOutput "  ✗ ERROR analyzing: $fileName - $($_.Exception.Message)"
         $stats.Skipped++
         return $null
     }
 }
 
 # Execution banner
-Write-Host "`n╔════════════════════════════════════════════════════════════╗" -ForegroundColor Magenta
-Write-Host "║  XML Documentation Validation - C# Projects                ║" -ForegroundColor Magenta
-Write-Host "╚════════════════════════════════════════════════════════════╝`n" -ForegroundColor Magenta
+Write-StyledOutput "`n╔════════════════════════════════════════════════════════════╗"
+Write-StyledOutput "║  XML Documentation Validation - C# Projects                ║"
+Write-StyledOutput "╚════════════════════════════════════════════════════════════╝`n"
 
 if ($projectPaths.Count -eq 0) {
-    Write-Host "❌ No projects to validate.`n" -ForegroundColor Red
-    Write-Host "💡 Usage examples:" -ForegroundColor Cyan
-    Write-Host "   .\validate-xml-documentation.ps1                              # Validate everything under src\" -ForegroundColor Gray
-    Write-Host "   .\validate-xml-documentation.ps1 -ExportMissing              # Export to JSON" -ForegroundColor Gray
-    Write-Host "   .\validate-xml-documentation.ps1 -ProjectPath src\MyProject  # Single project" -ForegroundColor Gray
+    Write-StyledOutput "❌ No projects to validate.`n"
+    Write-StyledOutput "💡 Usage examples:"
+    Write-StyledOutput "   .\validate-xml-documentation.ps1                              # Validate everything under src\"
+    Write-StyledOutput "   .\validate-xml-documentation.ps1 -ExportMissing              # Export to JSON"
+    Write-StyledOutput "   .\validate-xml-documentation.ps1 -ProjectPath src\MyProject  # Single project"
     exit 1
 }
 
-Write-Host "📦 Projects to validate: $($projectPaths.Count)" -ForegroundColor Cyan
+Write-StyledOutput "📦 Projects to validate: $($projectPaths.Count)"
 foreach ($p in $projectPaths.GetEnumerator() | Sort-Object Key) {
-    Write-Host "   • $($p.Key)" -ForegroundColor Gray
+    Write-StyledOutput "   • $($p.Key)"
 }
-Write-Host ""
+Write-StyledOutput ""
 
 foreach ($project in $projectPaths.GetEnumerator() | Sort-Object Name) {
     $projectName = $project.Key
     $projectPath = $project.Value
 
     if (-not (Test-Path $projectPath)) {
-        Write-Host "⚠ Project not found: $projectPath`n" -ForegroundColor Yellow
+        Write-StyledOutput "⚠ Project not found: $projectPath`n"
         continue
     }
 
-    Write-Host "═══ $projectName ═══" -ForegroundColor Magenta
+    Write-StyledOutput "═══ $projectName ═══"
 
     $files = Get-ChildItem -Path $projectPath -Filter "*.cs" -Recurse -File |
              Where-Object {
@@ -247,7 +256,7 @@ foreach ($project in $projectPaths.GetEnumerator() | Sort-Object Name) {
     $projectTotal = $files.Count
     $stats.TotalFiles += $projectTotal
 
-    Write-Host "Files processed: $projectTotal" -ForegroundColor Gray
+    Write-StyledOutput "Files processed: $projectTotal"
 
     $projectMissing = 0
     foreach ($file in $files) {
@@ -259,29 +268,29 @@ foreach ($project in $projectPaths.GetEnumerator() | Sort-Object Name) {
     }
 
     if ($projectMissing -gt 0) {
-        Write-Host "❌ Files missing documentation: $projectMissing" -ForegroundColor Red
+        Write-StyledOutput "❌ Files missing documentation: $projectMissing"
     } else {
-        Write-Host "✅ All files documented!" -ForegroundColor Green
+        Write-StyledOutput "✅ All files documented!"
     }
 
-    Write-Host ""
+    Write-StyledOutput ""
 }
 
 # Final report
-Write-Host "`n╔════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║  VALIDATION REPORT                                          ║" -ForegroundColor Cyan
-Write-Host "╚════════════════════════════════════════════════════════════╝`n" -ForegroundColor Cyan
+Write-StyledOutput "`n╔════════════════════════════════════════════════════════════╗"
+Write-StyledOutput "║  VALIDATION REPORT                                          ║"
+Write-StyledOutput "╚════════════════════════════════════════════════════════════╝`n"
 
-Write-Host "Total files analyzed:        $($stats.TotalFiles)" -ForegroundColor White
-Write-Host "✅ With documentation:        $($stats.Documented)" -ForegroundColor Green
-Write-Host "❌ Missing documentation:     $($stats.Missing)" -ForegroundColor Red
-Write-Host "⚠️  Skipped / no type found:  $($stats.Skipped)" -ForegroundColor Yellow
+Write-StyledOutput "Total files analyzed:        $($stats.TotalFiles)"
+Write-StyledOutput "✅ With documentation:        $($stats.Documented)"
+Write-StyledOutput "❌ Missing documentation:     $($stats.Missing)"
+Write-StyledOutput "⚠️  Skipped / no type found:  $($stats.Skipped)"
 
 $coverage = if ($stats.TotalFiles -gt 0) {
     [math]::Round(($stats.Documented / ($stats.TotalFiles - $stats.Skipped)) * 100, 2)
 } else { 0 }
 
-Write-Host "`nDocumentation coverage: $coverage% ($($stats.Documented)/$($stats.TotalFiles - $stats.Skipped))" -ForegroundColor $(
+Write-StyledOutput "`nDocumentation coverage: $coverage% ($($stats.Documented)/$($stats.TotalFiles - $stats.Skipped))"
     if ($coverage -eq 100) { "Green" }
     elseif ($coverage -ge 80) { "Cyan" }
     elseif ($coverage -ge 50) { "Yellow" }
@@ -290,29 +299,29 @@ Write-Host "`nDocumentation coverage: $coverage% ($($stats.Documented)/$($stats.
 
 # List files missing documentation
 if ($missingFiles.Count -gt 0) {
-    Write-Host "`n╔════════════════════════════════════════════════════════════╗" -ForegroundColor Yellow
-    Write-Host "║  FILES MISSING DOCUMENTATION                                ║" -ForegroundColor Yellow
-    Write-Host "╚════════════════════════════════════════════════════════════╝`n" -ForegroundColor Yellow
+    Write-StyledOutput "`n╔════════════════════════════════════════════════════════════╗"
+    Write-StyledOutput "║  FILES MISSING DOCUMENTATION                                ║"
+    Write-StyledOutput "╚════════════════════════════════════════════════════════════╝`n"
 
     if ($GroupByProject) {
         $grouped = $missingFiles | Group-Object -Property Project | Sort-Object Name
         foreach ($group in $grouped) {
-            Write-Host "📁 $($group.Name) ($($group.Count) file(s)):" -ForegroundColor Cyan
+            Write-StyledOutput "📁 $($group.Name) ($($group.Count) file(s)):"
             foreach ($file in $group.Group | Sort-Object File) {
-                Write-Host "   ❌ $($file.File) ($($file.TypeKind) $($file.TypeName))" -ForegroundColor Red
-                Write-Host "      $($file.Path)" -ForegroundColor DarkGray
+                Write-StyledOutput "   ❌ $($file.File) ($($file.TypeKind) $($file.TypeName))"
+                Write-StyledOutput "      $($file.Path)"
             }
-            Write-Host ""
+            Write-StyledOutput ""
         }
     } else {
         foreach ($file in $missingFiles | Sort-Object Project, File) {
-            Write-Host "❌ [$($file.Project)] $($file.File)" -ForegroundColor Red
-            Write-Host "   Type: $($file.TypeKind) | Name: $($file.TypeName)" -ForegroundColor Gray
-            Write-Host "   Path: $($file.Path)" -ForegroundColor DarkGray
+            Write-StyledOutput "❌ [$($file.Project)] $($file.File)"
+            Write-StyledOutput "   Type: $($file.TypeKind) | Name: $($file.TypeName)"
+            Write-StyledOutput "   Path: $($file.Path)"
             if ($file.Namespace) {
-                Write-Host "   Namespace: $($file.Namespace)" -ForegroundColor DarkGray
+                Write-StyledOutput "   Namespace: $($file.Namespace)"
             }
-            Write-Host ""
+            Write-StyledOutput ""
         }
     }
 }
@@ -338,22 +347,22 @@ if ($ExportMissing -and $missingFiles.Count -gt 0) {
 
     $exportData | ConvertTo-Json -Depth 10 | Set-Content -Path $OutputPath -Encoding UTF8
 
-    Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Green
-    Write-Host "║  EXPORT COMPLETE                                            ║" -ForegroundColor Green
-    Write-Host "╚════════════════════════════════════════════════════════════╝`n" -ForegroundColor Green
-    Write-Host "📄 Exported file: $OutputPath" -ForegroundColor Cyan
-    Write-Host "📊 Items without documentation: $($missingFiles.Count)" -ForegroundColor Yellow
-    Write-Host "`n💡 Use this file with AI-assisted tooling to generate summaries in context." -ForegroundColor Gray
+    Write-StyledOutput "╔════════════════════════════════════════════════════════════╗"
+    Write-StyledOutput "║  EXPORT COMPLETE                                            ║"
+    Write-StyledOutput "╚════════════════════════════════════════════════════════════╝`n"
+    Write-StyledOutput "📄 Exported file: $OutputPath"
+    Write-StyledOutput "📊 Items without documentation: $($missingFiles.Count)"
+    Write-StyledOutput "`n💡 Use this file with AI-assisted tooling to generate summaries in context."
 }
 elseif ($ExportMissing -and $missingFiles.Count -eq 0) {
-    Write-Host "`n✅ Nothing to export – all files already contain documentation!" -ForegroundColor Green
+    Write-StyledOutput "`n✅ Nothing to export – all files already contain documentation!"
 }
 
 # Exit status
 if ($stats.Missing -gt 0) {
-    Write-Host "`n⚠️  Validation found $($stats.Missing) file(s) without documentation." -ForegroundColor Yellow
+    Write-StyledOutput "`n⚠️  Validation found $($stats.Missing) file(s) without documentation."
     exit 1
 } else {
-    Write-Host "`n✅ Validation complete – all files contain documentation!" -ForegroundColor Green
+    Write-StyledOutput "`n✅ Validation complete – all files contain documentation!"
     exit 0
 }

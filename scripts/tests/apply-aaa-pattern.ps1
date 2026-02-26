@@ -50,23 +50,33 @@ param(
     )
 )
 
-Write-Host "=== Applying AAA Pattern to Frontend Tests ===" -ForegroundColor Cyan
-Write-Host "This script will add AAA comments to pending tests" -ForegroundColor Yellow
-Write-Host ""
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
+
+$ErrorActionPreference = 'Stop'
+
+Write-StyledOutput "=== Applying AAA Pattern to Frontend Tests ==="
+Write-StyledOutput "This script will add AAA comments to pending tests"
+Write-StyledOutput ""
 
 # Function to process a file
 # Adds Arrange/Act/Assert section comments to test methods when missing.
-function Add-AAAComments {
+function Add-AAAComment {
     param (
         [string]$FilePath
     )
 
     if (-not (Test-Path $FilePath)) {
-        Write-Host "❌ File not found: $FilePath" -ForegroundColor Red
+        Write-StyledOutput "❌ File not found: $FilePath"
         return
     }
 
-    Write-Host "📝 Processing: $FilePath" -ForegroundColor Green
+    Write-StyledOutput "📝 Processing: $FilePath"
 
     $content = Get-Content $FilePath -Raw
     $modified = $false
@@ -84,9 +94,9 @@ function Add-AAAComments {
 
     if ($modified) {
         Set-Content -Path $FilePath -Value $content -NoNewline
-        Write-Host "   ✅ AAA comments added successfully" -ForegroundColor Green
+        Write-StyledOutput "   ✅ AAA comments added successfully"
     } else {
-        Write-Host "   ℹ️  No modifications needed (AAA already applied or different structure)" -ForegroundColor Yellow
+        Write-StyledOutput "   ℹ️  No modifications needed (AAA already applied or different structure)"
     }
 }
 
@@ -102,17 +112,17 @@ $resolvedFiles = $TestFiles | ForEach-Object {
 # Process each file
 foreach ($file in $resolvedFiles) {
     if (Test-Path $file) {
-        Add-AAAComments -FilePath $file
-        Write-Host ""
+        Add-AAAComment -FilePath $file
+        Write-StyledOutput ""
     } else {
-        Write-Host "⚠️  File not found: $file" -ForegroundColor Yellow
+        Write-StyledOutput "⚠️  File not found: $file"
     }
 }
 
-Write-Host "=== Processing Complete ===" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "⚠️  WARNING: This script applied generic AAA comments." -ForegroundColor Yellow
-Write-Host "Manual review is required to:" -ForegroundColor Yellow
-Write-Host "  1. Adjust comments to reflect specific context" -ForegroundColor White
-Write-Host "  2. Ensure Arrange/Act/Assert are correctly positioned" -ForegroundColor White
-Write-Host "  3. Add explanatory notes for critical/complex logic" -ForegroundColor White
+Write-StyledOutput "=== Processing Complete ==="
+Write-StyledOutput ""
+Write-StyledOutput "⚠️  WARNING: This script applied generic AAA comments."
+Write-StyledOutput "Manual review is required to:"
+Write-StyledOutput "  1. Adjust comments to reflect specific context"
+Write-StyledOutput "  2. Ensure Arrange/Act/Assert are correctly positioned"
+Write-StyledOutput "  3. Add explanatory notes for critical/complex logic"

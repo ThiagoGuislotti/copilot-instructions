@@ -44,6 +44,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:IsVerboseEnabled = [bool] $Verbose
 $script:Failures = New-Object System.Collections.Generic.List[string]
@@ -56,7 +64,7 @@ function Write-VerboseLog {
     )
 
     if ($script:IsVerboseEnabled) {
-        Write-Output ("[VERBOSE] {0}" -f $Message)
+        Write-StyledOutput ("[VERBOSE] {0}" -f $Message)
     }
 }
 
@@ -67,7 +75,7 @@ function Add-ValidationFailure {
     )
 
     $script:Failures.Add($Message) | Out-Null
-    Write-Output ("[FAIL] {0}" -f $Message)
+    Write-StyledOutput ("[FAIL] {0}" -f $Message)
 }
 
 # Registers a validation warning.
@@ -77,7 +85,7 @@ function Add-ValidationWarning {
     )
 
     $script:Warnings.Add($Message) | Out-Null
-    Write-Output ("[WARN] {0}" -f $Message)
+    Write-StyledOutput ("[WARN] {0}" -f $Message)
 }
 
 # Resolves a path from repo root.
@@ -340,12 +348,12 @@ if (-not (Test-Path -LiteralPath $resolvedFixturePath -PathType Leaf)) {
 }
 
 if ($script:Failures.Count -gt 0) {
-    Write-Output ''
-    Write-Output 'Routing coverage validation summary'
-    Write-Output '  Routes checked: 0'
-    Write-Output '  Cases checked: 0'
-    Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-    Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+    Write-StyledOutput ''
+    Write-StyledOutput 'Routing coverage validation summary'
+    Write-StyledOutput '  Routes checked: 0'
+    Write-StyledOutput '  Cases checked: 0'
+    Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+    Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
     exit 1
 }
 
@@ -379,16 +387,16 @@ foreach ($routeId in ($routeMap.Keys | Sort-Object)) {
     }
 }
 
-Write-Output ''
-Write-Output 'Routing coverage validation summary'
-Write-Output ("  Routes checked: {0}" -f $routeMap.Count)
-Write-Output ("  Cases checked: {0}" -f $fixtureCases.Count)
-Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+Write-StyledOutput ''
+Write-StyledOutput 'Routing coverage validation summary'
+Write-StyledOutput ("  Routes checked: {0}" -f $routeMap.Count)
+Write-StyledOutput ("  Cases checked: {0}" -f $fixtureCases.Count)
+Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
 
 if ($script:Failures.Count -gt 0) {
     exit 1
 }
 
-Write-Output 'Routing coverage validation passed.'
+Write-StyledOutput 'Routing coverage validation passed.'
 exit 0

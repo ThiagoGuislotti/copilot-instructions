@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Executes .NET test projects with code coverage collection and merges HTML/Cobertura reports.
 .DESCRIPTION
@@ -73,28 +73,36 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
+
 # Logging functions
 # Writes informational messages to the console.
 function Write-Info($msg) {
-    Write-Host "INFO: $msg" -ForegroundColor Green
+    Write-StyledOutput "INFO: $msg"
 }
 
 # Writes verbose messages only when verbose mode is enabled.
 function Write-Verbose2($msg) {
     if ($Verbose) {
-        Write-Host "VERBOSE: $msg" -ForegroundColor Gray
+        Write-StyledOutput "VERBOSE: $msg"
     }
 }
 
 # Writes warning messages to the console.
 function Write-Warning2($msg) {
-    Write-Host "WARN: $msg" -ForegroundColor Yellow
+    Write-StyledOutput "WARN: $msg"
 }
 
 # Writes minimal required progress output for non-verbose runs.
 function Write-Minimal($msg) {
     # Always show minimal essential information
-    Write-Host $msg -ForegroundColor Cyan
+    Write-StyledOutput $msg
 }
 
 # Resolve repo root (two levels up from this script)
@@ -116,7 +124,7 @@ New-Item -ItemType Directory -Force -Path $CoverageDir, $HistoryDir, $TrxDir | O
 
 # Ensure reportgenerator tool is available
 # Ensures the ReportGenerator global tool is installed and available.
-function Ensure-ReportGenerator {
+function Initialize-ReportGenerator {
     Write-Verbose2 "Checking for ReportGenerator tool..."
     $rg = Get-Command reportgenerator -ErrorAction SilentlyContinue
     if (-not $rg) {
@@ -271,14 +279,14 @@ foreach ($p in $projList | Select-Object -Unique) {
         Write-Info "Testing project: $projPath"
     } else {
         $projectName = [IO.Path]::GetFileNameWithoutExtension($projPath)
-        Write-Host "  • $projectName" -ForegroundColor Gray
+        Write-StyledOutput "  • $projectName"
     }
 
     # Generate unique log name based on project
     $logName = [IO.Path]::GetFileNameWithoutExtension($projPath)
 
     # Build dotnet test arguments
-    $args = @(
+    $testArgs = @(
         'test', $projPath,
         '-c', 'Release',
         '-f', $Framework,
@@ -290,15 +298,15 @@ foreach ($p in $projList | Select-Object -Unique) {
     )
 
     if ($Verbose) {
-        $args += '--verbosity', 'normal'
+        $testArgs += '--verbosity', 'normal'
     } else {
-        $args += '--verbosity', 'quiet'
+        $testArgs += '--verbosity', 'quiet'
     }
 
-    Write-Verbose2 "Command: dotnet $($args -join ' ')"
+    Write-Verbose2 "Command: dotnet $($testArgs -join ' ')"
 
     try {
-        & dotnet @args
+        & dotnet @testArgs
         if ($Verbose) {
             Write-Info "✓ Test completed successfully: $logName"
         }
@@ -313,9 +321,9 @@ if ($Verbose) {
     Write-Info "Test execution summary: $successCount succeeded, $failCount failed"
 } else {
     if ($failCount -gt 0) {
-        Write-Host "Test summary: $successCount passed, $failCount failed" -ForegroundColor Yellow
+        Write-StyledOutput "Test summary: $successCount passed, $failCount failed"
     } else {
-        Write-Host "Test summary: $successCount passed" -ForegroundColor Green
+        Write-StyledOutput "Test summary: $successCount passed"
     }
 }
 
@@ -325,7 +333,7 @@ if ($Verbose) {
 } else {
     Write-Minimal "Generating coverage report..."
 }
-Ensure-ReportGenerator
+Initialize-ReportGenerator
 
 $coveragePattern = Join-Path $TrxDir '**\coverage.cobertura.xml'
 Write-Verbose2 "Searching for coverage files with pattern: $coveragePattern"
@@ -357,14 +365,14 @@ if ($coverageFiles.Count -eq 0) {
         if ($Verbose) {
             Write-Info "✓ HTML coverage report generated: $indexPath"
         } else {
-            Write-Host "Coverage report: $indexPath" -ForegroundColor Green
+            Write-StyledOutput "Coverage report: $indexPath"
         }
         try {
             Start-Process $indexPath | Out-Null
             if ($Verbose) {
                 Write-Info "Coverage report opened in browser"
             } else {
-                Write-Host "Report opened in browser" -ForegroundColor Green
+                Write-StyledOutput "Report opened in browser"
             }
         } catch {
             Write-Verbose2 "Could not open browser automatically: $($_.Exception.Message)"

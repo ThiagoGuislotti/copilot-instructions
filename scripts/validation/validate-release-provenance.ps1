@@ -60,6 +60,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:IsVerboseEnabled = [bool] $Verbose
 $script:IsWarningOnly = [bool] $WarningOnly
@@ -73,7 +81,7 @@ function Write-VerboseLog {
     )
 
     if ($script:IsVerboseEnabled) {
-        Write-Output ("[VERBOSE] {0}" -f $Message)
+        Write-StyledOutput ("[VERBOSE] {0}" -f $Message)
     }
 }
 
@@ -85,12 +93,12 @@ function Add-ValidationFailure {
 
     if ($script:IsWarningOnly) {
         $script:Warnings.Add($Message) | Out-Null
-        Write-Output ("[WARN] {0}" -f $Message)
+        Write-StyledOutput ("[WARN] {0}" -f $Message)
         return
     }
 
     $script:Failures.Add($Message) | Out-Null
-    Write-Output ("[FAIL] {0}" -f $Message)
+    Write-StyledOutput ("[FAIL] {0}" -f $Message)
 }
 
 # Registers a validation warning.
@@ -100,7 +108,7 @@ function Add-ValidationWarning {
     )
 
     $script:Warnings.Add($Message) | Out-Null
-    Write-Output ("[WARN] {0}" -f $Message)
+    Write-StyledOutput ("[WARN] {0}" -f $Message)
 }
 
 # Resolves a path from repo root.
@@ -413,13 +421,13 @@ $resolvedBaselinePath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $Baseline
 $baseline = Get-RequiredJsonDocument -Path $resolvedBaselinePath -Label 'release provenance baseline'
 
 if ($null -eq $baseline) {
-    Write-Output ''
-    Write-Output 'Release provenance validation summary'
-    Write-Output ("  Warning-only mode: {0}" -f $script:IsWarningOnly)
-    Write-Output '  Checks declared: 0'
-    Write-Output '  Evidence files: 0'
-    Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-    Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+    Write-StyledOutput ''
+    Write-StyledOutput 'Release provenance validation summary'
+    Write-StyledOutput ("  Warning-only mode: {0}" -f $script:IsWarningOnly)
+    Write-StyledOutput '  Checks declared: 0'
+    Write-StyledOutput '  Evidence files: 0'
+    Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+    Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
     if ($script:Failures.Count -gt 0 -and -not $script:IsWarningOnly) { exit 1 }
     exit 0
 }
@@ -512,18 +520,18 @@ else {
 
 Test-AuditReportContract -AuditFilePath $resolvedAuditReportPath -IsRequired:$shouldRequireAuditReport -HeadCommit $headCommit
 
-Write-Output ''
-Write-Output 'Release provenance validation summary'
-Write-Output ("  Warning-only mode: {0}" -f $script:IsWarningOnly)
-Write-Output ("  Checks declared: {0}" -f $requiredValidationChecks.Count)
-Write-Output ("  Checks found in validate-all: {0}" -f $definedChecks.Count)
-Write-Output ("  Evidence files: {0}" -f $requiredEvidenceFiles.Count)
-Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+Write-StyledOutput ''
+Write-StyledOutput 'Release provenance validation summary'
+Write-StyledOutput ("  Warning-only mode: {0}" -f $script:IsWarningOnly)
+Write-StyledOutput ("  Checks declared: {0}" -f $requiredValidationChecks.Count)
+Write-StyledOutput ("  Checks found in validate-all: {0}" -f $definedChecks.Count)
+Write-StyledOutput ("  Evidence files: {0}" -f $requiredEvidenceFiles.Count)
+Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
 
 if ($script:Failures.Count -gt 0 -and -not $script:IsWarningOnly) {
     exit 1
 }
 
-Write-Output 'Release provenance validation passed.'
+Write-StyledOutput 'Release provenance validation passed.'
 exit 0

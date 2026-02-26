@@ -33,6 +33,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:IsVerboseEnabled = [bool] $Verbose
 $VerbosePreference = if ($script:IsVerboseEnabled) { 'Continue' } else { 'SilentlyContinue' }
@@ -564,15 +572,15 @@ Test-HandoffTemplateIntegrity -HandoffTemplate $handoffTemplate -Pipeline $pipel
 Test-RunArtifactTemplateIntegrity -RunTemplate $runArtifactTemplate -Pipeline $pipelineManifest -AgentIds $manifestStats.AgentIds
 Test-EvalFixturesIntegrity -EvalFixtures $evalFixtures -Pipeline $pipelineManifest -AgentIds $manifestStats.AgentIds
 
-Write-Output ''
-Write-Output 'Agent orchestration validation summary'
-Write-Output ("  Agents: {0}" -f $manifestStats.AgentIds.Count)
-Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+Write-StyledOutput ''
+Write-StyledOutput 'Agent orchestration validation summary'
+Write-StyledOutput ("  Agents: {0}" -f $manifestStats.AgentIds.Count)
+Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
 
 if ($script:Failures.Count -gt 0) {
     exit 1
 }
 
-Write-Output 'All agent orchestration validations passed.'
+Write-StyledOutput 'All agent orchestration validations passed.'
 exit 0

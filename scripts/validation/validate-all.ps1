@@ -88,6 +88,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:IsVerboseEnabled = [bool] $Verbose
 $script:Warnings = New-Object System.Collections.Generic.List[string]
@@ -99,7 +107,7 @@ function Write-VerboseLog {
     )
 
     if ($script:IsVerboseEnabled) {
-        Write-Output ("[VERBOSE] {0}" -f $Message)
+        Write-StyledOutput ("[VERBOSE] {0}" -f $Message)
     }
 }
 
@@ -110,7 +118,7 @@ function Add-SuiteWarning {
     )
 
     $script:Warnings.Add($Message) | Out-Null
-    Write-Output ("[WARN] {0}" -f $Message)
+    Write-StyledOutput ("[WARN] {0}" -f $Message)
 }
 
 # Resolves a path from repo root.
@@ -301,9 +309,9 @@ function Get-ValidationProfile {
     }
 
     $profiles = @($profilesDocument.profiles)
-    foreach ($profile in $profiles) {
-        if ([string] $profile.id -eq $selectedProfileId) {
-            return $profile
+    foreach ($profileItem in $profiles) {
+        if ([string] $profileItem.id -eq $selectedProfileId) {
+            return $profileItem
         }
     }
 
@@ -400,7 +408,7 @@ function Write-ValidationLedgerEntry {
     }
     Set-Content -LiteralPath $latestPath -Value ($ledgerEntry | ConvertTo-Json -Depth 100)
 
-    Write-Output ("[OK] Validation ledger entry appended: {0}" -f [System.IO.Path]::GetRelativePath($Root, $resolvedLedgerPath))
+    Write-StyledOutput ("[OK] Validation ledger entry appended: {0}" -f [System.IO.Path]::GetRelativePath($Root, $resolvedLedgerPath))
 }
 
 # Executes a validation script and returns a status record.
@@ -424,30 +432,30 @@ function Invoke-ValidationScript {
         if ($TreatFailureAsWarning) {
             $status = 'warning'
             $exitCode = 0
-            Write-Output ("[WARN] {0}: {1}" -f $Name, $errorMessage)
+            Write-StyledOutput ("[WARN] {0}: {1}" -f $Name, $errorMessage)
         }
         else {
-            Write-Output ("[FAIL] {0}: {1}" -f $Name, $errorMessage)
+            Write-StyledOutput ("[FAIL] {0}: {1}" -f $Name, $errorMessage)
         }
     }
     else {
-        Write-Output ("[RUN] {0}" -f $Name)
+        Write-StyledOutput ("[RUN] {0}" -f $Name)
         try {
             & $resolvedScriptPath @Arguments | Out-Host
             $exitCode = if ($null -eq $LASTEXITCODE) { 0 } else { [int] $LASTEXITCODE }
 
             if ($exitCode -eq 0) {
                 $status = 'passed'
-                Write-Output ("[OK] {0}" -f $Name)
+                Write-StyledOutput ("[OK] {0}" -f $Name)
             }
             elseif ($TreatFailureAsWarning) {
                 $status = 'warning'
                 $exitCode = 0
-                Write-Output ("[WARN] {0} (non-zero exit converted to warning)" -f $Name)
+                Write-StyledOutput ("[WARN] {0} (non-zero exit converted to warning)" -f $Name)
             }
             else {
                 $status = 'failed'
-                Write-Output ("[FAIL] {0} (exit code {1})" -f $Name, $exitCode)
+                Write-StyledOutput ("[FAIL] {0} (exit code {1})" -f $Name, $exitCode)
             }
         }
         catch {
@@ -455,12 +463,12 @@ function Invoke-ValidationScript {
             if ($TreatFailureAsWarning) {
                 $status = 'warning'
                 $exitCode = 0
-                Write-Output ("[WARN] {0} (exception converted to warning: {1})" -f $Name, $errorMessage)
+                Write-StyledOutput ("[WARN] {0} (exception converted to warning: {1})" -f $Name, $errorMessage)
             }
             else {
                 $status = 'failed'
                 $exitCode = 1
-                Write-Output ("[FAIL] {0} (exception: {1})" -f $Name, $errorMessage)
+                Write-StyledOutput ("[FAIL] {0} (exception: {1})" -f $Name, $errorMessage)
             }
         }
     }
@@ -483,17 +491,17 @@ $resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
 Set-Location -Path $resolvedRepoRoot
 
 $profileFilePath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $ValidationProfilesPath
-$profile = Get-ValidationProfile -ProfilesFilePath $profileFilePath -ProfileId $ValidationProfile
-$profileId = if ($null -eq $profile) { 'custom' } else { [string] $profile.id }
+$selectedProfile = Get-ValidationProfile -ProfilesFilePath $profileFilePath -ProfileId $ValidationProfile
+$profileId = if ($null -eq $selectedProfile) { 'custom' } else { [string] $selectedProfile.id }
 
-$profileWarningOnly = if ($null -eq $profile) { $false } else { [bool] $profile.warningOnly }
+$profileWarningOnly = if ($null -eq $selectedProfile) { $false } else { [bool] $selectedProfile.warningOnly }
 $effectiveWarningOnly = [bool] ($WarningOnly -or $profileWarningOnly)
 
 if ($effectiveWarningOnly) {
-    Write-Output '[INFO] validate-all running in warning-only mode.'
+    Write-StyledOutput '[INFO] validate-all running in warning-only mode.'
 }
 else {
-    Write-Output '[INFO] validate-all running in enforcing mode.'
+    Write-StyledOutput '[INFO] validate-all running in enforcing mode.'
 }
 
 $baseCheckDefinitions = @{}
@@ -615,15 +623,15 @@ $defaultCheckOrder = @(
     'validate-audit-ledger'
 )
 
-$selectedCheckOrder = if ($null -eq $profile) {
+$selectedCheckOrder = if ($null -eq $selectedProfile) {
     $defaultCheckOrder
 }
 else {
-    $profileChecks = @($profile.checkOrder | ForEach-Object { [string] $_ })
+    $profileChecks = @($selectedProfile.checkOrder | ForEach-Object { [string] $_ })
     if ($profileChecks.Count -eq 0) { $defaultCheckOrder } else { $profileChecks }
 }
 
-$profileCheckOptionMap = if ($null -eq $profile) { @{} } else { Convert-ToHashtable -Value $profile.checkOptions }
+$profileCheckOptionMap = if ($null -eq $selectedProfile) { @{} } else { Convert-ToHashtable -Value $selectedProfile.checkOptions }
 
 $results = New-Object System.Collections.Generic.List[object]
 foreach ($checkName in $selectedCheckOrder) {
@@ -670,17 +678,17 @@ $passed = @($results | Where-Object { $_.status -eq 'passed' }).Count
 $warnings = @($results | Where-Object { $_.status -eq 'warning' }).Count
 $failed = @($results | Where-Object { $_.status -eq 'failed' }).Count
 
-Write-Output ''
-Write-Output 'Validation suite summary'
-Write-Output ("  Profile: {0}" -f $profileId)
-Write-Output ("  Warning-only mode: {0}" -f $effectiveWarningOnly)
-Write-Output ("  Total checks: {0}" -f $results.Count)
-Write-Output ("  Passed: {0}" -f $passed)
-Write-Output ("  Warnings: {0}" -f $warnings)
-Write-Output ("  Failed: {0}" -f $failed)
+Write-StyledOutput ''
+Write-StyledOutput 'Validation suite summary'
+Write-StyledOutput ("  Profile: {0}" -f $profileId)
+Write-StyledOutput ("  Warning-only mode: {0}" -f $effectiveWarningOnly)
+Write-StyledOutput ("  Total checks: {0}" -f $results.Count)
+Write-StyledOutput ("  Passed: {0}" -f $passed)
+Write-StyledOutput ("  Warnings: {0}" -f $warnings)
+Write-StyledOutput ("  Failed: {0}" -f $failed)
 
 if ($script:Warnings.Count -gt 0) {
-    Write-Output ("  Suite warnings: {0}" -f $script:Warnings.Count)
+    Write-StyledOutput ("  Suite warnings: {0}" -f $script:Warnings.Count)
 }
 
 if ($WriteLedger) {
@@ -696,11 +704,11 @@ if ($WriteLedger) {
 }
 
 if ($failed -gt 0) {
-    Write-Output ''
-    Write-Output 'Failed checks'
+    Write-StyledOutput ''
+    Write-StyledOutput 'Failed checks'
     foreach ($failedResult in ($results | Where-Object { $_.status -eq 'failed' })) {
         $errorDetail = if ([string]::IsNullOrWhiteSpace([string] $failedResult.error)) { '' } else { " :: $($failedResult.error)" }
-        Write-Output ("  - {0} (exit {1}){2}" -f $failedResult.name, $failedResult.exitCode, $errorDetail)
+        Write-StyledOutput ("  - {0} (exit {1}){2}" -f $failedResult.name, $failedResult.exitCode, $errorDetail)
     }
 
     if (-not $effectiveWarningOnly) {
@@ -709,10 +717,10 @@ if ($failed -gt 0) {
 }
 
 if ($warnings -gt 0 -or $script:Warnings.Count -gt 0) {
-    Write-Output 'Validation suite completed with warnings.'
+    Write-StyledOutput 'Validation suite completed with warnings.'
 }
 else {
-    Write-Output 'All validation checks passed.'
+    Write-StyledOutput 'All validation checks passed.'
 }
 
 exit 0

@@ -1,4 +1,4 @@
-################################################################################
+﻿################################################################################
 # Deploy Backend para VPS Contabo
 # 
 # Script GENÉRICO para deploy de aplicações backend .NET em VPS Contabo
@@ -102,6 +102,14 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
+
 # ============================================================================
 # Configurar autenticação SSH (pedir senha uma única vez)
 # ============================================================================
@@ -114,9 +122,9 @@ if ($VpsPassword) {
     [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
 } else {
     # Pedir senha interativamente
-    Write-Host ""
-    Write-Host "🔐 Autenticação SSH" -ForegroundColor Cyan
-    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
+    Write-StyledOutput ""
+    Write-StyledOutput "🔐 Autenticação SSH"
+    Write-StyledOutput "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     $securePassword = Read-Host "   Senha do VPS (${VpsUser}@${VpsIp})" -AsSecureString
     $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
     $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
@@ -126,17 +134,17 @@ if ($VpsPassword) {
 # Configurar variável de ambiente para sshpass (se disponível)
 $env:SSHPASS = $plainPassword
 
-Write-Host ""
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  Deploy Backend para VPS Contabo" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "Configurações:" -ForegroundColor Gray
-Write-Host "  • VPS: ${VpsUser}@${VpsIp}" -ForegroundColor White
-Write-Host "  • Base Path: ${VpsBasePath}" -ForegroundColor White
-Write-Host "  • Imagem: ${ImageName}:${ImageTag}" -ForegroundColor White
-Write-Host "  • API Port: ${ApiPort} (HTTP) | ${ApiPortHttps} (HTTPS)" -ForegroundColor White
-Write-Host ""
+Write-StyledOutput ""
+Write-StyledOutput "========================================"
+Write-StyledOutput "  Deploy Backend para VPS Contabo"
+Write-StyledOutput "========================================"
+Write-StyledOutput ""
+Write-StyledOutput "Configurações:"
+Write-StyledOutput "  • VPS: ${VpsUser}@${VpsIp}"
+Write-StyledOutput "  • Base Path: ${VpsBasePath}"
+Write-StyledOutput "  • Imagem: ${ImageName}:${ImageTag}"
+Write-StyledOutput "  • API Port: ${ApiPort} (HTTP) | ${ApiPortHttps} (HTTPS)"
+Write-StyledOutput ""
 
 # Definir caminhos
 $exportPath = Join-Path $PSScriptRoot "${ImageName}.tar.gz"
@@ -147,40 +155,40 @@ $vpsDockerPath = "${VpsBasePath}/docker"
 # ============================================================================
 # ETAPA 1: Build da imagem Docker localmente
 # ============================================================================
-Write-Host "[1/7] Build da imagem Docker" -ForegroundColor Cyan
-Write-Host ""
+Write-StyledOutput "[1/7] Build da imagem Docker"
+Write-StyledOutput ""
 
 $buildNewImage = $false
 $imageExists = docker images -q $fullImageName 2>$null
 if ($imageExists) {
-    Write-Host "✅ Imagem Docker local encontrada: $fullImageName" -ForegroundColor Green
-    Write-Host ""
+    Write-StyledOutput "✅ Imagem Docker local encontrada: $fullImageName"
+    Write-StyledOutput ""
     $response = Read-Host "Deseja fazer BUILD de uma NOVA imagem? (s/N)"
     $buildNewImage = $response -match '^[sS]'
 } else {
-    Write-Host "⚠️  Imagem Docker local NÃO encontrada: $fullImageName" -ForegroundColor Yellow
-    Write-Host "   Uma nova imagem será criada automaticamente." -ForegroundColor Gray
+    Write-StyledOutput "⚠️  Imagem Docker local NÃO encontrada: $fullImageName"
+    Write-StyledOutput "   Uma nova imagem será criada automaticamente."
     $buildNewImage = $true
 }
 
-Write-Host ""
+Write-StyledOutput ""
 
 if ($buildNewImage) {
-    Write-Host "   Fazendo build da imagem..." -ForegroundColor Yellow
+    Write-StyledOutput "   Fazendo build da imagem..."
 
     try {
         Push-Location $ProjectRoot
         
         # Build da imagem (sem cache para garantir rebuild completo)
-        Write-Host "   🛠️  Removendo imagem antiga (se existir)..." -ForegroundColor Gray
+        Write-StyledOutput "   🛠️  Removendo imagem antiga (se existir)..."
         docker rmi $fullImageName -f 2>$null
         
-        Write-Host "   👷 Construindo imagem Docker..." -ForegroundColor Yellow
-        Write-Host "   (Aguarde, isso pode levar alguns minutos)" -ForegroundColor Gray
+        Write-StyledOutput "   👷 Construindo imagem Docker..."
+        Write-StyledOutput "   (Aguarde, isso pode levar alguns minutos)"
         
         docker build --no-cache -t $fullImageName -f $DockerfilePath . 2>&1 | ForEach-Object {
             if ($_ -match "Step \d+/\d+|Successfully built|Successfully tagged") {
-                Write-Host "   $_" -ForegroundColor DarkGray
+                Write-StyledOutput "   $_"
             }
         }
         
@@ -188,22 +196,22 @@ if ($buildNewImage) {
             throw "Falha no build da imagem Docker"
         }
         
-        Write-Host "   ✅ Build concluído!" -ForegroundColor Green
-        Write-Host ""
+        Write-StyledOutput "   ✅ Build concluído!"
+        Write-StyledOutput ""
     }
     finally {
         Pop-Location
     }
 } else {
-    Write-Host "   Usando imagem existente" -ForegroundColor Gray
-    Write-Host ""
+    Write-StyledOutput "   Usando imagem existente"
+    Write-StyledOutput ""
 }
 
 # ============================================================================
 # ETAPA 2: Exportar imagem como arquivo
 # ============================================================================
-Write-Host "[2/7] Exportar imagem Docker" -ForegroundColor Cyan
-Write-Host ""
+Write-StyledOutput "[2/7] Exportar imagem Docker"
+Write-StyledOutput ""
 
 # Remover arquivo antigo se existir
 if (Test-Path $exportPath) {
@@ -212,18 +220,18 @@ if (Test-Path $exportPath) {
 
 # Exportar para .tar primeiro
 $tarPath = $exportPath -replace '\.gz$', ''
-Write-Host "   📦 Exportando imagem Docker para .tar..." -ForegroundColor Yellow
-Write-Host "   (Aguarde, isso pode levar alguns segundos)" -ForegroundColor Gray
+Write-StyledOutput "   📦 Exportando imagem Docker para .tar..."
+Write-StyledOutput "   (Aguarde, isso pode levar alguns segundos)"
 
 $saveOutput = docker save -o $tarPath $fullImageName 2>&1
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "   ❌ Erro: $saveOutput" -ForegroundColor Red
+    Write-StyledOutput "   ❌ Erro: $saveOutput"
     throw "Falha ao exportar imagem Docker"
 }
 
 # Comprimir com PowerShell
-Write-Host "   🗜️  Comprimindo arquivo .tar para .tar.gz..." -ForegroundColor Yellow
+Write-StyledOutput "   🗜️  Comprimindo arquivo .tar para .tar.gz..."
 $tarFileStream = [System.IO.File]::OpenRead($tarPath)
 $gzipFileStream = [System.IO.File]::Create($exportPath)
 $gzipStream = New-Object System.IO.Compression.GZipStream($gzipFileStream, [System.IO.Compression.CompressionMode]::Compress)
@@ -236,25 +244,25 @@ $gzipFileStream.Close()
 Remove-Item $tarPath -Force
 
 $fileSize = (Get-Item $exportPath).Length / 1MB
-Write-Host "   ✅ Exportado: $([math]::Round($fileSize, 2)) MB" -ForegroundColor Green
-Write-Host ""
+Write-StyledOutput "   ✅ Exportado: $([math]::Round($fileSize, 2)) MB"
+Write-StyledOutput ""
 
 # ============================================================================
 # ETAPA 3: Limpar VPS
 # ============================================================================
-Write-Host "[3/7] Limpar VPS" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "   Esta operação irá:" -ForegroundColor Yellow
-Write-Host "   • Parar todos os containers (docker compose down)" -ForegroundColor Yellow
-Write-Host "   • Remover volumes e dados (-v)" -ForegroundColor Yellow
-Write-Host ""
+Write-StyledOutput "[3/7] Limpar VPS"
+Write-StyledOutput ""
+Write-StyledOutput "   Esta operação irá:"
+Write-StyledOutput "   • Parar todos os containers (docker compose down)"
+Write-StyledOutput "   • Remover volumes e dados (-v)"
+Write-StyledOutput ""
 $cleanVps = $false
 $response = Read-Host "   Deseja LIMPAR o VPS? (s/N)"
 $cleanVps = $response -match '^[sS]'
-Write-Host ""
+Write-StyledOutput ""
 
 if ($cleanVps) {
-    Write-Host "   Limpando VPS..." -ForegroundColor Yellow
+    Write-StyledOutput "   Limpando VPS..."
     
     $cleanCmd = "cd ${vpsDockerPath} && docker compose down -v 2>&1 && echo '✅ VPS limpo'"
     
@@ -264,76 +272,76 @@ if ($cleanVps) {
         $cleanCmd
     )
     
-    Write-Host "   🧹 Executando docker compose down -v..." -ForegroundColor Yellow
+    Write-StyledOutput "   🧹 Executando docker compose down -v..."
     
     $cleanOutput = & ssh @sshArgsClean 2>&1
     $cleanOutput | ForEach-Object {
         if ($_ -match "Stopping|Removing|✅") {
-            Write-Host "   $_" -ForegroundColor Gray
+            Write-StyledOutput "   $_"
         }
     }
     
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "   ⚠️ Aviso: VPS pode não existir ou ocorreu um erro" -ForegroundColor Yellow
+        Write-StyledOutput "   ⚠️ Aviso: VPS pode não existir ou ocorreu um erro"
     } else {
-        Write-Host "   ✅ VPS limpo!" -ForegroundColor Green
+        Write-StyledOutput "   ✅ VPS limpo!"
     }
-    Write-Host ""
+    Write-StyledOutput ""
 } else {
-    Write-Host "   Pulando limpeza" -ForegroundColor Gray
-    Write-Host ""
+    Write-StyledOutput "   Pulando limpeza"
+    Write-StyledOutput ""
 }
 
 # ============================================================================
 # ETAPA 4: Reenviar pasta docker
 # ============================================================================
-Write-Host "[4/7] Reenviar pasta docker/" -ForegroundColor Cyan
-Write-Host ""
+Write-StyledOutput "[4/7] Reenviar pasta docker/"
+Write-StyledOutput ""
 
 $resendDockerFolder = $false
 
 if ($cleanVps) {
     # Se limpou o VPS, DEVE reenviar a pasta docker (sem perguntar)
-    Write-Host "   ⚠️  VPS foi limpo - pasta docker/ SERÁ reenviada automaticamente" -ForegroundColor Yellow
-    Write-Host ""
+    Write-StyledOutput "   ⚠️  VPS foi limpo - pasta docker/ SERÁ reenviada automaticamente"
+    Write-StyledOutput ""
     $resendDockerFolder = $true
 } else {
     # Se não limpou, pergunta se quer reenviar
-    Write-Host "   Esta operação irá:" -ForegroundColor Yellow
-    Write-Host "   • Recriar a pasta ${vpsDockerPath}/ no VPS" -ForegroundColor Yellow
-    Write-Host "   • Enviar TODOS os arquivos de configuração" -ForegroundColor Yellow
-    Write-Host "   • Incluir: docker-compose*.yaml, .env, env/, otel-collector/, rabbitmq/, etc" -ForegroundColor Yellow
-    Write-Host ""
+    Write-StyledOutput "   Esta operação irá:"
+    Write-StyledOutput "   • Recriar a pasta ${vpsDockerPath}/ no VPS"
+    Write-StyledOutput "   • Enviar TODOS os arquivos de configuração"
+    Write-StyledOutput "   • Incluir: docker-compose*.yaml, .env, env/, otel-collector/, rabbitmq/, etc"
+    Write-StyledOutput ""
     $response = Read-Host "   Deseja REENVIAR a pasta docker/? (s/N)"
     $resendDockerFolder = $response -match '^[sS]'
-    Write-Host ""
+    Write-StyledOutput ""
 }
 
 if ($resendDockerFolder) {
-    Write-Host "   Reenviando pasta docker/..." -ForegroundColor Yellow
+    Write-StyledOutput "   Reenviando pasta docker/..."
     
     if (-not (Test-Path $dockerPath)) {
         throw "Pasta docker/ não encontrada: $dockerPath"
     }
     
     # Listar tudo que será enviado
-    Write-Host ""
-    Write-Host "   📦 Conteúdo que será enviado de docker/:" -ForegroundColor Cyan
-    Write-Host "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
+    Write-StyledOutput ""
+    Write-StyledOutput "   📦 Conteúdo que será enviado de docker/:"
+    Write-StyledOutput "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     
     # Listar arquivos e pastas recursivamente
     $allItems = Get-ChildItem -Path $dockerPath -Recurse -Force | Sort-Object FullName
     $files = $allItems | Where-Object { -not $_.PSIsContainer }
     $folders = $allItems | Where-Object { $_.PSIsContainer }
     
-    Write-Host "   📁 Pastas ($($folders.Count)):" -ForegroundColor Yellow
+    Write-StyledOutput "   📁 Pastas ($($folders.Count)):"
     foreach ($folder in $folders) {
         $relativePath = $folder.FullName.Substring($dockerPath.Length).TrimStart('\')
-        Write-Host "      └─ $relativePath" -ForegroundColor Gray
+        Write-StyledOutput "      └─ $relativePath"
     }
     
-    Write-Host ""
-    Write-Host "   📄 Arquivos ($($files.Count)):" -ForegroundColor Yellow
+    Write-StyledOutput ""
+    Write-StyledOutput "   📄 Arquivos ($($files.Count)):"
     foreach ($file in $files) {
         $relativePath = $file.FullName.Substring($dockerPath.Length).TrimStart('\')
         $sizeKB = [math]::Round($file.Length / 1KB, 2)
@@ -341,7 +349,6 @@ if ($resendDockerFolder) {
         
         # Destacar arquivos críticos (exceto .env - não mostrar para não expor)
         $icon = "   "
-        $color = "Gray"
         
         # Não mostrar .env no log por segurança
         if ($relativePath -eq ".env") {
@@ -350,21 +357,18 @@ if ($resendDockerFolder) {
         
         if ($relativePath -like "*.env") {
             $icon = "🔑 "
-            $color = "Gray"
         } elseif ($relativePath -like "docker-compose*.yaml") {
             $icon = "🐳 "
-            $color = "Cyan"
         } elseif ($relativePath -like "*.json") {
             $icon = "⚙️  "
-            $color = "Yellow"
         }
         
-        Write-Host "      $icon$relativePath" -ForegroundColor $color -NoNewline
-        Write-Host " ($sizeDisplay)" -ForegroundColor DarkGray
+        Write-StyledOutput "      $icon$relativePath"
+        Write-StyledOutput " ($sizeDisplay)"
     }
     
-    Write-Host "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray
-    Write-Host ""
+    Write-StyledOutput "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    Write-StyledOutput ""
     
     # Verificar arquivos críticos
     $criticalFiles = @(".env", "docker-compose.yaml", "docker-compose.deploy.yaml")
@@ -377,18 +381,18 @@ if ($resendDockerFolder) {
     }
     
     if ($missingCritical.Count -gt 0) {
-        Write-Host "   ⚠️  AVISO: Arquivos críticos ausentes:" -ForegroundColor Red
+        Write-StyledOutput "   ⚠️  AVISO: Arquivos críticos ausentes:"
         foreach ($missing in $missingCritical) {
-            Write-Host "      ❌ $missing" -ForegroundColor Red
+            Write-StyledOutput "      ❌ $missing"
         }
-        Write-Host ""
+        Write-StyledOutput ""
         $response = Read-Host "   Continuar mesmo assim? (s/N)"
         if ($response -notmatch '^[sS]') {
             throw "Deploy cancelado pelo usuário (arquivos críticos ausentes)"
         }
     }
     
-    Write-Host ""
+    Write-StyledOutput ""
     
     # Criar estrutura no VPS
     $createDirsCmd = "mkdir -p ${VpsBasePath} && rm -rf ${vpsDockerPath} && mkdir -p ${vpsDockerPath}"
@@ -399,14 +403,14 @@ if ($resendDockerFolder) {
         $createDirsCmd
     )
     
-    Write-Host "   📁 Criando estrutura de diretórios no VPS..." -ForegroundColor Yellow
+    Write-StyledOutput "   📁 Criando estrutura de diretórios no VPS..."
     $dirOutput = & ssh @sshArgsDirs 2>&1
     
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "   ❌ Erro: $dirOutput" -ForegroundColor Red
+        Write-StyledOutput "   ❌ Erro: $dirOutput"
         throw "Falha ao criar estrutura de diretórios no VPS"
     } else {
-        Write-Host "   ✅ Diretórios criados!" -ForegroundColor Green
+        Write-StyledOutput "   ✅ Diretórios criados!"
     }
     
     # Usar SCP com recursão para enviar TUDO (incluindo arquivos ocultos)
@@ -419,15 +423,15 @@ if ($resendDockerFolder) {
         "${VpsUser}@${VpsIp}:${vpsDockerPath}/"
     )
     
-    Write-Host "   📤 Enviando arquivos da pasta docker/..." -ForegroundColor Yellow
-    Write-Host "   (Digite a senha quando solicitado)" -ForegroundColor Gray
-    Write-Host ""
+    Write-StyledOutput "   📤 Enviando arquivos da pasta docker/..."
+    Write-StyledOutput "   (Digite a senha quando solicitado)"
+    Write-StyledOutput ""
     
     $scpStartTime = Get-Date
     & scp @scpArgsRecursive 2>&1 | ForEach-Object {
         $currentLine = $_
         if ($currentLine -match "Authenticated|Sending|100%") {
-            Write-Host "   $currentLine" -ForegroundColor DarkGray
+            Write-StyledOutput "   $currentLine"
         }
     }
     
@@ -439,8 +443,8 @@ if ($resendDockerFolder) {
     
     $scpEndTime = Get-Date
     $scpDuration = ($scpEndTime - $scpStartTime).TotalSeconds
-    Write-Host ""
-    Write-Host "   ⏱️  Tempo de transferência: $([math]::Round($scpDuration, 1))s" -ForegroundColor Gray
+    Write-StyledOutput ""
+    Write-StyledOutput "   ⏱️  Tempo de transferência: $([math]::Round($scpDuration, 1))s"
     
     # Verificar se .env foi enviado
     $checkEnvCmd = "[ -f ${vpsDockerPath}/.env ] && echo '✅ .env OK' || echo '❌ .env MISSING'"
@@ -452,7 +456,7 @@ if ($resendDockerFolder) {
     )
     
     $envCheck = & ssh @sshArgsCheckEnv 2>&1
-    Write-Host "   $envCheck" -ForegroundColor $(if($envCheck -match '✅'){'Green'}else{'Red'})
+    Write-StyledOutput "   $envCheck"
     
     # Renomear docker-compose.deploy.yaml para docker-compose.yaml
     $renameCmd = "cd ${vpsDockerPath} && [ -f docker-compose.deploy.yaml ] && cp docker-compose.deploy.yaml docker-compose.yaml"
@@ -465,21 +469,21 @@ if ($resendDockerFolder) {
     
     $renameOutput = & ssh @sshArgsRename 2>&1
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "   ⚠️  Aviso ao renomear docker-compose: $renameOutput" -ForegroundColor Yellow
+        Write-StyledOutput "   ⚠️  Aviso ao renomear docker-compose: $renameOutput"
     }
     
-    Write-Host "   ✅ Pasta docker/ enviada!" -ForegroundColor Green
-    Write-Host ""
+    Write-StyledOutput "   ✅ Pasta docker/ enviada!"
+    Write-StyledOutput ""
 } else {
-    Write-Host "   Pulando reenvio" -ForegroundColor Gray
-    Write-Host ""
+    Write-StyledOutput "   Pulando reenvio"
+    Write-StyledOutput ""
 }
 
 # ============================================================================
 # ETAPA 5: Enviar imagem para VPS
 # ============================================================================
-Write-Host "[5/7] Enviar imagem para VPS" -ForegroundColor Cyan
-Write-Host ""
+Write-StyledOutput "[5/7] Enviar imagem para VPS"
+Write-StyledOutput ""
 
 $scpArgs = @(
     "-o", "StrictHostKeyChecking=no",
@@ -487,18 +491,18 @@ $scpArgs = @(
     "${VpsUser}@${VpsIp}:${VpsBasePath}/${ImageName}.tar.gz"
 )
 
-Write-Host "   📤 Enviando imagem Docker (${ImageName}.tar.gz)..." -ForegroundColor Yellow
+Write-StyledOutput "   📤 Enviando imagem Docker (${ImageName}.tar.gz)..."
 $imageSize = (Get-Item $exportPath).Length / 1MB
-Write-Host "   Tamanho: $([math]::Round($imageSize, 2)) MB" -ForegroundColor Gray
-Write-Host "   (Digite a senha quando solicitado)" -ForegroundColor Gray
-Write-Host ""
+Write-StyledOutput "   Tamanho: $([math]::Round($imageSize, 2)) MB"
+Write-StyledOutput "   (Digite a senha quando solicitado)"
+Write-StyledOutput ""
 
 $scpStartTime = Get-Date
 & scp @scpArgs 2>&1 | ForEach-Object {
     $currentLine = $_
     # Mostrar feedback após autenticação
     if ($currentLine -match "Authenticated|Sending|100%|ETA") {
-        Write-Host "   $currentLine" -ForegroundColor DarkGray
+        Write-StyledOutput "   $currentLine"
     }
 }
 
@@ -508,17 +512,17 @@ if ($LASTEXITCODE -ne 0) {
 
 $scpEndTime = Get-Date
 $scpDuration = ($scpEndTime - $scpStartTime).TotalSeconds
-Write-Host ""
-Write-Host "   ⏱️  Tempo de transferência: $([math]::Round($scpDuration, 1))s" -ForegroundColor Gray
+Write-StyledOutput ""
+Write-StyledOutput "   ⏱️  Tempo de transferência: $([math]::Round($scpDuration, 1))s"
 
-Write-Host "   ✅ Imagem enviada!" -ForegroundColor Green
-Write-Host ""
+Write-StyledOutput "   ✅ Imagem enviada!"
+Write-StyledOutput ""
 
 # ============================================================================
 # ETAPA 6: Carregar imagem no Docker do VPS
 # ============================================================================
-Write-Host "[6/7] Carregar imagem no Docker" -ForegroundColor Cyan
-Write-Host ""
+Write-StyledOutput "[6/7] Carregar imagem no Docker"
+Write-StyledOutput ""
 
 $loadCmd = "gunzip -c ${VpsBasePath}/${ImageName}.tar.gz | docker load && rm ${VpsBasePath}/${ImageName}.tar.gz"
 
@@ -528,27 +532,27 @@ $sshArgs = @(
     $loadCmd
 )
 
-Write-Host "   🐋 Descomprimindo e carregando imagem no Docker..." -ForegroundColor Yellow
-Write-Host "   (Aguarde, isso pode levar alguns segundos)" -ForegroundColor Gray
+Write-StyledOutput "   🐋 Descomprimindo e carregando imagem no Docker..."
+Write-StyledOutput "   (Aguarde, isso pode levar alguns segundos)"
 
 $loadOutput = & ssh @sshArgs 2>&1
 $loadOutput | Where-Object { $_ -match "Loaded image" } | ForEach-Object {
-    Write-Host "   $_" -ForegroundColor Green
+    Write-StyledOutput "   $_"
 }
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "   ❌ Erro: $loadOutput" -ForegroundColor Red
+    Write-StyledOutput "   ❌ Erro: $loadOutput"
     throw "Falha ao carregar imagem no VPS"
 }
 
-Write-Host "   ✅ Imagem carregada!" -ForegroundColor Green
-Write-Host ""
+Write-StyledOutput "   ✅ Imagem carregada!"
+Write-StyledOutput ""
 
 # ============================================================================
 # ETAPA 7: Executar deploy
 # ============================================================================
-Write-Host "[7/7] Executar deploy" -ForegroundColor Cyan
-Write-Host ""
+Write-StyledOutput "[7/7] Executar deploy"
+Write-StyledOutput ""
 
 $deployCmd = @"
 cd ${vpsDockerPath} && \
@@ -579,42 +583,42 @@ $sshArgs4 = @(
     $deployCmd
 )
 
-Write-Host "   🚀 Executando docker compose up -d..." -ForegroundColor Yellow
-Write-Host ""
+Write-StyledOutput "   🚀 Executando docker compose up -d..."
+Write-StyledOutput ""
 
 $deployOutput = & ssh @sshArgs4 2>&1
 $deployOutput | ForEach-Object {
-    Write-Host $_
+    Write-StyledOutput $_
 }
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host ""
-    Write-Host "   ❌ Falha ao executar deploy no VPS" -ForegroundColor Red
+    Write-StyledOutput ""
+    Write-StyledOutput "   ❌ Falha ao executar deploy no VPS"
     throw "Falha ao executar deploy no VPS"
 }
 
 # ============================================================================
 # Limpeza local
 # ============================================================================
-Write-Host ""
-Write-Host "Limpando arquivo temporário..." -ForegroundColor Gray
+Write-StyledOutput ""
+Write-StyledOutput "Limpando arquivo temporário..."
 if (Test-Path $exportPath) {
     Remove-Item $exportPath -Force
 }
 
-Write-Host ""
-Write-Host "========================================" -ForegroundColor Green
-Write-Host "  ✅ DEPLOY CONCLUÍDO COM SUCESSO!" -ForegroundColor Green
-Write-Host "========================================" -ForegroundColor Green
-Write-Host ""
-Write-Host "URLs de Acesso:" -ForegroundColor Cyan
-Write-Host "  • API (HTTP): http://${VpsIp}:${ApiPort}" -ForegroundColor White
-Write-Host "  • API (HTTPS): https://${VpsIp}:${ApiPortHttps}/swagger/index.html" -ForegroundColor White
-Write-Host "  • Health: http://${VpsIp}:${ApiPort}/health" -ForegroundColor White
-Write-Host "  • Seq (Logs): http://${VpsIp}:${SeqPort}" -ForegroundColor White
-Write-Host ""
-Write-Host "Comandos SSH úteis:" -ForegroundColor Cyan
-Write-Host "  • ssh ${VpsUser}@${VpsIp}" -ForegroundColor White
-Write-Host "  • ssh ${VpsUser}@${VpsIp} 'cd ${vpsDockerPath} && docker compose logs -f api'" -ForegroundColor White
-Write-Host "  • ssh ${VpsUser}@${VpsIp} 'cd ${vpsDockerPath} && docker compose restart api'" -ForegroundColor White
-Write-Host ""
+Write-StyledOutput ""
+Write-StyledOutput "========================================"
+Write-StyledOutput "  ✅ DEPLOY CONCLUÍDO COM SUCESSO!"
+Write-StyledOutput "========================================"
+Write-StyledOutput ""
+Write-StyledOutput "URLs de Acesso:"
+Write-StyledOutput "  • API (HTTP): http://${VpsIp}:${ApiPort}"
+Write-StyledOutput "  • API (HTTPS): https://${VpsIp}:${ApiPortHttps}/swagger/index.html"
+Write-StyledOutput "  • Health: http://${VpsIp}:${ApiPort}/health"
+Write-StyledOutput "  • Seq (Logs): http://${VpsIp}:${SeqPort}"
+Write-StyledOutput ""
+Write-StyledOutput "Comandos SSH úteis:"
+Write-StyledOutput "  • ssh ${VpsUser}@${VpsIp}"
+Write-StyledOutput "  • ssh ${VpsUser}@${VpsIp} 'cd ${vpsDockerPath} && docker compose logs -f api'"
+Write-StyledOutput "  • ssh ${VpsUser}@${VpsIp} 'cd ${vpsDockerPath} && docker compose restart api'"
+Write-StyledOutput ""

@@ -38,17 +38,27 @@ param (
 
 $ErrorActionPreference = 'Stop'
 
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
+
 # Resolves the repository root by searching for known repository markers.
 function Get-RepoRoot {
     try {
         $gitRoot = (git rev-parse --show-toplevel 2>$null)
         if ($LASTEXITCODE -eq 0 -and $gitRoot) { return $gitRoot }
-    } catch {}
+    } catch {
+        Write-StyledOutput "[WARN] Could not resolve git repository root. Using current directory."
+    }
     return (Get-Location).Path
 }
 
 $root = Get-RepoRoot
-Write-Host ("Root: {0}" -f $root) -ForegroundColor Blue
+Write-StyledOutput ("Root: {0}" -f $root)
 
 $cliProj = Join-Path $root 'tools/NetToolsKit.OpenApi.Readers/NetToolsKit.OpenApi.Readers.csproj'
 if (-not (Test-Path $cliProj)) {
@@ -76,8 +86,8 @@ if (-not (Test-Path $cliDll)) {
 $outPath = if ([IO.Path]::IsPathRooted($Output)) { $Output } else { Join-Path $root $Output }
 [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($outPath)) | Out-Null
 
-Write-Host ("Generating .http from: {0}" -f $inputUrl) -ForegroundColor Yellow
+Write-StyledOutput ("Generating .http from: {0}" -f $inputUrl)
 
 & dotnet "$cliDll" --input "$inputUrl" --output "$outPath" --group-by-tag true
 
-Write-Host ("HTTP file generated: {0}" -f $outPath) -ForegroundColor Green
+Write-StyledOutput ("HTTP file generated: {0}" -f $outPath)

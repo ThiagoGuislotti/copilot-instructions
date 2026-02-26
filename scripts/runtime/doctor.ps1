@@ -61,6 +61,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 
 # Resolves the repository root using explicit and fallback location candidates.
@@ -200,23 +208,23 @@ function Write-MappingReport {
 
     $statusText = if ($Report.IsHealthy) { 'OK' } else { 'DRIFT' }
 
-    Write-Output ("[{0}] {1}" -f $statusText, $Report.Name)
-    Write-Output ("  source: {0}" -f $Report.SourcePath)
-    Write-Output ("  target: {0}" -f $Report.TargetPath)
-    Write-Output ("  files: source={0} target={1}" -f $Report.SourceCount, $Report.TargetCount)
-    Write-Output ("  missing in runtime: {0}" -f $Report.MissingInRuntime.Count)
-    Write-Output ("  extra in runtime: {0}" -f $Report.ExtraInRuntime.Count)
-    Write-Output ("  drifted files: {0}" -f $Report.DriftedFiles.Count)
+    Write-StyledOutput ("[{0}] {1}" -f $statusText, $Report.Name)
+    Write-StyledOutput ("  source: {0}" -f $Report.SourcePath)
+    Write-StyledOutput ("  target: {0}" -f $Report.TargetPath)
+    Write-StyledOutput ("  files: source={0} target={1}" -f $Report.SourceCount, $Report.TargetCount)
+    Write-StyledOutput ("  missing in runtime: {0}" -f $Report.MissingInRuntime.Count)
+    Write-StyledOutput ("  extra in runtime: {0}" -f $Report.ExtraInRuntime.Count)
+    Write-StyledOutput ("  drifted files: {0}" -f $Report.DriftedFiles.Count)
 
     if ($DetailedReport) {
         foreach ($path in $Report.MissingInRuntime) {
-            Write-Output ("    [missing] {0}" -f $path)
+            Write-StyledOutput ("    [missing] {0}" -f $path)
         }
         foreach ($path in $Report.ExtraInRuntime) {
-            Write-Output ("    [extra]   {0}" -f $path)
+            Write-StyledOutput ("    [extra]   {0}" -f $path)
         }
         foreach ($path in $Report.DriftedFiles) {
-            Write-Output ("    [drift]   {0}" -f $path)
+            Write-StyledOutput ("    [drift]   {0}" -f $path)
         }
     }
 }
@@ -279,8 +287,8 @@ function Test-HasExtraRuntimeFile {
 
 $resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
 Set-Location -Path $resolvedRepoRoot
-Write-Output 'Runtime doctor report'
-Write-Output ("  repo root: {0}" -f $resolvedRepoRoot)
+Write-StyledOutput 'Runtime doctor report'
+Write-StyledOutput ("  repo root: {0}" -f $resolvedRepoRoot)
 
 $reports = Invoke-Doctor -ResolvedRepoRoot $resolvedRepoRoot
 foreach ($report in $reports) {
@@ -291,7 +299,7 @@ $hasDrift = @($reports | Where-Object { -not $_.IsHealthy }).Count -gt 0
 $hasExtras = Test-HasExtraRuntimeFile -Reports $reports
 
 if ($hasDrift -and $SyncOnDrift) {
-    Write-Output 'Drift detected. Running bootstrap sync...'
+    Write-StyledOutput 'Drift detected. Running bootstrap sync...'
     $bootstrapScript = Join-Path $resolvedRepoRoot 'scripts\runtime\bootstrap.ps1'
     if (-not (Test-Path -LiteralPath $bootstrapScript)) {
         throw "Bootstrap script not found: $bootstrapScript"
@@ -306,7 +314,7 @@ if ($hasDrift -and $SyncOnDrift) {
     $hasExtras = Test-HasExtraRuntimeFile -Reports $reports
 }
 
-Write-Output ''
+Write-StyledOutput ''
 $statusText = if ($hasDrift) {
     'detected'
 }
@@ -317,11 +325,11 @@ else {
     'clean'
 }
 
-Write-Output ("Drift status: {0}" -f $statusText)
+Write-StyledOutput ("Drift status: {0}" -f $statusText)
 
 if ($hasExtras -and (-not $StrictExtras)) {
-    Write-Output 'Runtime has extra files not tracked by source mappings.'
-    Write-Output 'Use -Detailed to inspect extras and -StrictExtras to fail on extras.'
+    Write-StyledOutput 'Runtime has extra files not tracked by source mappings.'
+    Write-StyledOutput 'Use -Detailed to inspect extras and -StrictExtras to fail on extras.'
 }
 
 if ($hasDrift) {

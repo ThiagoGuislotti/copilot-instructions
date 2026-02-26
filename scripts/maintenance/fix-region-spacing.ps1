@@ -15,6 +15,10 @@
 .EXAMPLE
     .\fix-region-spacing.ps1 -Path ".\src"
     .\fix-region-spacing.ps1 -Path ".\tests" -WhatIf
+
+.NOTES
+    Version: 1.0
+    Requirements: PowerShell 7+.
 #>
 
 param(
@@ -23,6 +27,41 @@ param(
 
     [switch]$WhatIf
 )
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
+
+$ErrorActionPreference = 'Stop'
+
+# Writes output text using ANSI color sequences when available.
+function Write-ColorLine {
+    param(
+        [string] $Message,
+        [ConsoleColor] $Color = [ConsoleColor]::Gray
+    )
+
+    if ($null -eq $PSStyle) {
+        Microsoft.PowerShell.Utility\Write-Output $Message
+        return
+    }
+
+    $ansiColor = switch ($Color) {
+        ([ConsoleColor]::Blue) { $PSStyle.Foreground.Blue; break }
+        ([ConsoleColor]::Cyan) { $PSStyle.Foreground.Cyan; break }
+        ([ConsoleColor]::Green) { $PSStyle.Foreground.Green; break }
+        ([ConsoleColor]::Yellow) { $PSStyle.Foreground.Yellow; break }
+        ([ConsoleColor]::Red) { $PSStyle.Foreground.Red; break }
+        ([ConsoleColor]::DarkGray) { $PSStyle.Foreground.BrightBlack; break }
+        default { $PSStyle.Foreground.White }
+    }
+
+    Microsoft.PowerShell.Utility\Write-Output ("{0}{1}{2}" -f $ansiColor, $Message, $PSStyle.Reset)
+}
 
 $files = Get-ChildItem -Path $Path -Filter "*.cs" -Recurse
 
@@ -45,26 +84,26 @@ foreach ($file in $files) {
         $filesModified += $file.FullName
 
         if ($WhatIf) {
-            Write-Host "Would fix: $($file.FullName)" -ForegroundColor Yellow
+            Write-ColorLine -Message ("Would fix: {0}" -f $file.FullName) -Color Yellow
         }
         else {
             Set-Content -Path $file.FullName -Value $newContent -NoNewline
-            Write-Host "Fixed: $($file.FullName)" -ForegroundColor Green
+            Write-ColorLine -Message ("Fixed: {0}" -f $file.FullName) -Color Green
         }
     }
 }
 
-Write-Host ""
-Write-Host "========================================" -ForegroundColor Cyan
+Write-StyledOutput ""
+Write-ColorLine -Message "========================================" -Color Cyan
 if ($WhatIf) {
-    Write-Host "Would modify $totalFixed file(s)" -ForegroundColor Yellow
+    Write-ColorLine -Message ("Would modify {0} file(s)" -f $totalFixed) -Color Yellow
 }
 else {
-    Write-Host "Modified $totalFixed file(s)" -ForegroundColor Green
+    Write-ColorLine -Message ("Modified {0} file(s)" -f $totalFixed) -Color Green
 }
 
 if ($filesModified.Count -gt 0) {
-    Write-Host ""
-    Write-Host "Files:" -ForegroundColor Cyan
-    $filesModified | ForEach-Object { Write-Host "  $_" }
+    Write-StyledOutput ""
+    Write-ColorLine -Message 'Files:' -Color Cyan
+    $filesModified | ForEach-Object { Write-StyledOutput "  $_" }
 }

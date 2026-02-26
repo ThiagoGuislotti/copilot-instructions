@@ -57,6 +57,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:IsVerboseEnabled = [bool] $Verbose
 $script:IsStrictEnabled = [bool] $Strict
@@ -73,7 +81,7 @@ function Write-VerboseLog {
     )
 
     if ($script:IsVerboseEnabled) {
-        Write-Output ("[VERBOSE] {0}" -f $Message)
+        Write-StyledOutput ("[VERBOSE] {0}" -f $Message)
     }
 }
 
@@ -84,7 +92,7 @@ function Add-ValidationFailure {
     )
 
     $script:Failures.Add($Message) | Out-Null
-    Write-Output ("[FAIL] {0}" -f $Message)
+    Write-StyledOutput ("[FAIL] {0}" -f $Message)
 }
 
 # Registers a validation warning.
@@ -99,7 +107,7 @@ function Add-ValidationWarning {
     }
 
     $script:Warnings.Add($Message) | Out-Null
-    Write-Output ("[WARN] {0}" -f $Message)
+    Write-StyledOutput ("[WARN] {0}" -f $Message)
 }
 
 # Resolves a path from repo root.
@@ -434,15 +442,15 @@ foreach ($scriptPath in $scriptPaths) {
 
 Invoke-PSScriptAnalyzerCheck -ScriptPaths $scriptPaths -Root $resolvedRepoRoot -SkipAnalyzer:$SkipScriptAnalyzer
 
-Write-Output ''
-Write-Output 'PowerShell standards validation summary'
-Write-Output ("  Files checked: {0}" -f $filesChecked)
-Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+Write-StyledOutput ''
+Write-StyledOutput 'PowerShell standards validation summary'
+Write-StyledOutput ("  Files checked: {0}" -f $filesChecked)
+Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
 
 if ($script:Failures.Count -gt 0) {
     exit 1
 }
 
-Write-Output 'PowerShell standards validation passed.'
+Write-StyledOutput 'PowerShell standards validation passed.'
 exit 0

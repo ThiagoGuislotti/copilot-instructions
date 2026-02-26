@@ -50,9 +50,43 @@ param (
 
 $ErrorActionPreference = 'Stop'
 
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
+$script:IsVerboseEnabled = [bool] $Verbose
+
 # -------------------------------
 # Helpers
 # -------------------------------
+# Writes output text using ANSI color sequences when available.
+function Write-ColorLine {
+    param(
+        [string] $Message,
+        [ConsoleColor] $Color = [ConsoleColor]::Gray
+    )
+
+    if ($null -eq $PSStyle) {
+        Microsoft.PowerShell.Utility\Write-Output $Message
+        return
+    }
+
+    $ansiColor = switch ($Color) {
+        ([ConsoleColor]::Blue) { $PSStyle.Foreground.Blue; break }
+        ([ConsoleColor]::Cyan) { $PSStyle.Foreground.Cyan; break }
+        ([ConsoleColor]::Green) { $PSStyle.Foreground.Green; break }
+        ([ConsoleColor]::Yellow) { $PSStyle.Foreground.Yellow; break }
+        ([ConsoleColor]::Red) { $PSStyle.Foreground.Red; break }
+        ([ConsoleColor]::DarkGray) { $PSStyle.Foreground.BrightBlack; break }
+        default { $PSStyle.Foreground.White }
+    }
+
+    Microsoft.PowerShell.Utility\Write-Output ("{0}{1}{2}" -f $ansiColor, $Message, $PSStyle.Reset)
+}
+
 # Writes verbose diagnostics with a logical color label.
 function Write-VerboseColor {
     param (
@@ -60,8 +94,8 @@ function Write-VerboseColor {
         [ConsoleColor] $Color = [ConsoleColor]::Gray
     )
 
-    if ($Verbose) {
-        Write-Host $Message -ForegroundColor $Color
+    if ($script:IsVerboseEnabled) {
+        Write-ColorLine -Message ("[VERBOSE:{0}] {1}" -f $Color, $Message) -Color $Color
     }
 }
 
@@ -105,7 +139,7 @@ function Test-IsUnderExcludedDir ([string] $fullPath, [string[]] $excludeDirs, [
             }
         }
         catch {
-            # ignore path resolution failures and continue
+            Write-VerboseColor ("Skipping excluded directory candidate due path resolution failure: {0}" -f $d) 'Yellow'
         }
     }
 
@@ -150,7 +184,7 @@ if ($Path -and (Test-Path -LiteralPath $Path -PathType Leaf)) {
     $fullFile = (Resolve-Path -LiteralPath $Path).Path
     $root     = [System.IO.Path]::GetDirectoryName($fullFile)
 
-    Write-Host ("Root: {0}" -f $root) -ForegroundColor Blue
+    Write-ColorLine -Message ("Root: {0}" -f $root) -Color Blue
 
     $files = @($fullFile)
 }
@@ -158,7 +192,7 @@ else {
     # Repository or directory mode
     $root = Get-RepoRoot -startPath $Path
 
-    Write-Host ("Root: {0}" -f $root) -ForegroundColor Blue
+    Write-ColorLine -Message ("Root: {0}" -f $root) -Color Blue
 
     try {
         # Git method: tracked + untracked (non-ignored)
@@ -176,7 +210,7 @@ else {
         }
     }
     catch {
-        # ignore and fall back to filesystem scanning
+        Write-VerboseColor 'Git file discovery failed; falling back to filesystem scan.' 'Yellow'
     }
 
     if (-not $files) {
@@ -189,7 +223,7 @@ else {
     }
 }
 
-Write-Host ("Files found: {0}" -f $files.Count) -ForegroundColor Yellow
+Write-ColorLine -Message ("Files found: {0}" -f $files.Count) -Color Yellow
 
 # -------------------------------
 # Processing
@@ -233,10 +267,10 @@ foreach ($fullPath in $files) {
 # -------------------------------
 # Summary and exit code
 # -------------------------------
-Write-Host ("Changed files: {0}" -f $changed.Count)
+Write-StyledOutput ("Changed files: {0}" -f $changed.Count)
 
 if ($Verbose -and $changed.Count -gt 0) {
-    $changed | ForEach-Object { Write-Host $_ }
+    $changed | ForEach-Object { Write-StyledOutput $_ }
 }
 
 if ($CheckOnly) {

@@ -56,6 +56,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:IsDetailedOutputEnabled = [bool] $DetailedOutput
 $script:RemovedEntries = 0
 $script:FailedEntries = 0
@@ -68,7 +76,7 @@ function Write-DetailedLog {
     )
 
     if ($script:IsDetailedOutputEnabled) {
-        Write-Output ("[DETAIL] {0}" -f $Message)
+        Write-StyledOutput ("[DETAIL] {0}" -f $Message)
     }
 }
 
@@ -267,20 +275,20 @@ if (Test-Path -LiteralPath $sandboxLogPath -PathType Leaf) {
     $sandboxLogExpired = $sandboxLogItem.LastWriteTime -lt $sandboxLogCutoff
 }
 
-Write-Output 'Codex runtime cleanup plan'
-Write-Output ("  CodexHome: {0}" -f $resolvedCodexHome)
+Write-StyledOutput 'Codex runtime cleanup plan'
+Write-StyledOutput ("  CodexHome: {0}" -f $resolvedCodexHome)
 $executionMode = if ($Apply) { 'apply' } else { 'preview' }
-Write-Output ("  Mode: {0}" -f $executionMode)
-Write-Output '  RetentionReference: LastWriteTime'
-Write-Output ("  LogRetentionDays: {0}" -f $LogRetentionDays)
-Write-Output ("  IncludeSessions: {0}" -f [bool] $IncludeSessions)
+Write-StyledOutput ("  Mode: {0}" -f $executionMode)
+Write-StyledOutput '  RetentionReference: LastWriteTime'
+Write-StyledOutput ("  LogRetentionDays: {0}" -f $LogRetentionDays)
+Write-StyledOutput ("  IncludeSessions: {0}" -f [bool] $IncludeSessions)
 if ($IncludeSessions) {
-    Write-Output ("  SessionRetentionDays: {0}" -f $SessionRetentionDays)
+    Write-StyledOutput ("  SessionRetentionDays: {0}" -f $SessionRetentionDays)
 }
 
 foreach ($target in $directoryTargets) {
     $stats = Get-PathStat -Path $target.path
-    Write-Output ("  Target {0}: files={1} sizeMB={2}" -f $target.name, $stats.files, (Convert-BytesToMB -Bytes $stats.bytes))
+    Write-StyledOutput ("  Target {0}: files={1} sizeMB={2}" -f $target.name, $stats.files, (Convert-BytesToMB -Bytes $stats.bytes))
 }
 
 $logStats = Get-PathStat -Path $logPath
@@ -288,15 +296,15 @@ $expiredLogBytes = ($expiredLogFiles | Measure-Object -Property Length -Sum).Sum
 if ($null -eq $expiredLogBytes) {
     $expiredLogBytes = 0
 }
-Write-Output ("  Target log: files={0} sizeMB={1}" -f $logStats.files, (Convert-BytesToMB -Bytes $logStats.bytes))
-Write-Output ("  Expired log files: {0} (sizeMB={1})" -f $expiredLogFiles.Count, (Convert-BytesToMB -Bytes $expiredLogBytes))
+Write-StyledOutput ("  Target log: files={0} sizeMB={1}" -f $logStats.files, (Convert-BytesToMB -Bytes $logStats.bytes))
+Write-StyledOutput ("  Expired log files: {0} (sizeMB={1})" -f $expiredLogFiles.Count, (Convert-BytesToMB -Bytes $expiredLogBytes))
 
 if (Test-Path -LiteralPath $sandboxLogPath -PathType Leaf) {
     $sandboxLogSize = (Get-Item -LiteralPath $sandboxLogPath -Force).Length
-    Write-Output ("  Target sandbox.log: sizeMB={0} expired={1}" -f (Convert-BytesToMB -Bytes $sandboxLogSize), $sandboxLogExpired)
+    Write-StyledOutput ("  Target sandbox.log: sizeMB={0} expired={1}" -f (Convert-BytesToMB -Bytes $sandboxLogSize), $sandboxLogExpired)
 }
 else {
-    Write-Output '  Target sandbox.log: not found'
+    Write-StyledOutput '  Target sandbox.log: not found'
 }
 
 if ($IncludeSessions) {
@@ -305,12 +313,12 @@ if ($IncludeSessions) {
         $sessionBytes = 0
     }
 
-    Write-Output ("  Expired session files: {0} (sizeMB={1})" -f $sessionFiles.Count, (Convert-BytesToMB -Bytes $sessionBytes))
+    Write-StyledOutput ("  Expired session files: {0} (sizeMB={1})" -f $sessionFiles.Count, (Convert-BytesToMB -Bytes $sessionBytes))
 }
 
 if (-not $Apply) {
-    Write-Output ''
-    Write-Output 'Preview complete. Re-run with -Apply to execute cleanup.'
+    Write-StyledOutput ''
+    Write-StyledOutput 'Preview complete. Re-run with -Apply to execute cleanup.'
     exit 0
 }
 
@@ -335,10 +343,10 @@ if ($IncludeSessions) {
     Invoke-EmptyDirectoryRemoval -RootPath $sessionsPath
 }
 
-Write-Output ''
-Write-Output 'Codex runtime cleanup summary'
-Write-Output ("  Removed entries: {0}" -f $script:RemovedEntries)
-Write-Output ("  Failed entries: {0}" -f $script:FailedEntries)
-Write-Output ("  Reclaimed sizeMB: {0}" -f (Convert-BytesToMB -Bytes $script:ReclaimedBytes))
+Write-StyledOutput ''
+Write-StyledOutput 'Codex runtime cleanup summary'
+Write-StyledOutput ("  Removed entries: {0}" -f $script:RemovedEntries)
+Write-StyledOutput ("  Failed entries: {0}" -f $script:FailedEntries)
+Write-StyledOutput ("  Reclaimed sizeMB: {0}" -f (Convert-BytesToMB -Bytes $script:ReclaimedBytes))
 
 exit 0

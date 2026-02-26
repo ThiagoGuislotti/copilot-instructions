@@ -46,6 +46,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:IsVerboseEnabled = [bool] $Verbose
 $script:IsWarningOnly = [bool] $WarningOnly
@@ -59,7 +67,7 @@ function Write-VerboseLog {
     )
 
     if ($script:IsVerboseEnabled) {
-        Write-Output ("[VERBOSE] {0}" -f $Message)
+        Write-StyledOutput ("[VERBOSE] {0}" -f $Message)
     }
 }
 
@@ -71,12 +79,12 @@ function Add-ValidationFailure {
 
     if ($script:IsWarningOnly) {
         $script:Warnings.Add($Message) | Out-Null
-        Write-Output ("[WARN] {0}" -f $Message)
+        Write-StyledOutput ("[WARN] {0}" -f $Message)
         return
     }
 
     $script:Failures.Add($Message) | Out-Null
-    Write-Output ("[FAIL] {0}" -f $Message)
+    Write-StyledOutput ("[FAIL] {0}" -f $Message)
 }
 
 # Registers a validation warning.
@@ -86,7 +94,7 @@ function Add-ValidationWarning {
     )
 
     $script:Warnings.Add($Message) | Out-Null
-    Write-Output ("[WARN] {0}" -f $Message)
+    Write-StyledOutput ("[WARN] {0}" -f $Message)
 }
 
 # Resolves a path from repo root.
@@ -204,12 +212,12 @@ Set-Location -Path $resolvedRepoRoot
 $resolvedBaselinePath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $BaselinePath
 $baseline = Get-RequiredJsonDocument -Path $resolvedBaselinePath -Label 'warning baseline'
 if ($null -eq $baseline) {
-    Write-Output ''
-    Write-Output 'Warning baseline validation summary'
-    Write-Output ("  Warning-only mode: {0}" -f $script:IsWarningOnly)
-    Write-Output '  Total warnings: 0'
-    Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-    Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+    Write-StyledOutput ''
+    Write-StyledOutput 'Warning baseline validation summary'
+    Write-StyledOutput ("  Warning-only mode: {0}" -f $script:IsWarningOnly)
+    Write-StyledOutput '  Total warnings: 0'
+    Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+    Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
     if ($script:Failures.Count -gt 0 -and -not $script:IsWarningOnly) { exit 1 }
     exit 0
 }
@@ -217,24 +225,24 @@ if ($null -eq $baseline) {
 $analyzerCommand = Get-Command Invoke-ScriptAnalyzer -ErrorAction SilentlyContinue
 if ($null -eq $analyzerCommand) {
     Add-ValidationWarning 'PSScriptAnalyzer not found; warning baseline check skipped.'
-    Write-Output ''
-    Write-Output 'Warning baseline validation summary'
-    Write-Output ("  Warning-only mode: {0}" -f $script:IsWarningOnly)
-    Write-Output '  Total warnings: 0'
-    Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-    Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+    Write-StyledOutput ''
+    Write-StyledOutput 'Warning baseline validation summary'
+    Write-StyledOutput ("  Warning-only mode: {0}" -f $script:IsWarningOnly)
+    Write-StyledOutput '  Total warnings: 0'
+    Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+    Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
     exit 0
 }
 
 $scanRoot = Resolve-RepoPath -Root $resolvedRepoRoot -Path ([string] $baseline.scanRoot)
 if (-not (Test-Path -LiteralPath $scanRoot -PathType Container)) {
     Add-ValidationFailure ("scanRoot not found in warning baseline: {0}" -f [string] $baseline.scanRoot)
-    Write-Output ''
-    Write-Output 'Warning baseline validation summary'
-    Write-Output ("  Warning-only mode: {0}" -f $script:IsWarningOnly)
-    Write-Output '  Total warnings: 0'
-    Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-    Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+    Write-StyledOutput ''
+    Write-StyledOutput 'Warning baseline validation summary'
+    Write-StyledOutput ("  Warning-only mode: {0}" -f $script:IsWarningOnly)
+    Write-StyledOutput '  Total warnings: 0'
+    Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+    Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
     if ($script:Failures.Count -gt 0 -and -not $script:IsWarningOnly) { exit 1 }
     exit 0
 }
@@ -297,17 +305,17 @@ $report = [ordered]@{
 }
 Set-Content -LiteralPath $reportPath -Value ($report | ConvertTo-Json -Depth 100)
 
-Write-Output ''
-Write-Output 'Warning baseline validation summary'
-Write-Output ("  Warning-only mode: {0}" -f $script:IsWarningOnly)
-Write-Output ("  Total warnings: {0}" -f $totalWarnings)
-Write-Output ("  Report path: {0}" -f (Convert-ToRelativePath -Root $resolvedRepoRoot -Path $reportPath))
-Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+Write-StyledOutput ''
+Write-StyledOutput 'Warning baseline validation summary'
+Write-StyledOutput ("  Warning-only mode: {0}" -f $script:IsWarningOnly)
+Write-StyledOutput ("  Total warnings: {0}" -f $totalWarnings)
+Write-StyledOutput ("  Report path: {0}" -f (Convert-ToRelativePath -Root $resolvedRepoRoot -Path $reportPath))
+Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
 
 if ($script:Failures.Count -gt 0 -and -not $script:IsWarningOnly) {
     exit 1
 }
 
-Write-Output 'Warning baseline validation passed.'
+Write-StyledOutput 'Warning baseline validation passed.'
 exit 0

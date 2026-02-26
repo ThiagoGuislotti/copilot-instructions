@@ -41,13 +41,23 @@ param(
     [string]$TestFile
 )
 
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
+
+$ErrorActionPreference = 'Stop'
+
 if (-not (Test-Path $TestFile)) {
-    Write-Host "❌ Error: Test file not found: $TestFile" -ForegroundColor Red
+    Write-StyledOutput "❌ Error: Test file not found: $TestFile"
     exit 1
 }
 
-Write-Host "Refactoring $TestFile to AAA pattern..." -ForegroundColor Cyan
-Write-Host ""
+Write-StyledOutput "Refactoring $TestFile to AAA pattern..."
+Write-StyledOutput ""
 
 # Read file content
 $content = Get-Content $TestFile -Raw
@@ -111,10 +121,10 @@ $content = [regex]::Replace($content, $pattern, {
 # Save refactored content
 Set-Content -Path $TestFile -Value $content -NoNewline
 
-Write-Host "✅ Refactored $TestFile successfully" -ForegroundColor Green
-Write-Host "Changes applied:" -ForegroundColor Yellow
-Write-Host "  - Removed decorative separators (// ===...)" -ForegroundColor Gray
-Write-Host "  - Added AAA comments where missing" -ForegroundColor Gray
-Write-Host "  - Added blank lines between AAA sections" -ForegroundColor Gray
-Write-Host ""
-Write-Host "⚠️  Manual review recommended to ensure AAA sections are correctly positioned." -ForegroundColor Yellow
+Write-StyledOutput "✅ Refactored $TestFile successfully"
+Write-StyledOutput "Changes applied:"
+Write-StyledOutput "  - Removed decorative separators (// ===...)"
+Write-StyledOutput "  - Added AAA comments where missing"
+Write-StyledOutput "  - Added blank lines between AAA sections"
+Write-StyledOutput ""
+Write-StyledOutput "⚠️  Manual review recommended to ensure AAA sections are correctly positioned."

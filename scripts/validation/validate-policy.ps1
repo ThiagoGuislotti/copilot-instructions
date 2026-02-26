@@ -40,6 +40,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:Failures = New-Object System.Collections.Generic.List[string]
 $script:Warnings = New-Object System.Collections.Generic.List[string]
@@ -56,7 +64,7 @@ function Write-VerboseColor {
     )
 
     if ($script:IsVerboseEnabled) {
-        Write-Output ("[VERBOSE:{0}] {1}" -f $Color, $Message)
+        Write-StyledOutput ("[VERBOSE:{0}] {1}" -f $Color, $Message)
     }
 }
 
@@ -67,7 +75,7 @@ function Add-ValidationFailure {
     )
 
     $script:Failures.Add($Message) | Out-Null
-    Write-Output ("[FAIL] {0}" -f $Message)
+    Write-StyledOutput ("[FAIL] {0}" -f $Message)
 }
 
 # Registers a validation warning and prints a standardized warning message.
@@ -77,7 +85,7 @@ function Add-ValidationWarning {
     )
 
     $script:Warnings.Add($Message) | Out-Null
-    Write-Output ("[WARN] {0}" -f $Message)
+    Write-StyledOutput ("[WARN] {0}" -f $Message)
 }
 
 # Builds an absolute path from repository root and relative input path.
@@ -163,7 +171,7 @@ function Test-PolicyContract {
         $policyId = [System.IO.Path]::GetFileNameWithoutExtension($PolicyPath)
     }
 
-    Write-Output ("[POLICY] {0}" -f $policyId)
+    Write-StyledOutput ("[POLICY] {0}" -f $policyId)
 
     $allowedKeys = @(
         'id',
@@ -269,7 +277,7 @@ else {
 
             try {
                 $policyObject = Get-Content -Raw -LiteralPath $policyFile.FullName | ConvertFrom-Json -Depth 100
-                Write-Output ("[OK] Policy JSON parse: {0}" -f $relativePolicyPath)
+                Write-StyledOutput ("[OK] Policy JSON parse: {0}" -f $relativePolicyPath)
             }
             catch {
                 Add-ValidationFailure ("Invalid JSON in policy file {0} :: {1}" -f $relativePolicyPath, $_.Exception.Message)
@@ -281,14 +289,14 @@ else {
     }
 }
 
-Write-Output ''
-Write-Output 'Policy validation summary'
-Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+Write-StyledOutput ''
+Write-StyledOutput 'Policy validation summary'
+Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
 
 if ($script:Failures.Count -gt 0) {
     exit 1
 }
 
-Write-Output 'All policy validations passed.'
+Write-StyledOutput 'All policy validations passed.'
 exit 0

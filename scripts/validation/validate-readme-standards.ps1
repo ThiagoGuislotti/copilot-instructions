@@ -45,6 +45,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:IsVerboseEnabled = [bool] $Verbose
 $script:Failures = New-Object System.Collections.Generic.List[string]
@@ -60,7 +68,7 @@ function Write-VerboseLog {
     )
 
     if ($script:IsVerboseEnabled) {
-        Write-Output ("[VERBOSE] {0}" -f $Message)
+        Write-StyledOutput ("[VERBOSE] {0}" -f $Message)
     }
 }
 
@@ -71,7 +79,7 @@ function Add-ValidationFailure {
     )
 
     $script:Failures.Add($Message) | Out-Null
-    Write-Output ("[FAIL] {0}" -f $Message)
+    Write-StyledOutput ("[FAIL] {0}" -f $Message)
 }
 
 # Registers a validation warning.
@@ -81,7 +89,7 @@ function Add-ValidationWarning {
     )
 
     $script:Warnings.Add($Message) | Out-Null
-    Write-Output ("[WARN] {0}" -f $Message)
+    Write-StyledOutput ("[WARN] {0}" -f $Message)
 }
 
 # Resolves a path from repo root.
@@ -331,10 +339,10 @@ Set-Location -Path $resolvedRepoRoot
 $resolvedBaselinePath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $BaselinePath
 if (-not (Test-Path -LiteralPath $resolvedBaselinePath -PathType Leaf)) {
     Add-ValidationFailure ("Baseline file not found: {0}" -f $BaselinePath)
-    Write-Output ''
-    Write-Output 'README standards validation summary'
-    Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-    Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+    Write-StyledOutput ''
+    Write-StyledOutput 'README standards validation summary'
+    Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+    Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
     exit 1
 }
 
@@ -344,10 +352,10 @@ try {
 }
 catch {
     Add-ValidationFailure ("Invalid JSON in baseline file {0}: {1}" -f $BaselinePath, $_.Exception.Message)
-    Write-Output ''
-    Write-Output 'README standards validation summary'
-    Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-    Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+    Write-StyledOutput ''
+    Write-StyledOutput 'README standards validation summary'
+    Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+    Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
     exit 1
 }
 
@@ -394,15 +402,15 @@ foreach ($fileEntry in $fileEntries) {
     Write-VerboseLog ("Validated README: {0}" -f $relativePath)
 }
 
-Write-Output ''
-Write-Output 'README standards validation summary'
-Write-Output ("  Files checked: {0}" -f $filesChecked)
-Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+Write-StyledOutput ''
+Write-StyledOutput 'README standards validation summary'
+Write-StyledOutput ("  Files checked: {0}" -f $filesChecked)
+Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
 
 if ($script:Failures.Count -gt 0) {
     exit 1
 }
 
-Write-Output 'README standards validation passed.'
+Write-StyledOutput 'README standards validation passed.'
 exit 0

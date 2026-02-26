@@ -79,6 +79,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:LogFilePath = $null
 $script:IsVerboseEnabled = [bool] $Verbose
@@ -94,7 +102,7 @@ function Write-VerboseColor {
     )
 
     if ($script:IsVerboseEnabled) {
-        Write-Output ("[VERBOSE:{0}] {1}" -f $Color, $Message)
+        Write-StyledOutput ("[VERBOSE:{0}] {1}" -f $Color, $Message)
     }
 }
 
@@ -176,7 +184,7 @@ function Write-ExecutionLog {
         Add-Content -LiteralPath $script:LogFilePath -Value $line
     }
 
-    Write-Output $line
+    Write-StyledOutput $line
 }
 
 # Collects git branch, commit, and dirty-state metadata for reports.

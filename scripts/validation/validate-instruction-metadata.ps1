@@ -35,6 +35,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:IsVerboseEnabled = [bool] $Verbose
 $script:Failures = New-Object System.Collections.Generic.List[string]
@@ -50,7 +58,7 @@ function Write-VerboseLog {
     )
 
     if ($script:IsVerboseEnabled) {
-        Write-Output ("[VERBOSE] {0}" -f $Message)
+        Write-StyledOutput ("[VERBOSE] {0}" -f $Message)
     }
 }
 
@@ -61,7 +69,7 @@ function Add-ValidationFailure {
     )
 
     $script:Failures.Add($Message) | Out-Null
-    Write-Output ("[FAIL] {0}" -f $Message)
+    Write-StyledOutput ("[FAIL] {0}" -f $Message)
 }
 
 # Registers a validation warning.
@@ -71,7 +79,7 @@ function Add-ValidationWarning {
     )
 
     $script:Warnings.Add($Message) | Out-Null
-    Write-Output ("[WARN] {0}" -f $Message)
+    Write-StyledOutput ("[WARN] {0}" -f $Message)
 }
 
 # Resolves a path from repo root.
@@ -358,17 +366,17 @@ foreach ($file in $chatModeFiles) {
     Test-MetadataFile -Root $resolvedRepoRoot -FilePath $file.FullName -Type 'chatmode'
 }
 
-Write-Output ''
-Write-Output 'Instruction metadata validation summary'
-Write-Output ("  Instruction files: {0}" -f $instructionFiles.Count)
-Write-Output ("  Prompt files: {0}" -f $promptFiles.Count)
-Write-Output ("  Chat mode files: {0}" -f $chatModeFiles.Count)
-Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+Write-StyledOutput ''
+Write-StyledOutput 'Instruction metadata validation summary'
+Write-StyledOutput ("  Instruction files: {0}" -f $instructionFiles.Count)
+Write-StyledOutput ("  Prompt files: {0}" -f $promptFiles.Count)
+Write-StyledOutput ("  Chat mode files: {0}" -f $chatModeFiles.Count)
+Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
 
 if ($script:Failures.Count -gt 0) {
     exit 1
 }
 
-Write-Output 'Instruction metadata validation passed.'
+Write-StyledOutput 'Instruction metadata validation passed.'
 exit 0

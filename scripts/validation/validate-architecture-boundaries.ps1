@@ -41,6 +41,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:IsVerboseEnabled = [bool] $Verbose
 $script:Failures = New-Object System.Collections.Generic.List[string]
@@ -57,7 +65,7 @@ function Write-VerboseLog {
     )
 
     if ($script:IsVerboseEnabled) {
-        Write-Output ("[VERBOSE] {0}" -f $Message)
+        Write-StyledOutput ("[VERBOSE] {0}" -f $Message)
     }
 }
 
@@ -68,7 +76,7 @@ function Add-ValidationFailure {
     )
 
     $script:Failures.Add($Message) | Out-Null
-    Write-Output ("[FAIL] {0}" -f $Message)
+    Write-StyledOutput ("[FAIL] {0}" -f $Message)
 }
 
 # Registers a validation warning.
@@ -78,7 +86,7 @@ function Add-ValidationWarning {
     )
 
     $script:Warnings.Add($Message) | Out-Null
-    Write-Output ("[WARN] {0}" -f $Message)
+    Write-StyledOutput ("[WARN] {0}" -f $Message)
 }
 
 # Resolves a path from repo root.
@@ -344,12 +352,12 @@ Set-Location -Path $resolvedRepoRoot
 $resolvedBaselinePath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $BaselinePath
 if (-not (Test-Path -LiteralPath $resolvedBaselinePath -PathType Leaf)) {
     Add-ValidationFailure ("Baseline file not found: {0}" -f $BaselinePath)
-    Write-Output ''
-    Write-Output 'Architecture boundary validation summary'
-    Write-Output ("  Rules checked: 0")
-    Write-Output ("  File checks: 0")
-    Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-    Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+    Write-StyledOutput ''
+    Write-StyledOutput 'Architecture boundary validation summary'
+    Write-StyledOutput ("  Rules checked: 0")
+    Write-StyledOutput ("  File checks: 0")
+    Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+    Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
     exit 1
 }
 
@@ -359,12 +367,12 @@ try {
 }
 catch {
     Add-ValidationFailure ("Invalid JSON in baseline file {0}: {1}" -f $BaselinePath, $_.Exception.Message)
-    Write-Output ''
-    Write-Output 'Architecture boundary validation summary'
-    Write-Output ("  Rules checked: 0")
-    Write-Output ("  File checks: 0")
-    Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-    Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+    Write-StyledOutput ''
+    Write-StyledOutput 'Architecture boundary validation summary'
+    Write-StyledOutput ("  Rules checked: 0")
+    Write-StyledOutput ("  File checks: 0")
+    Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+    Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
     exit 1
 }
 
@@ -379,16 +387,16 @@ foreach ($rule in $rules) {
     Test-BoundaryRule -Root $resolvedRepoRoot -Rule $rule -RepositoryFiles $repositoryFiles
 }
 
-Write-Output ''
-Write-Output 'Architecture boundary validation summary'
-Write-Output ("  Rules checked: {0}" -f $rules.Count)
-Write-Output ("  File checks: {0}" -f $script:FileChecks)
-Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
-Write-Output ("  Failures: {0}" -f $script:Failures.Count)
+Write-StyledOutput ''
+Write-StyledOutput 'Architecture boundary validation summary'
+Write-StyledOutput ("  Rules checked: {0}" -f $rules.Count)
+Write-StyledOutput ("  File checks: {0}" -f $script:FileChecks)
+Write-StyledOutput ("  Warnings: {0}" -f $script:Warnings.Count)
+Write-StyledOutput ("  Failures: {0}" -f $script:Failures.Count)
 
 if ($script:Failures.Count -gt 0) {
     exit 1
 }
 
-Write-Output 'Architecture boundary validation passed.'
+Write-StyledOutput 'Architecture boundary validation passed.'
 exit 0

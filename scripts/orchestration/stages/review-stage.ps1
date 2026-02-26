@@ -35,6 +35,9 @@
 .PARAMETER DetailedOutput
     Shows detailed diagnostics.
 
+.EXAMPLE
+    pwsh -File scripts/orchestration/stages/review-stage.ps1 -RepoRoot . -RunDirectory .temp/runs/run-123 -TraceId run-123 -StageId review -AgentId reviewer -RequestPath .temp/runs/run-123/artifacts/request.md -InputArtifactManifestPath .temp/runs/run-123/stages/validate-input.json -OutputArtifactManifestPath .temp/runs/run-123/stages/review-output.json
+
 .NOTES
     Version: 1.0
     Requirements: PowerShell 7+.
@@ -53,6 +56,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:IsVerboseEnabled = [bool] $DetailedOutput
 
 # Writes verbose diagnostics for stage execution.
@@ -62,7 +73,7 @@ function Write-VerboseLog {
     )
 
     if ($script:IsVerboseEnabled) {
-        Write-Output ("[VERBOSE] {0}" -f $Message)
+        Write-StyledOutput ("[VERBOSE] {0}" -f $Message)
     }
 }
 

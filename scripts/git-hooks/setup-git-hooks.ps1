@@ -43,6 +43,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+$script:ConsoleStylePath = Join-Path $PSScriptRoot '..\common\console-style.ps1'
+if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
+    $script:ConsoleStylePath = Join-Path $PSScriptRoot '..\..\common\console-style.ps1'
+}
+if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
+    . $script:ConsoleStylePath
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:IsVerboseEnabled = [bool] $Verbose
 
@@ -57,7 +65,7 @@ function Write-VerboseColor {
     )
 
     if ($script:IsVerboseEnabled) {
-        Write-Output ("[VERBOSE:{0}] {1}" -f $Color, $Message)
+        Write-StyledOutput ("[VERBOSE:{0}] {1}" -f $Color, $Message)
     }
 }
 
@@ -156,11 +164,11 @@ if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($gitRoot)) {
 if ($Uninstall) {
     & git -C $resolvedRepoRoot config --local --unset core.hooksPath 2>$null
     if ($LASTEXITCODE -ne 0) {
-        Write-Output 'No local core.hooksPath configured.'
+        Write-StyledOutput 'No local core.hooksPath configured.'
         exit 0
     }
 
-    Write-Output 'Removed local Git hook path (core.hooksPath).'
+    Write-StyledOutput 'Removed local Git hook path (core.hooksPath).'
     exit 0
 }
 
@@ -195,15 +203,15 @@ if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($configuredPath)) {
     throw 'Could not read configured core.hooksPath.'
 }
 
-Write-Output 'Git hooks configured successfully.'
-Write-Output ("  repo: {0}" -f $gitRoot)
-Write-Output ("  core.hooksPath: {0}" -f $configuredPath)
-Write-Output '  pre-commit: .githooks/pre-commit (runs validate-all with profile=dev, warning-only, best effort)'
-Write-Output '  post-commit: .githooks/post-commit (syncs ~/.github and ~/.codex via scripts/runtime/bootstrap.ps1)'
-Write-Output '  post-merge: .githooks/post-merge (runs validate-all with profile=release, warning-only, best effort)'
-Write-Output '  post-checkout: .githooks/post-checkout (runs validate-all with profile=dev, warning-only, best effort)'
-Write-Output '  skip sync (temporary): set CODEX_SKIP_POST_COMMIT_SYNC=1'
-Write-Output '  optional MCP apply on manifest change: set CODEX_APPLY_MCP_ON_POST_COMMIT=1'
-Write-Output '  MCP apply backup default: CODEX_BACKUP_MCP_CONFIG=1 (set 0 to disable backup)'
+Write-StyledOutput 'Git hooks configured successfully.'
+Write-StyledOutput ("  repo: {0}" -f $gitRoot)
+Write-StyledOutput ("  core.hooksPath: {0}" -f $configuredPath)
+Write-StyledOutput '  pre-commit: .githooks/pre-commit (runs validate-all with profile=dev, warning-only, best effort)'
+Write-StyledOutput '  post-commit: .githooks/post-commit (syncs ~/.github and ~/.codex via scripts/runtime/bootstrap.ps1)'
+Write-StyledOutput '  post-merge: .githooks/post-merge (runs validate-all with profile=release, warning-only, best effort)'
+Write-StyledOutput '  post-checkout: .githooks/post-checkout (runs validate-all with profile=dev, warning-only, best effort)'
+Write-StyledOutput '  skip sync (temporary): set CODEX_SKIP_POST_COMMIT_SYNC=1'
+Write-StyledOutput '  optional MCP apply on manifest change: set CODEX_APPLY_MCP_ON_POST_COMMIT=1'
+Write-StyledOutput '  MCP apply backup default: CODEX_BACKUP_MCP_CONFIG=1 (set 0 to disable backup)'
 
 exit 0
