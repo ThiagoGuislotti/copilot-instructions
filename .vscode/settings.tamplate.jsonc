@@ -281,6 +281,28 @@
         "files.encoding": "utf8",
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
+    "json.schemas": [
+        {
+            "fileMatch": ["/.codex/orchestration/agents.manifest.json"],
+            "url": "./.github/schemas/agent.contract.schema.json"
+        },
+        {
+            "fileMatch": ["/.codex/orchestration/pipelines/default.pipeline.json"],
+            "url": "./.github/schemas/agent.pipeline.schema.json"
+        },
+        {
+            "fileMatch": ["/.codex/orchestration/templates/handoff.template.json"],
+            "url": "./.github/schemas/agent.handoff.schema.json"
+        },
+        {
+            "fileMatch": ["/.codex/orchestration/templates/run-artifact.template.json"],
+            "url": "./.github/schemas/agent.run-artifact.schema.json"
+        },
+        {
+            "fileMatch": ["/.codex/orchestration/evals/golden-tests.json"],
+            "url": "./.github/schemas/agent.evals.schema.json"
+        }
+    ],
     "[yaml]": {
         "files.encoding": "utf8",
         "editor.defaultFormatter": "redhat.vscode-yaml",

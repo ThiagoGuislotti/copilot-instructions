@@ -1,5 +1,4 @@
 {
-  "$schema": "../../../.github/schemas/agent.handoff.schema.json",
   "traceId": "run-20260226-0001",
   "pipelineId": "default-dev-flow",
   "fromStage": "plan",

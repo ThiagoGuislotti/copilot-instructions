@@ -1,5 +1,4 @@
 {
-  "$schema": "../../.github/schemas/agent.contract.schema.json",
   "version": 1,
   "owner": "copilot-instructions",
   "defaults": {

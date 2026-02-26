@@ -1,5 +1,4 @@
 {
-  "$schema": "../../../.github/schemas/agent.evals.schema.json",
   "version": 1,
   "cases": [
     {

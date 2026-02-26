@@ -1,5 +1,4 @@
 {
-  "$schema": "../../../.github/schemas/agent.pipeline.schema.json",
   "id": "default-dev-flow",
   "version": 1,
   "description": "Deterministic planner -> executor -> tester -> reviewer flow.",

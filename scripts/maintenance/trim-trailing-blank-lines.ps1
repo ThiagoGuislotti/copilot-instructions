@@ -38,7 +38,7 @@
     pwsh -File scripts/maintenance/trim-trailing-blank-lines.ps1 -Path "scripts/README.md"
 
 .NOTES
-    Version: 1.0
+    Version: 1.1
     Requirements: PowerShell 7+, Git CLI (optional, for faster discovery).
 #>
 
@@ -88,12 +88,19 @@ function Get-RepoRoot ([string] $startPath) {
 
 # Checks whether a path is located under any configured excluded directory.
 function Test-IsUnderExcludedDir ([string] $fullPath, [string[]] $excludeDirs, [string] $root) {
-    $norm = [IO.Path]::GetFullPath($fullPath)
+    $norm = [IO.Path]::GetFullPath($fullPath).TrimEnd('\', '/')
 
     foreach ($d in $excludeDirs) {
         try {
-            $exp = [IO.Path]::GetFullPath((Join-Path -Path $root -ChildPath $d))
-            if ($norm.StartsWith($exp, [System.StringComparison]::OrdinalIgnoreCase)) {
+            $exp = [IO.Path]::GetFullPath((Join-Path -Path $root -ChildPath $d)).TrimEnd('\', '/')
+            $expWithSlash = $exp + '\'
+            $expWithAltSlash = $exp + '/'
+
+            if (
+                $norm.Equals($exp, [System.StringComparison]::OrdinalIgnoreCase) -or
+                $norm.StartsWith($expWithSlash, [System.StringComparison]::OrdinalIgnoreCase) -or
+                $norm.StartsWith($expWithAltSlash, [System.StringComparison]::OrdinalIgnoreCase)
+            ) {
                 return $true
             }
         }
@@ -103,6 +110,20 @@ function Test-IsUnderExcludedDir ([string] $fullPath, [string[]] $excludeDirs, [
     }
 
     return $false
+}
+
+# Checks whether a file should be processed based on directory and extension filters.
+function Test-IsProcessableFile ([string] $fullPath, [string[]] $excludedExtensions, [string[]] $excludeDirs, [string] $root) {
+    if (Test-IsUnderExcludedDir -fullPath $fullPath -excludeDirs $excludeDirs -root $root) {
+        return $false
+    }
+
+    $extension = [IO.Path]::GetExtension($fullPath)
+    if ([string]::IsNullOrWhiteSpace($extension)) {
+        return $true
+    }
+
+    return ($excludedExtensions -notcontains $extension.ToLowerInvariant())
 }
 
 # -------------------------------
@@ -115,7 +136,7 @@ $BinaryExtensions = @(
 )
 
 $ExcludeDirs = @(
-    'bin', 'obj', '.git', 'node_modules', '.vs', '.idea', '.vscode',
+    'bin', 'obj', '.git', 'node_modules', '.vs', '.idea',
     '.build', '.deployment', 'artifacts', 'target'
 )
 
@@ -147,9 +168,11 @@ else {
                 Where-Object { $_ -ne '' } |
                 ForEach-Object { Join-Path -Path $root -ChildPath $_ }
 
-            # Apply directory exclusions to git list as well
+            # Apply directory and extension exclusions to git list as well.
             $files = $files |
-                Where-Object { -not (Test-IsUnderExcludedDir -fullPath $_ -excludeDirs $ExcludeDirs -root $root) }
+                Where-Object {
+                    Test-IsProcessableFile -fullPath $_ -excludedExtensions $BinaryExtensions -excludeDirs $ExcludeDirs -root $root
+                }
         }
     }
     catch {
@@ -160,9 +183,7 @@ else {
         # Filesystem method
         $files = Get-ChildItem -Path $root -Recurse -File |
             Where-Object {
-                $extOk = $BinaryExtensions -notcontains $_.Extension.ToLower()
-                $dirOk = -not (Test-IsUnderExcludedDir -fullPath $_.FullName -excludeDirs $ExcludeDirs -root $root)
-                $extOk -and $dirOk
+                Test-IsProcessableFile -fullPath $_.FullName -excludedExtensions $BinaryExtensions -excludeDirs $ExcludeDirs -root $root
             } |
             ForEach-Object { $_.FullName }
     }
