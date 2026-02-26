@@ -144,8 +144,8 @@ else {
     $projectPaths = Get-ProjectsFromFolder -Folder $SourceFolder
 
     if ($projectPaths.Count -eq 0) {
-        Write-StyledOutput "⚠ Nenhum projeto encontrado na pasta '$SourceFolder'"
-        Write-StyledOutput "💡 Dica: Use -ProjectPath para especificar um caminho ou -Projects para uma lista"
+        Write-StyledOutput "⚠ No projects found in folder '$SourceFolder'"
+        Write-StyledOutput "💡 Tip: Use -ProjectPath to specify a path or -Projects for a list"
         exit 1
     }
 }

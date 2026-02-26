@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Shared ANSI console styling helpers for repository scripts.
 
@@ -85,7 +85,7 @@ function Get-MessageColor {
     if ($Message -match '^\[[0-9]+/[0-9]+\]') { return 'Cyan' }
     if ($Message -match '^\s*[=]{6,}|^\s*[━]{6,}|^\s*[╔║╚].*') { return 'Cyan' }
 
-    if ($Message -match '^(Root|Solution root found|Scanning from|Repository root|Repo root|Configurações|URLs de Acesso|Comandos SSH úteis):') {
+    if ($Message -match '^(Root|Solution root found|Scanning from|Repository root|Repo root|Settings|Access URLs|Useful SSH commands):') {
         return 'Blue'
     }
 
@@ -98,8 +98,8 @@ function Get-MessageColor {
     }
 
     if ($Message -match '^\s*(✅|✔)') { return 'Green' }
-    if ($Message -match '^\s*(⚠|WARNING|Aviso)') { return 'Yellow' }
-    if ($Message -match '^\s*(❌|ERRO|Erro)') { return 'Red' }
+    if ($Message -match '^\s*(⚠|WARNING)') { return 'Yellow' }
+    if ($Message -match '^\s*(❌|ERROR|Error)') { return 'Red' }
 
     return 'Default'
 }
