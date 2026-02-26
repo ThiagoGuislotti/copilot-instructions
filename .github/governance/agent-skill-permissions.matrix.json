@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "defaultWarningOnly": true,
+  "globalRules": {
+    "requiredBlockedCommandPrefixes": [
+      "git reset --hard",
+      "git checkout --"
+    ],
+    "allowedStageScriptPrefixes": [
+      "scripts/orchestration/stages/"
+    ]
+  },
+  "agents": [
+    {
+      "agentId": "planner",
+      "role": "planner",
+      "skill": "task-planner",
+      "allowedPathGlobs": [
+        ".github/**",
+        ".codex/**",
+        "scripts/**",
+        ".temp/**",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "allowedStageScriptGlobs": [
+        "scripts/orchestration/stages/plan-stage.ps1"
+      ],
+      "requiredBudget": {
+        "maxSteps": 20,
+        "maxDurationMinutes": 20,
+        "maxFileEdits": 10,
+        "maxTokens": 60000
+      }
+    },
+    {
+      "agentId": "executor",
+      "role": "executor",
+      "skill": "software-engineer",
+      "allowedPathGlobs": [
+        "src/**",
+        "scripts/**",
+        ".github/**",
+        ".codex/**",
+        ".temp/**",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "allowedStageScriptGlobs": [
+        "scripts/orchestration/stages/implement-stage.ps1"
+      ],
+      "requiredBudget": {
+        "maxSteps": 40,
+        "maxDurationMinutes": 45,
+        "maxFileEdits": 40,
+        "maxTokens": 180000
+      }
+    },
+    {
+      "agentId": "tester",
+      "role": "tester",
+      "skill": "test-engineer",
+      "allowedPathGlobs": [
+        "tests/**",
+        "src/**",
+        "scripts/**",
+        ".github/**",
+        ".temp/**"
+      ],
+      "allowedStageScriptGlobs": [
+        "scripts/orchestration/stages/validate-stage.ps1"
+      ],
+      "requiredBudget": {
+        "maxSteps": 25,
+        "maxDurationMinutes": 30,
+        "maxFileEdits": 20,
+        "maxTokens": 120000
+      }
+    },
+    {
+      "agentId": "reviewer",
+      "role": "reviewer",
+      "skill": "code-review-engineer",
+      "allowedPathGlobs": [
+        "src/**",
+        "scripts/**",
+        ".github/**",
+        ".codex/**",
+        ".temp/**",
+        "README.md",
+        "CHANGELOG.md"
+      ],
+      "allowedStageScriptGlobs": [
+        "scripts/orchestration/stages/review-stage.ps1"
+      ],
+      "requiredBudget": {
+        "maxSteps": 20,
+        "maxDurationMinutes": 25,
+        "maxFileEdits": 10,
+        "maxTokens": 90000
+      }
+    }
+  ]
+}

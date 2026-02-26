@@ -21,6 +21,9 @@ This folder centralizes operational scripts used by this repository. It includes
 - ✅ Release governance checks (CODEOWNERS, changelog contracts, branch-protection baseline)
 - ✅ Security baseline checks (sensitive file patterns and secret-like content scanning)
 - ✅ Release provenance checks (validation coverage, evidence files, git traceability, optional audit proof)
+- ✅ Validation profiles (`dev`, `release`, `enforced`) with warning-only execution policy
+- ✅ Hash-chained validation ledger for immutable local audit trail
+- ✅ Agent/skill permission matrix checks and supply-chain baseline checks
 - ✅ Unified validation suite runner (`validate-all`) for local hooks and CI
 - ✅ Healthcheck and self-heal flows with JSON reports and execution logs
 
@@ -159,16 +162,20 @@ Runtime-sensitive files such as `~/.codex/auth.json`, `~/.codex/sessions/`, and 
 | `validation/validate-instruction-metadata.ps1` | Validates frontmatter metadata for `.github/instructions`, `.github/prompts`, and `.github/chatmodes`. | `pwsh -File scripts/validation/validate-instruction-metadata.ps1` |
 | `validation/validate-routing-coverage.ps1` | Validates route coverage between `instruction-routing.catalog.yml` and golden fixtures. | `pwsh -File scripts/validation/validate-routing-coverage.ps1` |
 | `validation/validate-agent-skill-alignment.ps1` | Validates consistency among agent manifest, skills, pipeline stages, and eval requiredAgents. | `pwsh -File scripts/validation/validate-agent-skill-alignment.ps1` |
+| `validation/validate-agent-permissions.ps1` | Validates alignment between agent contracts and `.github/governance/agent-skill-permissions.matrix.json`. | `pwsh -File scripts/validation/validate-agent-permissions.ps1` |
 | `validation/validate-security-baseline.ps1` | Validates `.github/governance/security-baseline.json` (required governance paths, forbidden sensitive files, and secret-like pattern scanning). Runs in warning-only mode by default. | `pwsh -File scripts/validation/validate-security-baseline.ps1` |
-| `validation/validate-all.ps1` | Runs the complete validation suite in deterministic order with a single command. | `pwsh -File scripts/validation/validate-all.ps1` |
+| `validation/validate-warning-baseline.ps1` | Validates PSScriptAnalyzer warning volume against `.github/governance/warning-baseline.json`. | `pwsh -File scripts/validation/validate-warning-baseline.ps1` |
+| `validation/validate-supply-chain.ps1` | Validates dependency manifests against `.github/governance/supply-chain.baseline.json` and exports local SBOM artifact. | `pwsh -File scripts/validation/validate-supply-chain.ps1` |
 | `validation/validate-release-provenance.ps1` | Validates release provenance baseline (`requiredValidationChecks`, `requiredEvidenceFiles`, changelog recency, git traceability, optional audit report). Runs in warning-only mode by default. | `pwsh -File scripts/validation/validate-release-provenance.ps1` |
+| `validation/validate-audit-ledger.ps1` | Validates `.temp/audit/validation-ledger.jsonl` hash-chain integrity. | `pwsh -File scripts/validation/validate-audit-ledger.ps1` |
+| `validation/validate-all.ps1` | Runs full profile-based suite, warning-only by default, and appends hash-chained ledger evidence. | `pwsh -File scripts/validation/validate-all.ps1 -ValidationProfile dev` |
 | `validation/export-audit-report.ps1` | Runs health baseline and exports consolidated JSON audit report with git metadata and policy inventory. | `pwsh -File scripts/validation/export-audit-report.ps1` |
 | `validation/test-routing-selection.ps1` | Runs deterministic golden tests for static routing behavior based on catalog + fixtures. | `pwsh -File scripts/validation/test-routing-selection.ps1` |
 | `governance/set-branch-protection.ps1` | Validates or applies branch protection from `.github/governance/branch-protection.baseline.json` using GitHub CLI. | `pwsh -File scripts/governance/set-branch-protection.ps1 -Apply` |
 | `git-hooks/setup-git-hooks.ps1` | Configures local Git hooks path (`core.hooksPath=.githooks`) and enables `pre-commit` validation + `post-commit` sync. | `pwsh -File scripts/git-hooks/setup-git-hooks.ps1` |
 | `runtime/doctor.ps1` | Diagnoses drift between repository-managed runtime assets and local `~/.github`/`~/.codex` copies. | `pwsh -File scripts/runtime/doctor.ps1` |
 | `runtime/apply-vscode-templates.ps1` | Applies `.vscode/*.tamplate.jsonc` into active `.vscode/settings.json` and `.vscode/mcp.json` files. | `pwsh -File scripts/runtime/apply-vscode-templates.ps1 -Force` |
-| `runtime/healthcheck.ps1` | Executes end-to-end validation (`validate-instructions`, `validate-readme-standards`, `validate-powershell-standards`, `validate-dotnet-standards`, `validate-architecture-boundaries`, `validate-instruction-metadata`, `validate-routing-coverage`, `validate-agent-skill-alignment`, `validate-policy`, `validate-security-baseline`, `validate-agent-orchestration`, `validate-release-governance`, `validate-release-provenance`, `doctor`) and writes log/report artifacts. | `pwsh -File scripts/runtime/healthcheck.ps1 -StrictExtras` |
+| `runtime/healthcheck.ps1` | Runs `validate-all` (profile-aware) plus `runtime-doctor`, emits report/log, and defaults to warning-only mode. | `pwsh -File scripts/runtime/healthcheck.ps1 -ValidationProfile release` |
 | `runtime/self-heal.ps1` | Runs controlled repair flow (bootstrap + optional templates) and validates final state via healthcheck. | `pwsh -File scripts/runtime/self-heal.ps1 -Mirror -StrictExtras` |
 | `runtime/run-agent-pipeline.ps1` | Executes default multi-agent pipeline with blocked-command, allowed-path, and budget guardrails; writes run artifacts under `.temp/runs/<traceId>/`. | `pwsh -File scripts/runtime/run-agent-pipeline.ps1 -RequestText "Implement and validate change"` |
 | `runtime/clean-codex-runtime.ps1` | Cleans local Codex runtime garbage (`tmp`, `vendor_imports`) and prunes `log`/`sessions` files older than retention using `LastWriteTime` (default 30 days). | `pwsh -File scripts/runtime/clean-codex-runtime.ps1 -IncludeSessions -SessionRetentionDays 30 -LogRetentionDays 30 -Apply` |
@@ -238,15 +245,26 @@ pwsh -File .\scripts\validation\validate-security-baseline.ps1
 # validate release provenance baseline and evidence traceability
 pwsh -File .\scripts\validation\validate-release-provenance.ps1
 
-# enforce blocking mode explicitly (optional)
-pwsh -File .\scripts\validation\validate-security-baseline.ps1 -WarningOnly:$false
-pwsh -File .\scripts\validation\validate-release-provenance.ps1 -WarningOnly:$false
+# validate agent permission matrix
+pwsh -File .\scripts\validation\validate-agent-permissions.ps1
+
+# validate warning baseline (PSScriptAnalyzer volume)
+pwsh -File .\scripts\validation\validate-warning-baseline.ps1
+
+# validate supply-chain baseline and export SBOM
+pwsh -File .\scripts\validation\validate-supply-chain.ps1
+
+# validate immutable validation ledger chain
+pwsh -File .\scripts\validation\validate-audit-ledger.ps1
+
+# run suite with release profile
+pwsh -File .\scripts\validation\validate-all.ps1 -ValidationProfile release
 
 # validate branch protection drift from baseline
 pwsh -File .\scripts\governance\set-branch-protection.ps1
 
 # export consolidated audit report (JSON + logs)
-pwsh -File .\scripts\validation\export-audit-report.ps1 -StrictExtras
+pwsh -File .\scripts\validation\export-audit-report.ps1 -ValidationProfile release -StrictExtras
 
 # validate deterministic route selection
 pwsh -File .\scripts\validation\test-routing-selection.ps1
@@ -259,12 +277,12 @@ Get-Help .\scripts\runtime\bootstrap.ps1 -Full
 ```
 
 After setup, hooks behavior is:
-- `pre-commit`: runs `validate-all` and blocks commit on failures
+- `pre-commit`: runs `validate-all -ValidationProfile dev -WarningOnly true` (best effort, warning-only)
 - `post-commit`: runs `scripts/runtime/bootstrap.ps1 -Mirror` to sync and clean drift in `~/.github` and managed `~/.codex` folders (best effort)
 - `post-commit`: runs `scripts/runtime/clean-codex-runtime.ps1 -LogRetentionDays 30 -IncludeSessions -SessionRetentionDays 30 -Apply` (best effort)
-- `post-merge`: runs `validate-all`
+- `post-merge`: runs `validate-all -ValidationProfile release -WarningOnly true` (best effort, warning-only)
 - `post-merge`: runs `scripts/runtime/clean-codex-runtime.ps1 -LogRetentionDays 30 -IncludeSessions -SessionRetentionDays 30 -Apply` (best effort)
-- `post-checkout`: runs `validate-all` (validation-only)
+- `post-checkout`: runs `validate-all -ValidationProfile dev -WarningOnly true` (best effort, warning-only)
 - `post-commit` optional MCP apply on manifest changes: set `CODEX_APPLY_MCP_ON_POST_COMMIT=1`
 - `post-commit` MCP backup control: `CODEX_BACKUP_MCP_CONFIG=1|0` (`1` default)
 - `post-commit` mirror control: `CODEX_POST_COMMIT_MIRROR=0|1` (`1` default)
@@ -281,6 +299,7 @@ $env:CODEX_SKIP_POST_COMMIT_SYNC = "1"
 Full hook contracts are documented in `README.md` (`Git Hooks` section).
 
 Health and audit logs are written under `.temp/logs/` by healthcheck and audit scripts.
+Validation ledger and SBOM artifacts are written under `.temp/audit/`.
 
 ---
 

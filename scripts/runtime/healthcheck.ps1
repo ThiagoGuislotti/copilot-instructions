@@ -1,31 +1,21 @@
 <#
 .SYNOPSIS
-    Runs end-to-end health checks for the repository instruction and runtime system.
+    Runs end-to-end health checks for repository validation and runtime drift.
 
 .DESCRIPTION
-    Executes core validation checks and produces:
+    Executes:
+    - optional runtime bootstrap sync
+    - validation suite (`scripts/validation/validate-all.ps1`)
+    - runtime drift doctor (`scripts/runtime/doctor.ps1`)
+
+    Produces:
     - console summary
     - structured JSON report
     - plain-text execution log
 
-    Checks:
-    - scripts/validation/validate-instructions.ps1
-    - scripts/validation/validate-readme-standards.ps1
-    - scripts/validation/validate-powershell-standards.ps1
-    - scripts/validation/validate-dotnet-standards.ps1
-    - scripts/validation/validate-architecture-boundaries.ps1
-    - scripts/validation/validate-instruction-metadata.ps1
-    - scripts/validation/validate-routing-coverage.ps1
-    - scripts/validation/validate-agent-skill-alignment.ps1
-    - scripts/validation/validate-policy.ps1
-    - scripts/validation/validate-security-baseline.ps1
-    - scripts/validation/validate-agent-orchestration.ps1
-    - scripts/validation/validate-release-governance.ps1
-    - scripts/validation/validate-release-provenance.ps1
-    - scripts/runtime/doctor.ps1
-
-    Optional:
-    - scripts/runtime/bootstrap.ps1 (when -SyncRuntime is used)
+    Exit code:
+    - 0 in warning-only mode (default)
+    - 1 when warning-only is disabled and failures are found
 
 .PARAMETER RepoRoot
     Optional repository root. If omitted, auto-detects a root containing .github and .codex.
@@ -43,7 +33,16 @@
     Uses mirror mode when -SyncRuntime is enabled.
 
 .PARAMETER StrictExtras
-    Fails runtime doctor when extra files exist in runtime targets.
+    Passes -StrictExtras to runtime doctor.
+
+.PARAMETER ValidationProfile
+    Validation profile id used by validate-all.
+
+.PARAMETER WarningOnly
+    Global warning-only mode. Default true.
+
+.PARAMETER TreatRuntimeDriftAsWarning
+    Converts runtime doctor non-zero exit to warning. Default true.
 
 .PARAMETER OutputPath
     Path for JSON healthcheck report. Defaults to .temp/healthcheck-report.json.
@@ -58,13 +57,13 @@
     pwsh -File scripts/runtime/healthcheck.ps1
 
 .EXAMPLE
-    pwsh -File scripts/runtime/healthcheck.ps1 -SyncRuntime -Mirror -StrictExtras
+    pwsh -File scripts/runtime/healthcheck.ps1 -SyncRuntime -Mirror -ValidationProfile release
 
 .EXAMPLE
-    pwsh -File scripts/runtime/healthcheck.ps1 -TargetGithubPath ./.temp/runtime/github -TargetCodexPath ./.temp/runtime/codex -SyncRuntime
+    pwsh -File scripts/runtime/healthcheck.ps1 -WarningOnly:$false -TreatRuntimeDriftAsWarning:$false
 
 .NOTES
-    Version: 1.0
+    Version: 2.0
     Requirements: PowerShell 7+.
 #>
 
@@ -75,6 +74,9 @@ param(
     [switch] $SyncRuntime,
     [switch] $Mirror,
     [switch] $StrictExtras,
+    [string] $ValidationProfile = 'dev',
+    [bool] $WarningOnly = $true,
+    [bool] $TreatRuntimeDriftAsWarning = $true,
     [string] $OutputPath = '.temp/healthcheck-report.json',
     [string] $LogPath,
     [switch] $Verbose
@@ -85,22 +87,18 @@ $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:LogFilePath = $null
 $script:IsVerboseEnabled = [bool] $Verbose
 
-# -------------------------------
-# Helpers
-# -------------------------------
-# Writes verbose diagnostics with a logical color label.
-function Write-VerboseColor {
+# Writes verbose diagnostics.
+function Write-VerboseLog {
     param(
-        [string] $Message,
-        [ConsoleColor] $Color = [ConsoleColor]::Gray
+        [string] $Message
     )
 
     if ($script:IsVerboseEnabled) {
-        Write-Output ("[VERBOSE:{0}] {1}" -f $Color, $Message)
+        Write-Output ("[VERBOSE] {0}" -f $Message)
     }
 }
 
-# Builds an absolute path from repository root and relative input path.
+# Resolves a path from repo root.
 function Resolve-RepoPath {
     param(
         [string] $Root,
@@ -114,7 +112,7 @@ function Resolve-RepoPath {
     return [System.IO.Path]::GetFullPath((Join-Path $Root $Path))
 }
 
-# Resolves the repository root using explicit and fallback location candidates.
+# Resolves repository root from input and fallback candidates.
 function Resolve-RepositoryRoot {
     param(
         [string] $RequestedRoot
@@ -139,10 +137,9 @@ function Resolve-RepositoryRoot {
 
     foreach ($candidate in ($candidates | Select-Object -Unique)) {
         $current = $candidate
-        for ($i = 0; $i -lt 6 -and -not [string]::IsNullOrWhiteSpace($current); $i++) {
+        for ($index = 0; $index -lt 6 -and -not [string]::IsNullOrWhiteSpace($current); $index++) {
             $hasLayout = (Test-Path -LiteralPath (Join-Path $current '.github')) -and (Test-Path -LiteralPath (Join-Path $current '.codex'))
             if ($hasLayout) {
-                Write-VerboseColor ("Repository root detected: {0}" -f $current) 'Green'
                 return $current
             }
 
@@ -181,12 +178,13 @@ function Write-ExecutionLog {
     Write-Output $line
 }
 
-# Runs a validation script check and captures status and execution metrics.
+# Runs a script check and captures status and execution metrics.
 function Invoke-ScriptCheck {
     param(
         [string] $Name,
         [string] $ScriptPath,
-        [hashtable] $Arguments
+        [hashtable] $Arguments,
+        [bool] $TreatFailureAsWarning
     )
 
     $startedAt = Get-Date
@@ -196,26 +194,47 @@ function Invoke-ScriptCheck {
 
     if (-not (Test-Path -LiteralPath $ScriptPath -PathType Leaf)) {
         $errorMessage = "Script not found: $ScriptPath"
-        Write-ExecutionLog -Level 'ERROR' -Message ("{0}: {1}" -f $Name, $errorMessage)
+        if ($TreatFailureAsWarning) {
+            $status = 'warning'
+            $exitCode = 0
+            Write-ExecutionLog -Level 'WARN' -Message ("{0}: {1}" -f $Name, $errorMessage)
+        }
+        else {
+            Write-ExecutionLog -Level 'ERROR' -Message ("{0}: {1}" -f $Name, $errorMessage)
+        }
     }
     else {
         Write-ExecutionLog -Level 'INFO' -Message ("Starting check: {0}" -f $Name)
-
         try {
-            & $ScriptPath @Arguments
+            & $ScriptPath @Arguments | Out-Host
             $exitCode = if ($null -eq $LASTEXITCODE) { 0 } else { [int] $LASTEXITCODE }
+
             if ($exitCode -eq 0) {
                 $status = 'passed'
                 Write-ExecutionLog -Level 'OK' -Message ("Check passed: {0}" -f $Name)
             }
+            elseif ($TreatFailureAsWarning) {
+                $status = 'warning'
+                $exitCode = 0
+                Write-ExecutionLog -Level 'WARN' -Message ("Check warning: {0} (non-zero exit converted to warning)" -f $Name)
+            }
             else {
+                $status = 'failed'
                 Write-ExecutionLog -Level 'ERROR' -Message ("Check failed: {0} (exit code {1})" -f $Name, $exitCode)
             }
         }
         catch {
-            $exitCode = 1
             $errorMessage = $_.Exception.Message
-            Write-ExecutionLog -Level 'ERROR' -Message ("Check exception: {0} :: {1}" -f $Name, $errorMessage)
+            if ($TreatFailureAsWarning) {
+                $status = 'warning'
+                $exitCode = 0
+                Write-ExecutionLog -Level 'WARN' -Message ("Check warning: {0} (exception converted to warning: {1})" -f $Name, $errorMessage)
+            }
+            else {
+                $status = 'failed'
+                $exitCode = 1
+                Write-ExecutionLog -Level 'ERROR' -Message ("Check exception: {0} :: {1}" -f $Name, $errorMessage)
+            }
         }
     }
 
@@ -245,6 +264,7 @@ function Invoke-ScriptCheck {
 # -------------------------------
 $resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
 Set-Location -Path $resolvedRepoRoot
+
 $resolvedOutputPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $OutputPath
 $resolvedTargetGithubPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $TargetGithubPath
 $resolvedTargetCodexPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $TargetCodexPath
@@ -266,29 +286,20 @@ $logParent = Get-ParentDirectoryPath -Path $resolvedLogPath
 if (-not [string]::IsNullOrWhiteSpace($logParent)) {
     New-Item -ItemType Directory -Path $logParent -Force | Out-Null
 }
+
 Set-Content -LiteralPath $resolvedLogPath -Value ("# healthcheck log`n# generatedAt={0}" -f (Get-Date).ToString('o'))
 $script:LogFilePath = $resolvedLogPath
 
 Write-ExecutionLog -Level 'INFO' -Message ("Repo root: {0}" -f $resolvedRepoRoot)
+Write-ExecutionLog -Level 'INFO' -Message ("Validation profile: {0}" -f $ValidationProfile)
+Write-ExecutionLog -Level 'INFO' -Message ("Warning-only mode: {0}" -f $WarningOnly)
 Write-ExecutionLog -Level 'INFO' -Message ("Output report: {0}" -f $resolvedOutputPath)
 Write-ExecutionLog -Level 'INFO' -Message ("Log file: {0}" -f $resolvedLogPath)
 
 $checks = New-Object System.Collections.Generic.List[object]
 
 $bootstrapScript = Join-Path $resolvedRepoRoot 'scripts/runtime/bootstrap.ps1'
-$validateInstructionsScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-instructions.ps1'
-$validateReadmeStandardsScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-readme-standards.ps1'
-$validatePowershellStandardsScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-powershell-standards.ps1'
-$validateDotnetStandardsScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-dotnet-standards.ps1'
-$validateArchitectureBoundariesScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-architecture-boundaries.ps1'
-$validateInstructionMetadataScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-instruction-metadata.ps1'
-$validateRoutingCoverageScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-routing-coverage.ps1'
-$validateAgentSkillAlignmentScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-agent-skill-alignment.ps1'
-$validatePolicyScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-policy.ps1'
-$validateSecurityBaselineScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-security-baseline.ps1'
-$validateAgentOrchestrationScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-agent-orchestration.ps1'
-$validateReleaseGovernanceScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-release-governance.ps1'
-$validateReleaseProvenanceScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-release-provenance.ps1'
+$validateAllScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-all.ps1'
 $doctorScript = Join-Path $resolvedRepoRoot 'scripts/runtime/doctor.ps1'
 
 if ($SyncRuntime) {
@@ -301,28 +312,15 @@ if ($SyncRuntime) {
         $bootstrapArgs.Mirror = $true
     }
 
-    $checks.Add((Invoke-ScriptCheck -Name 'runtime-bootstrap' -ScriptPath $bootstrapScript -Arguments $bootstrapArgs)) | Out-Null
+    $checks.Add((Invoke-ScriptCheck -Name 'runtime-bootstrap' -ScriptPath $bootstrapScript -Arguments $bootstrapArgs -TreatFailureAsWarning:$WarningOnly)) | Out-Null
 }
 
-$checks.Add((Invoke-ScriptCheck -Name 'validate-instructions' -ScriptPath $validateInstructionsScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
-$checks.Add((Invoke-ScriptCheck -Name 'validate-readme-standards' -ScriptPath $validateReadmeStandardsScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
-$checks.Add((Invoke-ScriptCheck -Name 'validate-powershell-standards' -ScriptPath $validatePowershellStandardsScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
-$checks.Add((Invoke-ScriptCheck -Name 'validate-dotnet-standards' -ScriptPath $validateDotnetStandardsScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
-$checks.Add((Invoke-ScriptCheck -Name 'validate-architecture-boundaries' -ScriptPath $validateArchitectureBoundariesScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
-$checks.Add((Invoke-ScriptCheck -Name 'validate-instruction-metadata' -ScriptPath $validateInstructionMetadataScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
-$checks.Add((Invoke-ScriptCheck -Name 'validate-routing-coverage' -ScriptPath $validateRoutingCoverageScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
-$checks.Add((Invoke-ScriptCheck -Name 'validate-agent-skill-alignment' -ScriptPath $validateAgentSkillAlignmentScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
-$checks.Add((Invoke-ScriptCheck -Name 'validate-policy' -ScriptPath $validatePolicyScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
-$checks.Add((Invoke-ScriptCheck -Name 'validate-security-baseline' -ScriptPath $validateSecurityBaselineScript -Arguments @{
+$validateAllArgs = @{
     RepoRoot = $resolvedRepoRoot
-    WarningOnly = $true
-})) | Out-Null
-$checks.Add((Invoke-ScriptCheck -Name 'validate-agent-orchestration' -ScriptPath $validateAgentOrchestrationScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
-$checks.Add((Invoke-ScriptCheck -Name 'validate-release-governance' -ScriptPath $validateReleaseGovernanceScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
-$checks.Add((Invoke-ScriptCheck -Name 'validate-release-provenance' -ScriptPath $validateReleaseProvenanceScript -Arguments @{
-    RepoRoot = $resolvedRepoRoot
-    WarningOnly = $true
-})) | Out-Null
+    ValidationProfile = $ValidationProfile
+    WarningOnly = $WarningOnly
+}
+$checks.Add((Invoke-ScriptCheck -Name 'validate-all' -ScriptPath $validateAllScript -Arguments $validateAllArgs -TreatFailureAsWarning:$WarningOnly)) | Out-Null
 
 $doctorArgs = @{
     RepoRoot = $resolvedRepoRoot
@@ -333,14 +331,25 @@ if ($StrictExtras) {
     $doctorArgs.StrictExtras = $true
 }
 
-$checks.Add((Invoke-ScriptCheck -Name 'runtime-doctor' -ScriptPath $doctorScript -Arguments $doctorArgs)) | Out-Null
+$doctorAsWarning = [bool] ($WarningOnly -or $TreatRuntimeDriftAsWarning)
+$checks.Add((Invoke-ScriptCheck -Name 'runtime-doctor' -ScriptPath $doctorScript -Arguments $doctorArgs -TreatFailureAsWarning:$doctorAsWarning)) | Out-Null
 
 $passedChecks = @($checks | Where-Object { $_.status -eq 'passed' }).Count
-$failedChecks = @($checks | Where-Object { $_.status -ne 'passed' }).Count
-$overallStatus = if ($failedChecks -eq 0) { 'passed' } else { 'failed' }
+$warningChecks = @($checks | Where-Object { $_.status -eq 'warning' }).Count
+$failedChecks = @($checks | Where-Object { $_.status -eq 'failed' }).Count
+
+$overallStatus = if ($failedChecks -gt 0) {
+    'failed'
+}
+elseif ($warningChecks -gt 0) {
+    'warning'
+}
+else {
+    'passed'
+}
 
 $report = [ordered]@{
-    schemaVersion = 1
+    schemaVersion = 2
     generatedAt = (Get-Date).ToString('o')
     repoRoot = $resolvedRepoRoot
     targets = [ordered]@{
@@ -351,10 +360,14 @@ $report = [ordered]@{
         syncRuntime = [bool] $SyncRuntime
         mirror = [bool] $Mirror
         strictExtras = [bool] $StrictExtras
+        validationProfile = $ValidationProfile
+        warningOnly = [bool] $WarningOnly
+        treatRuntimeDriftAsWarning = [bool] $TreatRuntimeDriftAsWarning
     }
     summary = [ordered]@{
         totalChecks = $checks.Count
         passedChecks = $passedChecks
+        warningChecks = $warningChecks
         failedChecks = $failedChecks
         overallStatus = $overallStatus
     }
@@ -362,13 +375,11 @@ $report = [ordered]@{
     logPath = $resolvedLogPath
 }
 
-$reportJson = $report | ConvertTo-Json -Depth 100
-Set-Content -LiteralPath $resolvedOutputPath -Value $reportJson
-
-Write-ExecutionLog -Level 'INFO' -Message ("Healthcheck summary: total={0} passed={1} failed={2}" -f $checks.Count, $passedChecks, $failedChecks)
+Set-Content -LiteralPath $resolvedOutputPath -Value ($report | ConvertTo-Json -Depth 100)
+Write-ExecutionLog -Level 'INFO' -Message ("Healthcheck summary: total={0} passed={1} warning={2} failed={3}" -f $checks.Count, $passedChecks, $warningChecks, $failedChecks)
 Write-ExecutionLog -Level 'INFO' -Message ("Healthcheck report generated: {0}" -f $resolvedOutputPath)
 
-if ($overallStatus -ne 'passed') {
+if ($failedChecks -gt 0 -and -not $WarningOnly) {
     exit 1
 }
 

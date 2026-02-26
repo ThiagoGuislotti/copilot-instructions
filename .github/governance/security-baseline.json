@@ -6,9 +6,18 @@
     ".github/AGENTS.md",
     ".github/copilot-instructions.md",
     ".github/policies/instruction-system.policy.json",
+    ".github/governance/validation-profiles.json",
+    ".github/governance/agent-skill-permissions.matrix.json",
+    ".github/governance/supply-chain.baseline.json",
+    ".github/governance/warning-baseline.json",
+    ".github/runbooks/README.md",
     ".githooks/pre-commit",
     ".githooks/post-commit",
-    ".githooks/post-merge"
+    ".githooks/post-merge",
+    "scripts/validation/validate-agent-permissions.ps1",
+    "scripts/validation/validate-supply-chain.ps1",
+    "scripts/validation/validate-warning-baseline.ps1",
+    "scripts/validation/validate-audit-ledger.ps1"
   ],
   "requiredDirectories": [
     ".github/policies",

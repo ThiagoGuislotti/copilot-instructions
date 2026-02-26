@@ -16,6 +16,9 @@ Structured AI agent guidelines for software development projects. Focuses on rep
 - ✅ **Unified Validation Suite:** Single `validate-all` command for hooks/CI governance checks
 - ✅ **Security Baseline Validation:** Local enforcement for sensitive files and secret-like content patterns
 - ✅ **Release Provenance Validation:** Local traceability checks for release evidence and validation coverage
+- ✅ **Validation Profiles:** `dev`, `release`, and `enforced` profiles with warning-only policy
+- ✅ **Immutable Audit Trail:** Hash-chained validation ledger under `.temp/audit/`
+- ✅ **Agent Permission Matrix + Supply Chain:** Governance checks for agent permissions and dependency risk baseline
 
 ---
 
@@ -106,8 +109,8 @@ pwsh -File .\scripts\git-hooks\setup-git-hooks.ps1
 ### pre-commit
 
 - Runs `scripts/validation/validate-all.ps1`
-- Blocks commit when validation fails
-- Requires `pwsh` or `powershell`
+- Uses `-ValidationProfile dev -WarningOnly true` (best effort)
+- Never blocks commit; failures are reported as warnings
 
 ### post-commit
 
@@ -117,13 +120,13 @@ pwsh -File .\scripts\git-hooks\setup-git-hooks.ps1
 
 ### post-merge
 
-- Runs `scripts/validation/validate-all.ps1`
+- Runs `scripts/validation/validate-all.ps1 -ValidationProfile release -WarningOnly true` (best effort)
 - Runs `scripts/runtime/clean-codex-runtime.ps1 -LogRetentionDays 30 -IncludeSessions -SessionRetentionDays 30 -Apply` (best effort)
 - Does not run runtime sync
 
 ### post-checkout
 
-- Runs `scripts/validation/validate-all.ps1` (validation-only)
+- Runs `scripts/validation/validate-all.ps1 -ValidationProfile dev -WarningOnly true` (best effort)
 - Does not run runtime sync
 
 Environment variables:
@@ -145,11 +148,17 @@ pwsh -File .\scripts\runtime\healthcheck.ps1 -StrictExtras
 # run full validation suite (instructions, policies, orchestration, docs standards)
 pwsh -File .\scripts\validation\validate-all.ps1
 
+# run full suite with release profile
+pwsh -File .\scripts\validation\validate-all.ps1 -ValidationProfile release
+
 # validate routing catalog coverage against golden fixtures
 pwsh -File .\scripts\validation\validate-routing-coverage.ps1
 
 # validate alignment between agents, skills, pipeline and evals
 pwsh -File .\scripts\validation\validate-agent-skill-alignment.ps1
+
+# validate agent permission matrix
+pwsh -File .\scripts\validation\validate-agent-permissions.ps1
 
 # validate release governance contracts (CHANGELOG + CODEOWNERS + baseline)
 pwsh -File .\scripts\validation\validate-release-governance.ps1
@@ -157,12 +166,17 @@ pwsh -File .\scripts\validation\validate-release-governance.ps1
 # validate security baseline (sensitive paths + secret-like patterns)
 pwsh -File .\scripts\validation\validate-security-baseline.ps1
 
+# validate supply-chain baseline and generate SBOM artifact
+pwsh -File .\scripts\validation\validate-supply-chain.ps1
+
+# validate analyzer warning baseline
+pwsh -File .\scripts\validation\validate-warning-baseline.ps1
+
 # validate release provenance baseline (checks + evidence + git traceability)
 pwsh -File .\scripts\validation\validate-release-provenance.ps1
 
-# optional enforcing mode (default is warning-only)
-pwsh -File .\scripts\validation\validate-security-baseline.ps1 -WarningOnly:$false
-pwsh -File .\scripts\validation\validate-release-provenance.ps1 -WarningOnly:$false
+# validate audit ledger hash chain
+pwsh -File .\scripts\validation\validate-audit-ledger.ps1
 
 # validate multi-agent contracts and orchestration integrity
 pwsh -File .\scripts\validation\validate-agent-orchestration.ps1
@@ -183,10 +197,11 @@ pwsh -File .\scripts\runtime\self-heal.ps1 -Mirror -StrictExtras
 pwsh -File .\scripts\runtime\clean-codex-runtime.ps1 -IncludeSessions -SessionRetentionDays 30 -LogRetentionDays 30 -Apply
 
 # export consolidated audit report with git metadata and policy inventory
-pwsh -File .\scripts\validation\export-audit-report.ps1 -StrictExtras
+pwsh -File .\scripts\validation\export-audit-report.ps1 -ValidationProfile release -StrictExtras
 ```
 
 Audit logs are generated under `.temp/logs/`.
+Validation ledger and SBOM artifacts are generated under `.temp/audit/`.
 
 ---
 

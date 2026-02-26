@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "maxTotalWarnings": 150,
+  "scanRoot": "scripts",
+  "maxWarningsByRule": {
+    "PSAvoidUsingWriteHost": 100,
+    "PSUseSingularNouns": 50,
+    "PSReviewUnusedParameter": 20,
+    "PSUseShouldProcessForStateChangingFunctions": 20,
+    "PSUseApprovedVerbs": 15,
+    "PSAvoidAssignmentToAutomaticVariable": 10
+  }
+}

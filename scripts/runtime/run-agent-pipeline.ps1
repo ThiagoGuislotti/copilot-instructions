@@ -36,6 +36,18 @@
 .PARAMETER SkipGuardrails
     Disables blocked command, allowed path, and budget enforcement.
 
+.PARAMETER WarningOnly
+    When true (default), pipeline failures are reported as warnings and exit code remains zero.
+
+.PARAMETER RetryDelaySeconds
+    Delay between retry attempts for retryable stages. Default 2 seconds.
+
+.PARAMETER MaxPipelineDurationSeconds
+    Optional max total pipeline duration. When 0, uses pipeline/agent defaults.
+
+.PARAMETER ContinueOnStageFailure
+    When true (default), continue executing subsequent stages after non-successful stage.
+
 .PARAMETER DetailedOutput
     Shows detailed diagnostics.
 
@@ -44,6 +56,9 @@
 
 .EXAMPLE
     pwsh -File scripts/runtime/run-agent-pipeline.ps1 -RequestText "Validate orchestration only" -SkipGuardrails
+
+.EXAMPLE
+    pwsh -File scripts/runtime/run-agent-pipeline.ps1 -RequestText "Run resilient warning-only flow" -WarningOnly:$true -RetryDelaySeconds 3
 
 .NOTES
     Version: 1.0
@@ -58,6 +73,10 @@ param(
     [string] $TraceId,
     [Parameter(Mandatory = $true)] [string] $RequestText,
     [switch] $SkipGuardrails,
+    [bool] $WarningOnly = $true,
+    [int] $RetryDelaySeconds = 2,
+    [int] $MaxPipelineDurationSeconds = 0,
+    [bool] $ContinueOnStageFailure = $true,
     [switch] $DetailedOutput
 )
 
@@ -334,7 +353,12 @@ if (-not (Test-Path -LiteralPath $validationScriptPath -PathType Leaf)) {
 
 & $validationScriptPath -RepoRoot $resolvedRepoRoot
 if ($LASTEXITCODE -ne 0) {
-    throw 'Agent orchestration validation failed. Fix contracts before running pipeline.'
+    if ($WarningOnly) {
+        Write-Output '[WARN] Agent orchestration validation failed. Continuing due warning-only mode.'
+    }
+    else {
+        throw 'Agent orchestration validation failed. Fix contracts before running pipeline.'
+    }
 }
 
 $resolvedAgentsManifestPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $AgentsManifestPath
@@ -343,6 +367,35 @@ $resolvedRunRoot = Resolve-RepoPath -Root $resolvedRepoRoot -Path $RunRoot
 
 $agentsManifest = Read-JsonFile -Path $resolvedAgentsManifestPath
 $pipeline = Read-JsonFile -Path $resolvedPipelinePath
+
+$defaultTimeoutMinutes = if ($null -eq $agentsManifest.defaults.timeoutMinutes) { 30 } else { [int] $agentsManifest.defaults.timeoutMinutes }
+$runtimeConfig = $pipeline.runtime
+$effectiveRetryDelaySeconds = if ($RetryDelaySeconds -gt 0) {
+    $RetryDelaySeconds
+}
+elseif ($null -ne $runtimeConfig -and $null -ne $runtimeConfig.defaultRetryDelaySeconds) {
+    [int] $runtimeConfig.defaultRetryDelaySeconds
+}
+else {
+    2
+}
+
+$effectiveMaxPipelineDurationSeconds = if ($MaxPipelineDurationSeconds -gt 0) {
+    $MaxPipelineDurationSeconds
+}
+elseif ($null -ne $runtimeConfig -and $null -ne $runtimeConfig.maxPipelineDurationSeconds -and [int] $runtimeConfig.maxPipelineDurationSeconds -gt 0) {
+    [int] $runtimeConfig.maxPipelineDurationSeconds
+}
+else {
+    $defaultTimeoutMinutes * 60
+}
+
+$effectiveContinueOnStageFailure = if ($null -ne $runtimeConfig -and $null -ne $runtimeConfig.continueOnStageFailure) {
+    [bool] $runtimeConfig.continueOnStageFailure
+}
+else {
+    [bool] $ContinueOnStageFailure
+}
 
 $trace = if ([string]::IsNullOrWhiteSpace($TraceId)) {
     "run-{0}" -f (Get-Date -Format 'yyyyMMdd-HHmmss')
@@ -386,13 +439,26 @@ foreach ($agent in @($agentsManifest.agents)) {
 }
 
 $pipelineStartedAt = Get-Date
+Write-Output ("[INFO] Pipeline warning-only mode: {0}" -f $WarningOnly)
+Write-Output ("[INFO] Continue on stage failure: {0}" -f $effectiveContinueOnStageFailure)
+Write-Output ("[INFO] Retry delay seconds: {0}" -f $effectiveRetryDelaySeconds)
+Write-Output ("[INFO] Max pipeline duration seconds: {0}" -f $effectiveMaxPipelineDurationSeconds)
 
 foreach ($stage in @($pipeline.stages)) {
     $stageId = [string] $stage.id
     $agentId = [string] $stage.agentId
     $stageMode = [string] $stage.mode
     $onFailure = [string] $stage.onFailure
-    $maxAttempts = if ($onFailure -eq 'retry-once') { 2 } else { 1 }
+    $configuredRetries = if ($null -ne $stage.execution -and $null -ne $stage.execution.retryCount) {
+        [Math]::Max(0, [int] $stage.execution.retryCount)
+    }
+    elseif ($onFailure -eq 'retry-once') {
+        1
+    }
+    else {
+        0
+    }
+    $maxAttempts = [Math]::Max(1, $configuredRetries + 1)
 
     if (-not $agentMap.ContainsKey($agentId)) {
         $runFailures.Add(("Unknown agentId in stage {0}: {1}" -f $stageId, $agentId)) | Out-Null
@@ -427,6 +493,13 @@ foreach ($stage in @($pipeline.stages)) {
         $attempt++
         Write-Output ("[INFO] Stage {0} (agent={1}, mode={2}) attempt {3}/{4}" -f $stageId, $agentId, $stageMode, $attempt, $maxAttempts)
 
+        $elapsedPipelineSeconds = [int] ((Get-Date) - $pipelineStartedAt).TotalSeconds
+        if ($elapsedPipelineSeconds -gt $effectiveMaxPipelineDurationSeconds) {
+            $lastFailureMessage = ("Pipeline exceeded max duration ({0}s) before stage {1}." -f $effectiveMaxPipelineDurationSeconds, $stageId)
+            Write-Output ("[ERROR] {0}" -f $lastFailureMessage)
+            break
+        }
+
         $inputMissing = @()
         foreach ($inputArtifact in @($stage.inputArtifacts)) {
             $name = [string] $inputArtifact
@@ -438,6 +511,9 @@ foreach ($stage in @($pipeline.stages)) {
         if ($inputMissing.Count -gt 0) {
             $lastFailureMessage = ("Missing input artifacts for stage {0}: {1}" -f $stageId, ($inputMissing -join ', '))
             Write-Output ("[ERROR] {0}" -f $lastFailureMessage)
+            if ($attempt -lt $maxAttempts -and $effectiveRetryDelaySeconds -gt 0) {
+                Start-Sleep -Seconds $effectiveRetryDelaySeconds
+            }
             continue
         }
 
@@ -446,6 +522,9 @@ foreach ($stage in @($pipeline.stages)) {
             if ([int] $usage.steps -gt [int] $budget.maxSteps) {
                 $lastFailureMessage = ("Agent {0} exceeded maxSteps ({1})." -f $agentId, $budget.maxSteps)
                 Write-Output ("[ERROR] {0}" -f $lastFailureMessage)
+                if ($attempt -lt $maxAttempts -and $effectiveRetryDelaySeconds -gt 0) {
+                    Start-Sleep -Seconds $effectiveRetryDelaySeconds
+                }
                 continue
             }
         }
@@ -457,6 +536,9 @@ foreach ($stage in @($pipeline.stages)) {
         if (-not (Test-Path -LiteralPath $scriptPath -PathType Leaf)) {
             $lastFailureMessage = ("Stage {0} script not found: {1}" -f $stageId, $scriptPathRelative)
             Write-Output ("[ERROR] {0}" -f $lastFailureMessage)
+            if ($attempt -lt $maxAttempts -and $effectiveRetryDelaySeconds -gt 0) {
+                Start-Sleep -Seconds $effectiveRetryDelaySeconds
+            }
             continue
         }
 
@@ -464,6 +546,9 @@ foreach ($stage in @($pipeline.stages)) {
         if (-not $SkipGuardrails -and (Test-IsBlockedCommand -CommandText $syntheticCommand -BlockedCommands @($agent.blockedCommands))) {
             $lastFailureMessage = ("Blocked command for agent {0}: {1}" -f $agentId, $syntheticCommand)
             Write-Output ("[ERROR] {0}" -f $lastFailureMessage)
+            if ($attempt -lt $maxAttempts -and $effectiveRetryDelaySeconds -gt 0) {
+                Start-Sleep -Seconds $effectiveRetryDelaySeconds
+            }
             continue
         }
 
@@ -507,18 +592,27 @@ foreach ($stage in @($pipeline.stages)) {
         if ($stageDurationMs -gt ($timeoutSeconds * 1000)) {
             $lastFailureMessage = ("Stage {0} exceeded timeoutSeconds ({1}). Duration={2}ms." -f $stageId, $timeoutSeconds, $stageDurationMs)
             Write-Output ("[ERROR] {0}" -f $lastFailureMessage)
+            if ($attempt -lt $maxAttempts -and $effectiveRetryDelaySeconds -gt 0) {
+                Start-Sleep -Seconds $effectiveRetryDelaySeconds
+            }
             continue
         }
 
         if ($stageExitCode -ne 0) {
             $lastFailureMessage = ("Stage {0} failed with exit code {1}." -f $stageId, $stageExitCode)
             Write-Output ("[ERROR] {0}" -f $lastFailureMessage)
+            if ($attempt -lt $maxAttempts -and $effectiveRetryDelaySeconds -gt 0) {
+                Start-Sleep -Seconds $effectiveRetryDelaySeconds
+            }
             continue
         }
 
         if (-not (Test-Path -LiteralPath $outputManifestPath -PathType Leaf)) {
             $lastFailureMessage = ("Stage {0} output manifest not found: {1}" -f $stageId, (Convert-ToRepoRelativePath -Root $resolvedRepoRoot -Path $outputManifestPath))
             Write-Output ("[ERROR] {0}" -f $lastFailureMessage)
+            if ($attempt -lt $maxAttempts -and $effectiveRetryDelaySeconds -gt 0) {
+                Start-Sleep -Seconds $effectiveRetryDelaySeconds
+            }
             continue
         }
 
@@ -542,6 +636,9 @@ foreach ($stage in @($pipeline.stages)) {
         if ($missingOutputs.Count -gt 0) {
             $lastFailureMessage = ("Stage {0} missing declared output artifacts: {1}" -f $stageId, ($missingOutputs -join ', '))
             Write-Output ("[ERROR] {0}" -f $lastFailureMessage)
+            if ($attempt -lt $maxAttempts -and $effectiveRetryDelaySeconds -gt 0) {
+                Start-Sleep -Seconds $effectiveRetryDelaySeconds
+            }
             continue
         }
 
@@ -569,6 +666,9 @@ foreach ($stage in @($pipeline.stages)) {
             if ($disallowed.Count -gt 0) {
                 $lastFailureMessage = ("Agent {0} changed disallowed paths: {1}" -f $agentId, ($disallowed -join ', '))
                 Write-Output ("[ERROR] {0}" -f $lastFailureMessage)
+                if ($attempt -lt $maxAttempts -and $effectiveRetryDelaySeconds -gt 0) {
+                    Start-Sleep -Seconds $effectiveRetryDelaySeconds
+                }
                 continue
             }
 
@@ -576,6 +676,9 @@ foreach ($stage in @($pipeline.stages)) {
             if ([int] $usage.fileEdits -gt [int] $budget.maxFileEdits) {
                 $lastFailureMessage = ("Agent {0} exceeded maxFileEdits ({1}). Current={2}" -f $agentId, $budget.maxFileEdits, $usage.fileEdits)
                 Write-Output ("[ERROR] {0}" -f $lastFailureMessage)
+                if ($attempt -lt $maxAttempts -and $effectiveRetryDelaySeconds -gt 0) {
+                    Start-Sleep -Seconds $effectiveRetryDelaySeconds
+                }
                 continue
             }
 
@@ -584,12 +687,35 @@ foreach ($stage in @($pipeline.stages)) {
             if ([int] $usage.durationMs -gt $maxDurationMs) {
                 $lastFailureMessage = ("Agent {0} exceeded maxDurationMinutes ({1}). CurrentDurationMs={2}" -f $agentId, $budget.maxDurationMinutes, $usage.durationMs)
                 Write-Output ("[ERROR] {0}" -f $lastFailureMessage)
+                if ($attempt -lt $maxAttempts -and $effectiveRetryDelaySeconds -gt 0) {
+                    Start-Sleep -Seconds $effectiveRetryDelaySeconds
+                }
                 continue
             }
 
+            $estimatedTokens = 0
+            foreach ($artifactName in $stageArtifactMap.Keys) {
+                $artifactPath = [string] $stageArtifactMap[$artifactName]
+                if (-not (Test-Path -LiteralPath $artifactPath -PathType Leaf)) {
+                    continue
+                }
+
+                try {
+                    $artifactContent = Get-Content -Raw -LiteralPath $artifactPath
+                    $estimatedTokens += [int] [Math]::Ceiling($artifactContent.Length / 4.0)
+                }
+                catch {
+                    continue
+                }
+            }
+
+            $usage.tokenUsage = [int] $usage.tokenUsage + $estimatedTokens
             if ([int] $usage.tokenUsage -gt [int] $budget.maxTokens) {
                 $lastFailureMessage = ("Agent {0} exceeded maxTokens ({1})." -f $agentId, $budget.maxTokens)
                 Write-Output ("[ERROR] {0}" -f $lastFailureMessage)
+                if ($attempt -lt $maxAttempts -and $effectiveRetryDelaySeconds -gt 0) {
+                    Start-Sleep -Seconds $effectiveRetryDelaySeconds
+                }
                 continue
             }
         }
@@ -599,6 +725,10 @@ foreach ($stage in @($pipeline.stages)) {
 
     if (-not $stageSucceeded) {
         $runFailures.Add($lastFailureMessage) | Out-Null
+        $fallbackAgentId = [string] $agent.fallbackAgentId
+        if (-not [string]::IsNullOrWhiteSpace($fallbackAgentId)) {
+            $runWarnings.Add(("Stage {0} failed for agent '{1}'. Fallback agent available: '{2}'." -f $stageId, $agentId, $fallbackAgentId)) | Out-Null
+        }
     }
 
     $stageStatus = if ($stageSucceeded) { 'success' } else { 'failed' }
@@ -634,8 +764,12 @@ foreach ($stage in @($pipeline.stages)) {
         }
     }
 
-    if (-not $stageSucceeded -and $onFailure -eq 'stop') {
+    if (-not $stageSucceeded -and $onFailure -eq 'stop' -and -not $effectiveContinueOnStageFailure) {
         break
+    }
+
+    if (-not $stageSucceeded -and $onFailure -eq 'stop' -and $effectiveContinueOnStageFailure) {
+        $runWarnings.Add(("Stage {0} configured with stop-on-failure, but execution continued due ContinueOnStageFailure=true." -f $stageId)) | Out-Null
     }
 }
 
@@ -667,7 +801,16 @@ if ($missingCompletionArtifacts.Count -gt 0) {
     $runFailures.Add(("Missing required completion artifacts: {0}" -f ($missingCompletionArtifacts -join ', '))) | Out-Null
 }
 
-$overallStatus = if (($failedStages -eq 0) -and ($runFailures.Count -eq 0)) { 'success' } else { 'failed' }
+$hasStageFailures = ($failedStages -gt 0) -or ($runFailures.Count -gt 0)
+$overallStatus = if (-not $hasStageFailures) {
+    'success'
+}
+elseif ($WarningOnly) {
+    'warning'
+}
+else {
+    'failed'
+}
 $guardrailNotes = if ($SkipGuardrails) {
     'Executed with guardrails disabled.'
 }
@@ -709,13 +852,22 @@ Write-Output ("  stages: total={0} failed={1}" -f $stageResults.Count, $failedSt
 Write-Output ("  run artifact: {0}" -f (Convert-ToRepoRelativePath -Root $resolvedRepoRoot -Path $runArtifactPath))
 
 if ($runFailures.Count -gt 0) {
-    Write-Output '  failures:'
+    $failureLabel = if ($WarningOnly) { '  failure-warnings:' } else { '  failures:' }
+    Write-Output $failureLabel
     foreach ($failure in $runFailures) {
-        Write-Output ("    - {0}" -f $failure)
+        $prefix = if ($WarningOnly) { '[WARN]' } else { '[FAIL]' }
+        Write-Output ("    {0} {1}" -f $prefix, $failure)
     }
 }
 
-if ($overallStatus -ne 'success') {
+if ($runWarnings.Count -gt 0) {
+    Write-Output '  warnings:'
+    foreach ($warning in $runWarnings) {
+        Write-Output ("    [WARN] {0}" -f $warning)
+    }
+}
+
+if ($overallStatus -eq 'failed') {
     exit 1
 }
 

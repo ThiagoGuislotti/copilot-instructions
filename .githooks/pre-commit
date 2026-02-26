@@ -5,18 +5,22 @@ set -eu
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 cd "$REPO_ROOT"
 
-# Validate governance, instruction, orchestration, and docs contracts before allowing commit.
+# Validate governance, instruction, orchestration, and docs contracts in warning-only mode.
 if command -v pwsh >/dev/null 2>&1; then
-  pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-all.ps1
-  exit $?
+  if ! pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-all.ps1 -ValidationProfile dev -WarningOnly true; then
+    echo "[pre-commit] Warning: validation command failed." >&2
+  fi
+  exit 0
 fi
 
 # Windows PowerShell fallback.
 if command -v powershell >/dev/null 2>&1; then
-  powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\validation\\validate-all.ps1
-  exit $?
+  if ! powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\validation\\validate-all.ps1 -ValidationProfile dev -WarningOnly true; then
+    echo "[pre-commit] Warning: validation command failed." >&2
+  fi
+  exit 0
 fi
 
-# No PowerShell runtime means validation cannot run safely.
-echo "PowerShell not found. Install pwsh to run instruction/policy/release validation." >&2
-exit 1
+# No PowerShell runtime means validation cannot run locally.
+echo "[pre-commit] Warning: PowerShell not found. Validation skipped." >&2
+exit 0

@@ -30,6 +30,15 @@
 .PARAMETER StrictExtras
     Fails runtime doctor when extra files exist in runtime targets.
 
+.PARAMETER ValidationProfile
+    Validation profile id used by runtime healthcheck.
+
+.PARAMETER WarningOnly
+    Global warning-only mode for healthcheck execution. Default true.
+
+.PARAMETER TreatRuntimeDriftAsWarning
+    Converts runtime doctor non-zero exit to warning. Default true.
+
 .PARAMETER OutputPath
     Path for JSON audit report. Defaults to .temp/audit-report.json.
 
@@ -60,6 +69,9 @@ param(
     [switch] $SyncRuntime,
     [switch] $Mirror,
     [switch] $StrictExtras,
+    [string] $ValidationProfile = 'release',
+    [bool] $WarningOnly = $true,
+    [bool] $TreatRuntimeDriftAsWarning = $true,
     [string] $OutputPath = '.temp/audit-report.json',
     [string] $HealthcheckOutputPath = '.temp/healthcheck-report.json',
     [string] $LogPath,
@@ -241,6 +253,9 @@ $healthcheckArgs = @{
     TargetCodexPath = $TargetCodexPath
     OutputPath = $resolvedHealthcheckOutputPath
     LogPath = $healthcheckLogPath
+    ValidationProfile = $ValidationProfile
+    WarningOnly = $WarningOnly
+    TreatRuntimeDriftAsWarning = $TreatRuntimeDriftAsWarning
 }
 if ($SyncRuntime) {
     $healthcheckArgs.SyncRuntime = $true
@@ -286,7 +301,15 @@ if (Test-Path -LiteralPath $policyDirectory -PathType Container) {
 }
 
 $gitMetadata = Get-GitState -Root $resolvedRepoRoot
-$overallStatus = if ($healthcheckExitCode -eq 0) { 'passed' } else { 'failed' }
+$overallStatus = if ($null -ne $healthcheckReport -and $null -ne $healthcheckReport.summary -and -not [string]::IsNullOrWhiteSpace([string] $healthcheckReport.summary.overallStatus)) {
+    [string] $healthcheckReport.summary.overallStatus
+}
+elseif ($healthcheckExitCode -eq 0) {
+    'passed'
+}
+else {
+    'failed'
+}
 
 $auditReport = [ordered]@{
     schemaVersion = 1
@@ -300,6 +323,9 @@ $auditReport = [ordered]@{
         syncRuntime = [bool] $SyncRuntime
         mirror = [bool] $Mirror
         strictExtras = [bool] $StrictExtras
+        validationProfile = $ValidationProfile
+        warningOnly = [bool] $WarningOnly
+        treatRuntimeDriftAsWarning = [bool] $TreatRuntimeDriftAsWarning
     }
     git = $gitMetadata
     policyFiles = $policyFiles
@@ -321,7 +347,9 @@ Set-Content -LiteralPath $resolvedOutputPath -Value $auditJson
 Write-ExecutionLog -Level 'INFO' -Message ("Audit report generated: {0}" -f $resolvedOutputPath)
 
 if ($overallStatus -ne 'passed') {
-    exit 1
+    if (-not $WarningOnly) {
+        exit 1
+    }
 }
 
 exit 0

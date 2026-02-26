@@ -518,7 +518,8 @@ function Get-MarkdownFilesForValidation {
     $markdownFolders = @(
         '.github/instructions',
         '.github/chatmodes',
-        '.github/prompts'
+        '.github/prompts',
+        '.github/runbooks'
     )
 
     foreach ($folder in $markdownFolders) {
@@ -766,6 +767,14 @@ $requiredFiles = @(
     '.github/governance/architecture-boundaries.baseline.json',
     '.github/governance/security-baseline.json',
     '.github/governance/release-provenance.baseline.json',
+    '.github/governance/validation-profiles.json',
+    '.github/governance/agent-skill-permissions.matrix.json',
+    '.github/governance/supply-chain.baseline.json',
+    '.github/governance/warning-baseline.json',
+    '.github/runbooks/README.md',
+    '.github/runbooks/validation-failures.runbook.md',
+    '.github/runbooks/runtime-drift.runbook.md',
+    '.github/runbooks/release-rollback.runbook.md',
     '.github/schemas/agent.contract.schema.json',
     '.github/schemas/agent.pipeline.schema.json',
     '.github/schemas/agent.handoff.schema.json',
@@ -784,7 +793,11 @@ $requiredFiles = @(
     'scripts/validation/validate-instruction-metadata.ps1',
     'scripts/validation/validate-routing-coverage.ps1',
     'scripts/validation/validate-agent-skill-alignment.ps1',
+    'scripts/validation/validate-agent-permissions.ps1',
     'scripts/validation/validate-security-baseline.ps1',
+    'scripts/validation/validate-warning-baseline.ps1',
+    'scripts/validation/validate-supply-chain.ps1',
+    'scripts/validation/validate-audit-ledger.ps1',
     'scripts/validation/validate-release-provenance.ps1',
     'scripts/validation/validate-all.ps1',
     'scripts/runtime/run-agent-pipeline.ps1',

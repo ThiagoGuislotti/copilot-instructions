@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "defaultProfile": "dev",
+  "profiles": [
+    {
+      "id": "dev",
+      "description": "Fast local validation flow with warning-only behavior and lightweight analyzer settings.",
+      "warningOnly": true,
+      "checkOrder": [
+        "validate-instructions",
+        "validate-policy",
+        "validate-security-baseline",
+        "validate-agent-orchestration",
+        "validate-agent-skill-alignment",
+        "validate-agent-permissions",
+        "validate-routing-coverage",
+        "validate-readme-standards",
+        "validate-powershell-standards",
+        "validate-warning-baseline",
+        "validate-dotnet-standards",
+        "validate-architecture-boundaries",
+        "validate-instruction-metadata",
+        "validate-supply-chain",
+        "validate-release-governance",
+        "validate-release-provenance",
+        "validate-audit-ledger"
+      ],
+      "checkOptions": {
+        "validate-powershell-standards": {
+          "SkipScriptAnalyzer": true
+        },
+        "validate-release-provenance": {
+          "RequireAuditReport": false
+        }
+      }
+    },
+    {
+      "id": "release",
+      "description": "Complete release-readiness validation with full analyzers and provenance evidence checks.",
+      "warningOnly": true,
+      "checkOrder": [
+        "validate-instructions",
+        "validate-policy",
+        "validate-security-baseline",
+        "validate-agent-orchestration",
+        "validate-agent-skill-alignment",
+        "validate-agent-permissions",
+        "validate-routing-coverage",
+        "validate-readme-standards",
+        "validate-powershell-standards",
+        "validate-warning-baseline",
+        "validate-dotnet-standards",
+        "validate-architecture-boundaries",
+        "validate-instruction-metadata",
+        "validate-supply-chain",
+        "validate-release-governance",
+        "validate-release-provenance",
+        "validate-audit-ledger"
+      ],
+      "checkOptions": {
+        "validate-powershell-standards": {
+          "SkipScriptAnalyzer": false
+        },
+        "validate-release-provenance": {
+          "RequireAuditReport": true
+        }
+      }
+    },
+    {
+      "id": "enforced",
+      "description": "Enterprise profile with strict options enabled while preserving warning-only policy.",
+      "warningOnly": true,
+      "checkOrder": [
+        "validate-instructions",
+        "validate-policy",
+        "validate-security-baseline",
+        "validate-agent-orchestration",
+        "validate-agent-skill-alignment",
+        "validate-agent-permissions",
+        "validate-routing-coverage",
+        "validate-readme-standards",
+        "validate-powershell-standards",
+        "validate-warning-baseline",
+        "validate-dotnet-standards",
+        "validate-architecture-boundaries",
+        "validate-instruction-metadata",
+        "validate-supply-chain",
+        "validate-release-governance",
+        "validate-release-provenance",
+        "validate-audit-ledger"
+      ],
+      "checkOptions": {
+        "validate-powershell-standards": {
+          "SkipScriptAnalyzer": false,
+          "Strict": true
+        },
+        "validate-release-provenance": {
+          "RequireAuditReport": true
+        }
+      }
+    }
+  ]
+}

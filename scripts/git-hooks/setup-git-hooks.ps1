@@ -198,10 +198,10 @@ if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($configuredPath)) {
 Write-Output 'Git hooks configured successfully.'
 Write-Output ("  repo: {0}" -f $gitRoot)
 Write-Output ("  core.hooksPath: {0}" -f $configuredPath)
-Write-Output '  pre-commit: .githooks/pre-commit (runs validate-instructions + validate-policy + validate-release-governance)'
+Write-Output '  pre-commit: .githooks/pre-commit (runs validate-all with profile=dev, warning-only, best effort)'
 Write-Output '  post-commit: .githooks/post-commit (syncs ~/.github and ~/.codex via scripts/runtime/bootstrap.ps1)'
-Write-Output '  post-merge: .githooks/post-merge (runs validate-instructions + validate-policy + validate-release-governance)'
-Write-Output '  post-checkout: .githooks/post-checkout (runs validate-instructions + validate-policy + validate-release-governance)'
+Write-Output '  post-merge: .githooks/post-merge (runs validate-all with profile=release, warning-only, best effort)'
+Write-Output '  post-checkout: .githooks/post-checkout (runs validate-all with profile=dev, warning-only, best effort)'
 Write-Output '  skip sync (temporary): set CODEX_SKIP_POST_COMMIT_SYNC=1'
 Write-Output '  optional MCP apply on manifest change: set CODEX_APPLY_MCP_ON_POST_COMMIT=1'
 Write-Output '  MCP apply backup default: CODEX_BACKUP_MCP_CONFIG=1 (set 0 to disable backup)'

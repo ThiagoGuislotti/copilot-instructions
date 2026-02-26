@@ -12,7 +12,9 @@ session_retention_days="${CODEX_SESSION_RETENTION_DAYS:-30}"
 
 # Validate instruction/routing/skills contracts after merge updates.
 if command -v pwsh >/dev/null 2>&1; then
-  pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-all.ps1
+  if ! pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-all.ps1 -ValidationProfile release -WarningOnly true; then
+    echo "[post-merge] Warning: validation command failed." >&2
+  fi
 
   if [ "${CODEX_SKIP_RUNTIME_CLEANUP:-0}" = "1" ]; then
     echo "[post-merge] Runtime cleanup skipped (CODEX_SKIP_RUNTIME_CLEANUP=1)."
@@ -33,7 +35,9 @@ fi
 
 # Windows PowerShell fallback.
 if command -v powershell >/dev/null 2>&1; then
-  powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\validation\\validate-all.ps1
+  if ! powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\validation\\validate-all.ps1 -ValidationProfile release -WarningOnly true; then
+    echo "[post-merge] Warning: validation command failed." >&2
+  fi
 
   if [ "${CODEX_SKIP_RUNTIME_CLEANUP:-0}" = "1" ]; then
     echo "[post-merge] Runtime cleanup skipped (CODEX_SKIP_RUNTIME_CLEANUP=1)."
@@ -52,5 +56,5 @@ if command -v powershell >/dev/null 2>&1; then
   exit 0
 fi
 
-echo "[post-merge] PowerShell not found. Install pwsh to run instruction/policy/release validation." >&2
-exit 1
+echo "[post-merge] Warning: PowerShell not found. Validation skipped." >&2
+exit 0
