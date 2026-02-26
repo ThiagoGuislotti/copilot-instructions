@@ -23,7 +23,7 @@
     pwsh -File scripts/validation/validate-agent-orchestration.ps1 -Verbose
 
 .NOTES
-    Version: 1.0
+    Version: 1.1
     Requirements: PowerShell 7+.
 #>
 
@@ -281,6 +281,7 @@ function Test-AgentManifestIntegrity {
 # Validates pipeline stage links, handoffs, and completion criteria.
 function Test-PipelineManifestIntegrity {
     param(
+        [string] $Root,
         [object] $Pipeline,
         [System.Collections.Generic.HashSet[string]] $AgentIds
     )
@@ -306,6 +307,17 @@ function Test-PipelineManifestIntegrity {
             Add-ValidationFailure ("Pipeline stage {0} references unknown agentId: {1}" -f $stageId, $agentId)
         }
 
+        $executionScriptPath = [string] $stage.execution.scriptPath
+        if ([string]::IsNullOrWhiteSpace($executionScriptPath)) {
+            Add-ValidationFailure ("Pipeline stage {0} has empty execution.scriptPath." -f $stageId)
+        }
+        else {
+            $absoluteScriptPath = Resolve-RepoPath -Root $Root -Path $executionScriptPath
+            if (-not (Test-Path -LiteralPath $absoluteScriptPath -PathType Leaf)) {
+                Add-ValidationFailure ("Pipeline stage {0} execution script not found: {1}" -f $stageId, $executionScriptPath)
+            }
+        }
+
         $outputSet = New-Object System.Collections.Generic.HashSet[string]([System.StringComparer]::OrdinalIgnoreCase)
         foreach ($artifact in @($stage.outputArtifacts)) {
             $outputSet.Add([string] $artifact) | Out-Null
@@ -323,6 +335,14 @@ function Test-PipelineManifestIntegrity {
 
         if ($lastMode -ne 'review') {
             Add-ValidationFailure ("Pipeline last stage must be mode 'review', found '{0}'." -f $lastMode)
+        }
+
+        $firstStageInputs = New-Object System.Collections.Generic.HashSet[string]([System.StringComparer]::OrdinalIgnoreCase)
+        foreach ($inputArtifact in @($pipelineStages[0].inputArtifacts)) {
+            $firstStageInputs.Add([string] $inputArtifact) | Out-Null
+        }
+        if (-not $firstStageInputs.Contains('request')) {
+            Add-ValidationFailure "Pipeline first stage must consume 'request' artifact."
         }
     }
 
@@ -345,6 +365,18 @@ function Test-PipelineManifestIntegrity {
             $requiredName = [string] $requiredArtifact
             if (-not $fromOutputSet.Contains($requiredName)) {
                 Add-ValidationFailure ("Handoff {0}->{1} requires artifact not produced by {0}: {2}" -f $fromStage, $toStage, $requiredName)
+            }
+
+            $targetStage = @($pipelineStages | Where-Object { $_.id -eq $toStage } | Select-Object -First 1)
+            if ($null -ne $targetStage) {
+                $targetInputSet = New-Object System.Collections.Generic.HashSet[string]([System.StringComparer]::OrdinalIgnoreCase)
+                foreach ($inputArtifact in @($targetStage.inputArtifacts)) {
+                    $targetInputSet.Add([string] $inputArtifact) | Out-Null
+                }
+
+                if (-not $targetInputSet.Contains($requiredName)) {
+                    Add-ValidationFailure ("Handoff {0}->{1} requires artifact not consumed by target stage {1}: {2}" -f $fromStage, $toStage, $requiredName)
+                }
             }
         }
     }
@@ -500,11 +532,24 @@ $requiredDirectories = @(
     '.codex/orchestration/pipelines',
     '.codex/orchestration/templates',
     '.codex/orchestration/evals',
-    '.github/schemas'
+    '.github/schemas',
+    'scripts/orchestration/stages'
 )
 
 foreach ($relativeDirectory in $requiredDirectories) {
     Test-RequiredPath -Root $resolvedRepoRoot -RelativePath $relativeDirectory -Type Directory | Out-Null
+}
+
+$requiredFiles = @(
+    'scripts/runtime/run-agent-pipeline.ps1',
+    'scripts/orchestration/stages/plan-stage.ps1',
+    'scripts/orchestration/stages/implement-stage.ps1',
+    'scripts/orchestration/stages/validate-stage.ps1',
+    'scripts/orchestration/stages/review-stage.ps1'
+)
+
+foreach ($relativeFile in $requiredFiles) {
+    Test-RequiredPath -Root $resolvedRepoRoot -RelativePath $relativeFile -Type File | Out-Null
 }
 
 $agentsManifest = Test-JsonSchemaDocument -Root $resolvedRepoRoot -DocumentPath '.codex/orchestration/agents.manifest.json' -SchemaPath '.github/schemas/agent.contract.schema.json'
@@ -514,7 +559,7 @@ $runArtifactTemplate = Test-JsonSchemaDocument -Root $resolvedRepoRoot -Document
 $evalFixtures = Test-JsonSchemaDocument -Root $resolvedRepoRoot -DocumentPath '.codex/orchestration/evals/golden-tests.json' -SchemaPath '.github/schemas/agent.evals.schema.json'
 
 $manifestStats = Test-AgentManifestIntegrity -Root $resolvedRepoRoot -Manifest $agentsManifest
-Test-PipelineManifestIntegrity -Pipeline $pipelineManifest -AgentIds $manifestStats.AgentIds
+Test-PipelineManifestIntegrity -Root $resolvedRepoRoot -Pipeline $pipelineManifest -AgentIds $manifestStats.AgentIds
 Test-HandoffTemplateIntegrity -HandoffTemplate $handoffTemplate -Pipeline $pipelineManifest
 Test-RunArtifactTemplateIntegrity -RunTemplate $runArtifactTemplate -Pipeline $pipelineManifest -AgentIds $manifestStats.AgentIds
 Test-EvalFixturesIntegrity -EvalFixtures $evalFixtures -Pipeline $pipelineManifest -AgentIds $manifestStats.AgentIds

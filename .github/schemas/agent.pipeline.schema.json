@@ -53,6 +53,7 @@
         "id",
         "agentId",
         "mode",
+        "execution",
         "inputArtifacts",
         "outputArtifacts",
         "onFailure"
@@ -75,6 +76,9 @@
             "validate",
             "review"
           ]
+        },
+        "execution": {
+          "$ref": "#/$defs/execution"
         },
         "inputArtifacts": {
           "type": "array",
@@ -101,6 +105,24 @@
             "retry-once",
             "continue"
           ]
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "required": [
+        "scriptPath"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "scriptPath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "timeoutSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 86400
         }
       }
     },

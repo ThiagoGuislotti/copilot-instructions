@@ -7,6 +7,10 @@
       "id": "plan",
       "agentId": "planner",
       "mode": "plan",
+      "execution": {
+        "scriptPath": "scripts/orchestration/stages/plan-stage.ps1",
+        "timeoutSeconds": 120
+      },
       "inputArtifacts": [
         "request"
       ],
@@ -20,6 +24,10 @@
       "id": "implement",
       "agentId": "executor",
       "mode": "execute",
+      "execution": {
+        "scriptPath": "scripts/orchestration/stages/implement-stage.ps1",
+        "timeoutSeconds": 300
+      },
       "inputArtifacts": [
         "request",
         "task-plan",
@@ -35,6 +43,10 @@
       "id": "validate",
       "agentId": "tester",
       "mode": "validate",
+      "execution": {
+        "scriptPath": "scripts/orchestration/stages/validate-stage.ps1",
+        "timeoutSeconds": 600
+      },
       "inputArtifacts": [
         "changeset",
         "implementation-log"
@@ -48,6 +60,10 @@
       "id": "review",
       "agentId": "reviewer",
       "mode": "review",
+      "execution": {
+        "scriptPath": "scripts/orchestration/stages/review-stage.ps1",
+        "timeoutSeconds": 180
+      },
       "inputArtifacts": [
         "changeset",
         "validation-report"

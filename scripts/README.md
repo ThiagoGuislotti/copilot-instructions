@@ -17,6 +17,7 @@ This folder centralizes operational scripts used by this repository. It includes
 - ✅ MCP apply mode integrated in bootstrap flow
 - ✅ Policy-as-code validation for instruction/runtime governance
 - ✅ Multi-agent contract and orchestration validation
+- ✅ Multi-agent pipeline runner with guardrails and deterministic stage handoffs
 - ✅ Release governance checks (CODEOWNERS, changelog contracts, branch-protection baseline)
 - ✅ Healthcheck and self-heal flows with JSON reports and execution logs
 
@@ -54,6 +55,9 @@ pwsh -File .\scripts\runtime\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
 
 # Run full enterprise healthcheck
 pwsh -File .\scripts\runtime\healthcheck.ps1 -StrictExtras
+
+# Execute default multi-agent pipeline (writes artifacts to .temp/runs)
+pwsh -File .\scripts\runtime\run-agent-pipeline.ps1 -RequestText "Validate enterprise multi-agent flow"
 
 # Enable local Git hooks (pre-commit + post-commit sync)
 pwsh -File .\scripts\git-hooks\setup-git-hooks.ps1
@@ -94,7 +98,15 @@ scripts/
 │   ├── doctor.ps1
 │   ├── apply-vscode-templates.ps1
 │   ├── healthcheck.ps1
-│   └── self-heal.ps1
+│   ├── self-heal.ps1
+│   ├── run-agent-pipeline.ps1
+│   └── clean-codex-runtime.ps1
+├── orchestration/
+│   └── stages/
+│       ├── plan-stage.ps1
+│       ├── implement-stage.ps1
+│       ├── validate-stage.ps1
+│       └── review-stage.ps1
 ├── governance/
 │   └── set-branch-protection.ps1
 ├── git-hooks/
@@ -143,6 +155,9 @@ Runtime-sensitive files such as `~/.codex/auth.json`, `~/.codex/sessions/`, and 
 | `runtime/apply-vscode-templates.ps1` | Applies `.vscode/*.tamplate.jsonc` into active `.vscode/settings.json` and `.vscode/mcp.json` files. | `pwsh -File scripts/runtime/apply-vscode-templates.ps1 -Force` |
 | `runtime/healthcheck.ps1` | Executes end-to-end validation (`validate-instructions`, `validate-policy`, `validate-agent-orchestration`, `validate-release-governance`, `doctor`) and writes log/report artifacts. | `pwsh -File scripts/runtime/healthcheck.ps1 -StrictExtras` |
 | `runtime/self-heal.ps1` | Runs controlled repair flow (bootstrap + optional templates) and validates final state via healthcheck. | `pwsh -File scripts/runtime/self-heal.ps1 -Mirror -StrictExtras` |
+| `runtime/run-agent-pipeline.ps1` | Executes default multi-agent pipeline with blocked-command, allowed-path, and budget guardrails; writes run artifacts under `.temp/runs/<traceId>/`. | `pwsh -File scripts/runtime/run-agent-pipeline.ps1 -RequestText "Implement and validate change"` |
+| `runtime/clean-codex-runtime.ps1` | Cleans local Codex runtime garbage (`tmp`, `vendor_imports`) and prunes `log` files older than retention (default 7 days); optionally prunes old `sessions`. | `pwsh -File scripts/runtime/clean-codex-runtime.ps1 -IncludeSessions -SessionRetentionDays 60 -LogRetentionDays 7 -Apply` |
+| `orchestration/stages/*.ps1` | Stage executors (`plan`, `implement`, `validate`, `review`) consumed by `run-agent-pipeline.ps1`. | `pwsh -File scripts/runtime/run-agent-pipeline.ps1 -RequestText "Smoke run"` |
 | `maintenance/clean-build-artifacts.ps1` | Deletes `.build`, `.deployment`, `bin`, and `obj` directories. Supports dry-run and prompts for confirmation. | `pwsh -File scripts/maintenance/clean-build-artifacts.ps1 -DryRun` |
 | `maintenance/generate-http-from-openapi.ps1` | Generates a REST Client .http file from OpenAPI (default) or Swagger JSON. | `pwsh -File scripts/maintenance/generate-http-from-openapi.ps1 -Source http://localhost:5000` |
 | `maintenance/fix-version-ranges.ps1` | Normalises PackageReference versions into `[current, limit)` ranges. | `pwsh -File scripts/maintenance/fix-version-ranges.ps1 -Verbose` |
@@ -171,6 +186,15 @@ pwsh -File .\scripts\runtime\healthcheck.ps1 -StrictExtras
 
 # auto-repair runtime and validate final state
 pwsh -File .\scripts\runtime\self-heal.ps1 -Mirror -StrictExtras
+
+# execute default multi-agent pipeline and produce run artifact
+pwsh -File .\scripts\runtime\run-agent-pipeline.ps1 -RequestText "Run pipeline smoke test"
+
+# preview/runtime cleanup (no deletion)
+pwsh -File .\scripts\runtime\clean-codex-runtime.ps1 -IncludeSessions -SessionRetentionDays 60 -LogRetentionDays 7
+
+# apply runtime cleanup and session retention
+pwsh -File .\scripts\runtime\clean-codex-runtime.ps1 -IncludeSessions -SessionRetentionDays 60 -LogRetentionDays 7 -Apply
 
 # validate instruction assets and static routing references
 pwsh -File .\scripts\validation\validate-instructions.ps1
@@ -202,11 +226,16 @@ Get-Help .\scripts\runtime\bootstrap.ps1 -Full
 
 After setup, hooks behavior is:
 - `pre-commit`: runs `validate-instructions` + `validate-policy` + `validate-agent-orchestration` + `validate-release-governance` and blocks commit on failures
-- `post-commit`: runs `scripts/runtime/bootstrap.ps1` to sync `~/.github` and `~/.codex` (best effort)
-- `post-merge`: runs `validate-instructions` + `validate-policy` + `validate-agent-orchestration` + `validate-release-governance` (validation-only)
+- `post-commit`: runs `scripts/runtime/bootstrap.ps1 -Mirror` to sync and clean drift in `~/.github` and managed `~/.codex` folders (best effort)
+- `post-commit`: runs `scripts/runtime/clean-codex-runtime.ps1 -LogRetentionDays 7 -Apply` (best effort)
+- `post-merge`: runs `validate-instructions` + `validate-policy` + `validate-agent-orchestration` + `validate-release-governance`
+- `post-merge`: runs `scripts/runtime/clean-codex-runtime.ps1 -LogRetentionDays 7 -Apply` (best effort)
 - `post-checkout`: runs `validate-instructions` + `validate-policy` + `validate-agent-orchestration` + `validate-release-governance` (validation-only)
 - `post-commit` optional MCP apply on manifest changes: set `CODEX_APPLY_MCP_ON_POST_COMMIT=1`
 - `post-commit` MCP backup control: `CODEX_BACKUP_MCP_CONFIG=1|0` (`1` default)
+- `post-commit` mirror control: `CODEX_POST_COMMIT_MIRROR=0|1` (`1` default)
+- `post-commit` and `post-merge` cleanup bypass: `CODEX_SKIP_RUNTIME_CLEANUP=1`
+- `post-commit` and `post-merge` log retention: `CODEX_LOG_RETENTION_DAYS=<n>` (`7` default)
 
 To skip sync for a single shell session:
 ```powershell

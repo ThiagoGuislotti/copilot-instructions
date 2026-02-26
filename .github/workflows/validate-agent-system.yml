@@ -26,6 +26,15 @@ jobs:
           pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-agent-orchestration.ps1 `
             -RepoRoot $PWD
 
+      - name: Execute multi-agent pipeline smoke test
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/runtime/run-agent-pipeline.ps1 `
+            -RepoRoot $PWD `
+            -RunRoot ./.temp/runs `
+            -TraceId ci-smoke-run-${{ github.run_id }}-${{ github.run_attempt }} `
+            -RequestText "Validate pipeline orchestration in CI"
+
       - name: Run healthcheck
         shell: pwsh
         run: |
@@ -61,5 +70,6 @@ jobs:
           path: |
             .temp/audit-report.json
             .temp/healthcheck-report.json
+            .temp/runs/
             .temp/logs/
           if-no-files-found: warn

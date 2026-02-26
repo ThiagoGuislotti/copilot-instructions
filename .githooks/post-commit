@@ -32,11 +32,42 @@ resolve_ps_cmd() {
 run_sync() {
   cmd="$1"
   echo "[post-commit] Syncing ~/.github and ~/.codex from repository..."
-  if ! "$cmd" -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/runtime/bootstrap.ps1; then
+  mirror_mode="${CODEX_POST_COMMIT_MIRROR:-1}"
+  if [ "$mirror_mode" = "0" ]; then
+    sync_args=""
+  else
+    sync_args="-Mirror"
+  fi
+
+  if ! "$cmd" -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/runtime/bootstrap.ps1 $sync_args; then
     echo "[post-commit] Warning: sync failed." >&2
     return 0
   fi
   echo "[post-commit] Sync complete."
+  return 0
+}
+
+# Clean local Codex runtime garbage and keep only recent logs.
+# Controlled by:
+# - CODEX_SKIP_RUNTIME_CLEANUP=1
+# - CODEX_LOG_RETENTION_DAYS=<days> (default 7)
+run_runtime_cleanup() {
+  cmd="$1"
+
+  if [ "${CODEX_SKIP_RUNTIME_CLEANUP:-0}" = "1" ]; then
+    echo "[post-commit] Runtime cleanup skipped (CODEX_SKIP_RUNTIME_CLEANUP=1)."
+    return 0
+  fi
+
+  log_retention_days="${CODEX_LOG_RETENTION_DAYS:-7}"
+  echo "[post-commit] Running runtime cleanup (log retention: ${log_retention_days} days)..."
+
+  if ! "$cmd" -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/runtime/clean-codex-runtime.ps1 -LogRetentionDays "$log_retention_days" -Apply; then
+    echo "[post-commit] Warning: runtime cleanup failed." >&2
+    return 0
+  fi
+
+  echo "[post-commit] Runtime cleanup complete."
   return 0
 }
 
@@ -95,4 +126,5 @@ fi
 
 run_sync "$PS_CMD"
 run_optional_mcp_apply "$PS_CMD"
+run_runtime_cleanup "$PS_CMD"
 exit 0

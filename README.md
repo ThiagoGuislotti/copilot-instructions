@@ -12,6 +12,7 @@ Structured AI agent guidelines for software development projects. Focuses on rep
 - ✅ **Custom Chat Modes:** Architecture review, instruction generation
 - ✅ **Prompt Templates:** POML-based templates with CoT, SoT, ToT patterns
 - ✅ **Multi-Agent Contracts:** Versioned orchestration manifests, schemas, and runtime artifacts
+- ✅ **Guardrailed Multi-Agent Runner:** Deterministic pipeline execution with handoffs, budgets, and allowed-path enforcement
 
 ---
 
@@ -110,15 +111,17 @@ pwsh -File .\scripts\git-hooks\setup-git-hooks.ps1
 
 ### post-commit
 
-- Runs `scripts/runtime/bootstrap.ps1` (best effort) to sync `~/.github` and `~/.codex`
+- Runs `scripts/runtime/bootstrap.ps1 -Mirror` (best effort) to sync and clean drift in `~/.github` and managed `~/.codex` folders
 - If `.codex/mcp/servers.manifest.json` changed in `HEAD`, can optionally apply MCP config
+- Runs `scripts/runtime/clean-codex-runtime.ps1 -LogRetentionDays 7 -Apply` (best effort) to keep runtime garbage cleaned and log retention capped
 
 ### post-merge
 
-- Runs `scripts/validation/validate-instructions.ps1` (validation-only)
-- Runs `scripts/validation/validate-policy.ps1` (validation-only)
-- Runs `scripts/validation/validate-agent-orchestration.ps1` (validation-only)
-- Runs `scripts/validation/validate-release-governance.ps1` (validation-only)
+- Runs `scripts/validation/validate-instructions.ps1`
+- Runs `scripts/validation/validate-policy.ps1`
+- Runs `scripts/validation/validate-agent-orchestration.ps1`
+- Runs `scripts/validation/validate-release-governance.ps1`
+- Runs `scripts/runtime/clean-codex-runtime.ps1 -LogRetentionDays 7 -Apply` (best effort)
 - Does not run runtime sync
 
 ### post-checkout
@@ -133,6 +136,9 @@ Environment variables:
 - `CODEX_SKIP_POST_COMMIT_SYNC=1`: skip runtime sync
 - `CODEX_APPLY_MCP_ON_POST_COMMIT=1`: enable MCP apply when manifest changed
 - `CODEX_BACKUP_MCP_CONFIG=1|0`: backup control before MCP apply (`1` default)
+- `CODEX_POST_COMMIT_MIRROR=0|1`: controls mirror cleanup on post-commit sync (`1` default)
+- `CODEX_SKIP_RUNTIME_CLEANUP=1`: skip automatic runtime cleanup in `post-commit` and `post-merge`
+- `CODEX_LOG_RETENTION_DAYS=<n>`: log retention window in days for automatic runtime cleanup (`7` default)
 
 ### Enterprise Ops
 
@@ -146,6 +152,9 @@ pwsh -File .\scripts\validation\validate-release-governance.ps1
 # validate multi-agent contracts and orchestration integrity
 pwsh -File .\scripts\validation\validate-agent-orchestration.ps1
 
+# execute default multi-agent pipeline and generate run artifacts
+pwsh -File .\scripts\runtime\run-agent-pipeline.ps1 -RequestText "Implement and validate request"
+
 # validate branch protection drift against baseline (no mutation)
 pwsh -File .\scripts\governance\set-branch-protection.ps1
 
@@ -154,6 +163,9 @@ pwsh -File .\scripts\governance\set-branch-protection.ps1 -Apply
 
 # repair runtime and validate final state
 pwsh -File .\scripts\runtime\self-heal.ps1 -Mirror -StrictExtras
+
+# clean local Codex runtime garbage and prune sessions by retention window
+pwsh -File .\scripts\runtime\clean-codex-runtime.ps1 -IncludeSessions -SessionRetentionDays 60 -LogRetentionDays 7 -Apply
 
 # export consolidated audit report with git metadata and policy inventory
 pwsh -File .\scripts\validation\export-audit-report.ps1 -StrictExtras

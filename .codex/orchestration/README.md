@@ -46,6 +46,7 @@ No additional package installation is required. Use PowerShell 7+ and run comman
 
 ```powershell
 pwsh -File .\scripts\validation\validate-agent-orchestration.ps1
+pwsh -File .\scripts\runtime\run-agent-pipeline.ps1 -RequestText "Run orchestration smoke test"
 ```
 
 ---
@@ -62,6 +63,13 @@ pwsh -File .\scripts\validation\validate-agent-orchestration.ps1
 
 ```powershell
 pwsh -File .\scripts\runtime\healthcheck.ps1 -StrictExtras
+```
+
+### Example 3: Execute Default Pipeline and Inspect Run Artifact
+
+```powershell
+pwsh -File .\scripts\runtime\run-agent-pipeline.ps1 -RequestText "Implement and validate multi-agent flow"
+Get-Content -Raw .\.temp\runs\<traceId>\run-artifact.json
 ```
 
 ---
@@ -81,6 +89,7 @@ pwsh -File .\scripts\runtime\healthcheck.ps1 -StrictExtras
 `scripts/validation/validate-agent-orchestration.ps1` validates:
 - JSON schema contracts under `.github/schemas/`
 - Cross-file integrity (agent IDs, skills, pipeline stages, handoffs, artifacts)
+- Stage execution script existence and wiring (`execution.scriptPath`)
 - Template and eval fixture consistency
 
 ---

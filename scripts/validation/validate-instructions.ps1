@@ -772,7 +772,13 @@ $requiredFiles = @(
     '.codex/orchestration/templates/handoff.template.json',
     '.codex/orchestration/templates/run-artifact.template.json',
     '.codex/orchestration/evals/golden-tests.json',
-    'scripts/validation/validate-agent-orchestration.ps1'
+    'scripts/validation/validate-agent-orchestration.ps1',
+    'scripts/runtime/run-agent-pipeline.ps1',
+    'scripts/runtime/clean-codex-runtime.ps1',
+    'scripts/orchestration/stages/plan-stage.ps1',
+    'scripts/orchestration/stages/implement-stage.ps1',
+    'scripts/orchestration/stages/validate-stage.ps1',
+    'scripts/orchestration/stages/review-stage.ps1'
 )
 
 Test-RequiredFiles -Root $resolvedRepoRoot -RequiredFiles $requiredFiles

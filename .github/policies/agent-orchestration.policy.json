@@ -13,12 +13,18 @@
     ".github/schemas/agent.handoff.schema.json",
     ".github/schemas/agent.run-artifact.schema.json",
     ".github/schemas/agent.evals.schema.json",
-    "scripts/validation/validate-agent-orchestration.ps1"
+    "scripts/validation/validate-agent-orchestration.ps1",
+    "scripts/runtime/run-agent-pipeline.ps1",
+    "scripts/orchestration/stages/plan-stage.ps1",
+    "scripts/orchestration/stages/implement-stage.ps1",
+    "scripts/orchestration/stages/validate-stage.ps1",
+    "scripts/orchestration/stages/review-stage.ps1"
   ],
   "requiredDirectories": [
     ".codex/orchestration",
     ".codex/orchestration/pipelines",
     ".codex/orchestration/templates",
-    ".codex/orchestration/evals"
+    ".codex/orchestration/evals",
+    "scripts/orchestration/stages"
   ]
 }

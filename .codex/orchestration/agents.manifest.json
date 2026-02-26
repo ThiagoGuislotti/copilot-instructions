@@ -22,6 +22,7 @@
         ".github/**",
         ".codex/**",
         "scripts/**",
+        ".temp/**",
         "README.md",
         "CHANGELOG.md"
       ],
@@ -56,6 +57,7 @@
         "scripts/**",
         ".github/**",
         ".codex/**",
+        ".temp/**",
         "README.md",
         "CHANGELOG.md"
       ],
@@ -88,7 +90,8 @@
         "tests/**",
         "src/**",
         "scripts/**",
-        ".github/**"
+        ".github/**",
+        ".temp/**"
       ],
       "blockedCommands": [
         "git reset --hard",
@@ -119,6 +122,7 @@
         "scripts/**",
         ".github/**",
         ".codex/**",
+        ".temp/**",
         "README.md",
         "CHANGELOG.md"
       ],
