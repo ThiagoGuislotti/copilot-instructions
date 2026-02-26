@@ -53,6 +53,7 @@ $ErrorActionPreference = 'Stop'
 # -------------------------------
 # Helpers
 # -------------------------------
+# Writes verbose diagnostics with a logical color label.
 function Write-VerboseColor {
     param (
         [string] $Message,
@@ -64,6 +65,7 @@ function Write-VerboseColor {
     }
 }
 
+# Resolves the repository root by searching for known repository markers.
 function Get-RepoRoot ([string] $startPath) {
     try {
         $resolved = if ([string]::IsNullOrWhiteSpace($startPath)) {
@@ -84,6 +86,7 @@ function Get-RepoRoot ([string] $startPath) {
     }
 }
 
+# Checks whether a path is located under any configured excluded directory.
 function Test-IsUnderExcludedDir ([string] $fullPath, [string[]] $excludeDirs, [string] $root) {
     $norm = [IO.Path]::GetFullPath($fullPath)
 

@@ -16,6 +16,7 @@ This folder centralizes operational scripts used by this repository. It includes
 - ✅ Utility scripts for deployment, docs, maintenance, and tests
 - ✅ MCP apply mode integrated in bootstrap flow
 - ✅ Policy-as-code validation for instruction/runtime governance
+- ✅ Release governance checks (CODEOWNERS, changelog contracts, branch-protection baseline)
 - ✅ Healthcheck and self-heal flows with JSON reports and execution logs
 
 ---
@@ -93,11 +94,14 @@ scripts/
 │   ├── apply-vscode-templates.ps1
 │   ├── healthcheck.ps1
 │   └── self-heal.ps1
+├── governance/
+│   └── set-branch-protection.ps1
 ├── git-hooks/
 │   └── setup-git-hooks.ps1
 ├── validation/
 │   ├── validate-instructions.ps1
 │   ├── validate-policy.ps1
+│   ├── validate-release-governance.ps1
 │   └── export-audit-report.ps1
 ├── deploy/
 ├── doc/
@@ -126,12 +130,14 @@ Runtime-sensitive files such as `~/.codex/auth.json`, `~/.codex/sessions/`, and 
 | `doc/validate-xml-documentation.ps1` | Audits `<summary>` XML documentation across C# projects. | `pwsh -File scripts/doc/validate-xml-documentation.ps1 -ProjectPath src/Api` |
 | `validation/validate-instructions.ps1` | Validates instruction assets (routing catalog paths, markdown links, and JSON files used by prompts/skills/snippets). | `pwsh -File scripts/validation/validate-instructions.ps1` |
 | `validation/validate-policy.ps1` | Validates policy contracts declared in `.github/policies/*.json` (required files/directories/hooks). | `pwsh -File scripts/validation/validate-policy.ps1` |
+| `validation/validate-release-governance.ps1` | Validates release-governance baseline (`CHANGELOG`, `CODEOWNERS`, branch-protection baseline, governance docs). | `pwsh -File scripts/validation/validate-release-governance.ps1` |
 | `validation/export-audit-report.ps1` | Runs health baseline and exports consolidated JSON audit report with git metadata and policy inventory. | `pwsh -File scripts/validation/export-audit-report.ps1` |
 | `validation/test-routing-selection.ps1` | Runs deterministic golden tests for static routing behavior based on catalog + fixtures. | `pwsh -File scripts/validation/test-routing-selection.ps1` |
+| `governance/set-branch-protection.ps1` | Validates or applies branch protection from `.github/governance/branch-protection.baseline.json` using GitHub CLI. | `pwsh -File scripts/governance/set-branch-protection.ps1 -Apply` |
 | `git-hooks/setup-git-hooks.ps1` | Configures local Git hooks path (`core.hooksPath=.githooks`) and enables `pre-commit` validation + `post-commit` sync. | `pwsh -File scripts/git-hooks/setup-git-hooks.ps1` |
 | `runtime/doctor.ps1` | Diagnoses drift between repository-managed runtime assets and local `~/.github`/`~/.codex` copies. | `pwsh -File scripts/runtime/doctor.ps1` |
 | `runtime/apply-vscode-templates.ps1` | Applies `.vscode/*.tamplate.jsonc` into active `.vscode/settings.json` and `.vscode/mcp.json` files. | `pwsh -File scripts/runtime/apply-vscode-templates.ps1 -Force` |
-| `runtime/healthcheck.ps1` | Executes end-to-end validation (`validate-instructions`, `validate-policy`, `doctor`) and writes log/report artifacts. | `pwsh -File scripts/runtime/healthcheck.ps1 -StrictExtras` |
+| `runtime/healthcheck.ps1` | Executes end-to-end validation (`validate-instructions`, `validate-policy`, `validate-release-governance`, `doctor`) and writes log/report artifacts. | `pwsh -File scripts/runtime/healthcheck.ps1 -StrictExtras` |
 | `runtime/self-heal.ps1` | Runs controlled repair flow (bootstrap + optional templates) and validates final state via healthcheck. | `pwsh -File scripts/runtime/self-heal.ps1 -Mirror -StrictExtras` |
 | `maintenance/clean-build-artifacts.ps1` | Deletes `.build`, `.deployment`, `bin`, and `obj` directories. Supports dry-run and prompts for confirmation. | `pwsh -File scripts/maintenance/clean-build-artifacts.ps1 -DryRun` |
 | `maintenance/generate-http-from-openapi.ps1` | Generates a REST Client .http file from OpenAPI (default) or Swagger JSON. | `pwsh -File scripts/maintenance/generate-http-from-openapi.ps1 -Source http://localhost:5000` |
@@ -168,6 +174,12 @@ pwsh -File .\scripts\validation\validate-instructions.ps1
 # validate policy contracts
 pwsh -File .\scripts\validation\validate-policy.ps1
 
+# validate release governance contracts
+pwsh -File .\scripts\validation\validate-release-governance.ps1
+
+# validate branch protection drift from baseline
+pwsh -File .\scripts\governance\set-branch-protection.ps1
+
 # export consolidated audit report (JSON + logs)
 pwsh -File .\scripts\validation\export-audit-report.ps1 -StrictExtras
 
@@ -182,10 +194,10 @@ Get-Help .\scripts\runtime\bootstrap.ps1 -Full
 ```
 
 After setup, hooks behavior is:
-- `pre-commit`: runs `validate-instructions` + `validate-policy` and blocks commit on failures
+- `pre-commit`: runs `validate-instructions` + `validate-policy` + `validate-release-governance` and blocks commit on failures
 - `post-commit`: runs `scripts/runtime/bootstrap.ps1` to sync `~/.github` and `~/.codex` (best effort)
-- `post-merge`: runs `validate-instructions` + `validate-policy` (validation-only)
-- `post-checkout`: runs `validate-instructions` + `validate-policy` (validation-only)
+- `post-merge`: runs `validate-instructions` + `validate-policy` + `validate-release-governance` (validation-only)
+- `post-checkout`: runs `validate-instructions` + `validate-policy` + `validate-release-governance` (validation-only)
 - `post-commit` optional MCP apply on manifest changes: set `CODEX_APPLY_MCP_ON_POST_COMMIT=1`
 - `post-commit` MCP backup control: `CODEX_BACKUP_MCP_CONFIG=1|0` (`1` default)
 

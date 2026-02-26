@@ -69,21 +69,24 @@ param(
 $ErrorActionPreference = 'Stop'
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:LogFilePath = $null
+$script:IsVerboseEnabled = [bool] $Verbose
 
 # -------------------------------
 # Helpers
 # -------------------------------
+# Writes verbose diagnostics with a logical color label.
 function Write-VerboseColor {
     param(
         [string] $Message,
         [ConsoleColor] $Color = [ConsoleColor]::Gray
     )
 
-    if ($Verbose) {
-        Write-Host $Message -ForegroundColor $Color
+    if ($script:IsVerboseEnabled) {
+        Write-Output ("[VERBOSE:{0}] {1}" -f $Color, $Message)
     }
 }
 
+# Builds an absolute path from repository root and relative input path.
 function Resolve-RepoPath {
     param(
         [string] $Root,
@@ -97,7 +100,8 @@ function Resolve-RepoPath {
     return [System.IO.Path]::GetFullPath((Join-Path $Root $Path))
 }
 
-function Set-CorrectWorkingDirectory {
+# Resolves the repository root using explicit and fallback location candidates.
+function Resolve-RepositoryRoot {
     param(
         [string] $RequestedRoot
     )
@@ -124,7 +128,6 @@ function Set-CorrectWorkingDirectory {
         for ($i = 0; $i -lt 6 -and -not [string]::IsNullOrWhiteSpace($current); $i++) {
             $hasLayout = (Test-Path -LiteralPath (Join-Path $current '.github')) -and (Test-Path -LiteralPath (Join-Path $current '.codex'))
             if ($hasLayout) {
-                Set-Location -Path $current
                 Write-VerboseColor ("Repository root detected: {0}" -f $current) 'Green'
                 return $current
             }
@@ -136,20 +139,19 @@ function Set-CorrectWorkingDirectory {
     throw 'Could not detect repository root containing both .github and .codex.'
 }
 
-function Ensure-ParentDirectory {
+# Returns the parent directory for a given file path when available.
+function Get-ParentDirectoryPath {
     param(
         [string] $Path
     )
 
     $parent = Split-Path -Path $Path -Parent
-    if ([string]::IsNullOrWhiteSpace($parent)) {
-        return
-    }
-
-    New-Item -ItemType Directory -Path $parent -Force | Out-Null
+    if ([string]::IsNullOrWhiteSpace($parent)) { return $null }
+    return $parent
 }
 
-function Write-Log {
+# Writes execution log entries to console output and optional log file.
+function Write-ExecutionLog {
     param(
         [string] $Level,
         [string] $Message
@@ -162,16 +164,11 @@ function Write-Log {
         Add-Content -LiteralPath $script:LogFilePath -Value $line
     }
 
-    $color = 'Gray'
-    if ($Level -eq 'ERROR') { $color = 'Red' }
-    elseif ($Level -eq 'WARN') { $color = 'Yellow' }
-    elseif ($Level -eq 'OK') { $color = 'Green' }
-    elseif ($Level -eq 'INFO') { $color = 'Cyan' }
-
-    Write-Host $line -ForegroundColor $color
+    Write-Output $line
 }
 
-function Get-GitMetadata {
+# Collects git branch, commit, and dirty-state metadata for reports.
+function Get-GitState {
     param(
         [string] $Root
     )
@@ -202,7 +199,8 @@ function Get-GitMetadata {
 # -------------------------------
 # Main execution
 # -------------------------------
-$resolvedRepoRoot = Set-CorrectWorkingDirectory -RequestedRoot $RepoRoot
+$resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
+Set-Location -Path $resolvedRepoRoot
 $resolvedOutputPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $OutputPath
 $resolvedHealthcheckOutputPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $HealthcheckOutputPath
 
@@ -214,15 +212,26 @@ else {
     Resolve-RepoPath -Root $resolvedRepoRoot -Path $LogPath
 }
 
-Ensure-ParentDirectory -Path $resolvedOutputPath
-Ensure-ParentDirectory -Path $resolvedHealthcheckOutputPath
-Ensure-ParentDirectory -Path $resolvedLogPath
+$outputParent = Get-ParentDirectoryPath -Path $resolvedOutputPath
+if (-not [string]::IsNullOrWhiteSpace($outputParent)) {
+    New-Item -ItemType Directory -Path $outputParent -Force | Out-Null
+}
+
+$healthcheckOutputParent = Get-ParentDirectoryPath -Path $resolvedHealthcheckOutputPath
+if (-not [string]::IsNullOrWhiteSpace($healthcheckOutputParent)) {
+    New-Item -ItemType Directory -Path $healthcheckOutputParent -Force | Out-Null
+}
+
+$logParent = Get-ParentDirectoryPath -Path $resolvedLogPath
+if (-not [string]::IsNullOrWhiteSpace($logParent)) {
+    New-Item -ItemType Directory -Path $logParent -Force | Out-Null
+}
 Set-Content -LiteralPath $resolvedLogPath -Value ("# audit-report log`n# generatedAt={0}" -f (Get-Date).ToString('o'))
 $script:LogFilePath = $resolvedLogPath
 
-Write-Log -Level 'INFO' -Message ("Repo root: {0}" -f $resolvedRepoRoot)
-Write-Log -Level 'INFO' -Message ("Audit report output: {0}" -f $resolvedOutputPath)
-Write-Log -Level 'INFO' -Message ("Log file: {0}" -f $resolvedLogPath)
+Write-ExecutionLog -Level 'INFO' -Message ("Repo root: {0}" -f $resolvedRepoRoot)
+Write-ExecutionLog -Level 'INFO' -Message ("Audit report output: {0}" -f $resolvedOutputPath)
+Write-ExecutionLog -Level 'INFO' -Message ("Log file: {0}" -f $resolvedLogPath)
 
 $healthcheckScript = Join-Path $resolvedRepoRoot 'scripts/runtime/healthcheck.ps1'
 $healthcheckLogPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path '.temp/logs/healthcheck-from-audit.log'
@@ -245,27 +254,27 @@ if ($StrictExtras) {
 
 $healthcheckExitCode = 1
 try {
-    Write-Log -Level 'INFO' -Message 'Executing runtime healthcheck for audit baseline.'
+    Write-ExecutionLog -Level 'INFO' -Message 'Executing runtime healthcheck for audit baseline.'
     & $healthcheckScript @healthcheckArgs
     $healthcheckExitCode = if ($null -eq $LASTEXITCODE) { 0 } else { [int] $LASTEXITCODE }
 }
 catch {
     $healthcheckExitCode = 1
-    Write-Log -Level 'ERROR' -Message ("Healthcheck execution exception: {0}" -f $_.Exception.Message)
+    Write-ExecutionLog -Level 'ERROR' -Message ("Healthcheck execution exception: {0}" -f $_.Exception.Message)
 }
 
 $healthcheckReport = $null
 if (Test-Path -LiteralPath $resolvedHealthcheckOutputPath -PathType Leaf) {
     try {
         $healthcheckReport = Get-Content -Raw -LiteralPath $resolvedHealthcheckOutputPath | ConvertFrom-Json -Depth 100
-        Write-Log -Level 'OK' -Message 'Loaded healthcheck report.'
+        Write-ExecutionLog -Level 'OK' -Message 'Loaded healthcheck report.'
     }
     catch {
-        Write-Log -Level 'ERROR' -Message ("Could not parse healthcheck report JSON: {0}" -f $_.Exception.Message)
+        Write-ExecutionLog -Level 'ERROR' -Message ("Could not parse healthcheck report JSON: {0}" -f $_.Exception.Message)
     }
 }
 else {
-    Write-Log -Level 'ERROR' -Message ("Healthcheck report not found: {0}" -f $resolvedHealthcheckOutputPath)
+    Write-ExecutionLog -Level 'ERROR' -Message ("Healthcheck report not found: {0}" -f $resolvedHealthcheckOutputPath)
 }
 
 $policyDirectory = Resolve-RepoPath -Root $resolvedRepoRoot -Path '.github/policies'
@@ -276,7 +285,7 @@ if (Test-Path -LiteralPath $policyDirectory -PathType Container) {
     })
 }
 
-$gitMetadata = Get-GitMetadata -Root $resolvedRepoRoot
+$gitMetadata = Get-GitState -Root $resolvedRepoRoot
 $overallStatus = if ($healthcheckExitCode -eq 0) { 'passed' } else { 'failed' }
 
 $auditReport = [ordered]@{
@@ -309,7 +318,7 @@ $auditReport = [ordered]@{
 
 $auditJson = $auditReport | ConvertTo-Json -Depth 100
 Set-Content -LiteralPath $resolvedOutputPath -Value $auditJson
-Write-Log -Level 'INFO' -Message ("Audit report generated: {0}" -f $resolvedOutputPath)
+Write-ExecutionLog -Level 'INFO' -Message ("Audit report generated: {0}" -f $resolvedOutputPath)
 
 if ($overallStatus -ne 'passed') {
     exit 1

@@ -42,6 +42,7 @@ $script:Warnings = New-Object System.Collections.Generic.List[string]
 # -------------------------------
 # Helpers
 # -------------------------------
+# Writes verbose diagnostics with a logical color label.
 function Write-VerboseColor {
     param(
         [string] $Message,
@@ -53,6 +54,7 @@ function Write-VerboseColor {
     }
 }
 
+# Resolves and sets the working directory to the repository root.
 function Set-CorrectWorkingDirectory {
     param(
         [string] $RequestedRoot
@@ -92,6 +94,7 @@ function Set-CorrectWorkingDirectory {
     throw 'Could not detect repository root containing both .github and .codex.'
 }
 
+# Registers a validation failure and prints a standardized failure message.
 function Add-ValidationFailure {
     param(
         [string] $Message
@@ -101,6 +104,7 @@ function Add-ValidationFailure {
     Write-Host ("[FAIL] {0}" -f $Message) -ForegroundColor Red
 }
 
+# Registers a validation warning and prints a standardized warning message.
 function Add-ValidationWarning {
     param(
         [string] $Message
@@ -110,6 +114,7 @@ function Add-ValidationWarning {
     Write-Host ("[WARN] {0}" -f $Message) -ForegroundColor Yellow
 }
 
+# Builds an absolute path from repository root and relative path input.
 function Resolve-RepoPath {
     param(
         [string] $Root,
@@ -123,6 +128,7 @@ function Resolve-RepoPath {
     return [System.IO.Path]::GetFullPath((Join-Path $Root $Path))
 }
 
+# Determines whether a markdown link target should be validated.
 function Should-ValidateLinkTarget {
     param(
         [string] $Target
@@ -143,6 +149,7 @@ function Should-ValidateLinkTarget {
     return $false
 }
 
+# Resolves markdown link targets to repository or absolute filesystem paths.
 function Resolve-MarkdownTarget {
     param(
         [string] $SourceFilePath,
@@ -168,6 +175,7 @@ function Resolve-MarkdownTarget {
     return [System.IO.Path]::GetFullPath((Join-Path $sourceDir $pathPart))
 }
 
+# Extracts markdown link targets from document content.
 function Get-MarkdownLinkTargets {
     param(
         [string] $Path
@@ -198,6 +206,7 @@ function Get-MarkdownLinkTargets {
     return $targets
 }
 
+# Validates that a JSON file exists and can be parsed successfully.
 function Test-JsonFile {
     param(
         [string] $Root,
@@ -221,6 +230,7 @@ function Test-JsonFile {
     }
 }
 
+# Recursively extracts string values from nested objects and arrays.
 function Get-StringValuesFromObject {
     param(
         [object] $InputObject,
@@ -255,6 +265,7 @@ function Get-StringValuesFromObject {
     }
 }
 
+# Builds candidate snippet file paths from configuration references.
 function Get-SnippetPathCandidates {
     param(
         [string] $Text
@@ -277,6 +288,7 @@ function Get-SnippetPathCandidates {
     return @($paths)
 }
 
+# Validates snippet file references used by editor configuration files.
 function Test-SnippetReferences {
     param(
         [string] $Root,
@@ -308,6 +320,7 @@ function Test-SnippetReferences {
     }
 }
 
+# Converts user-profile absolute paths into repository-relative paths when possible.
 function Convert-UserProfileReferenceToRepoPath {
     param(
         [string] $Root,
@@ -337,6 +350,7 @@ function Convert-UserProfileReferenceToRepoPath {
     return $null
 }
 
+# Validates file references declared in VS Code settings content.
 function Test-VscodeSettingsReferences {
     param(
         [string] $Root,
@@ -399,6 +413,7 @@ function Test-VscodeSettingsReferences {
     }
 }
 
+# Verifies required governance and instruction files exist in the repository.
 function Test-RequiredFiles {
     param(
         [string] $Root,
@@ -416,6 +431,7 @@ function Test-RequiredFiles {
     }
 }
 
+# Validates that catalog-referenced files and directories exist.
 function Test-CatalogPaths {
     param(
         [string] $Root,
@@ -469,6 +485,7 @@ function Test-CatalogPaths {
     Write-Host ("[OK] Catalog paths checked: {0}" -f $catalogPaths.Count) -ForegroundColor Green
 }
 
+# Collects markdown files that must be checked by validators.
 function Get-MarkdownFilesForValidation {
     param(
         [string] $Root
@@ -518,6 +535,7 @@ function Get-MarkdownFilesForValidation {
     return $markdownFiles
 }
 
+# Validates markdown links and reports missing or invalid targets.
 function Test-MarkdownLinks {
     param(
         [string] $Root,
@@ -544,6 +562,7 @@ function Test-MarkdownLinks {
     return $checkedLinks
 }
 
+# Parses frontmatter metadata from skill markdown files.
 function Get-SkillFrontmatter {
     param(
         [string] $SkillFilePath
@@ -577,6 +596,7 @@ function Get-SkillFrontmatter {
     }
 }
 
+# Converts frontmatter text into a normalized key-value map.
 function Convert-FrontmatterToMap {
     param(
         [string] $YamlText
@@ -612,6 +632,7 @@ function Convert-FrontmatterToMap {
     return $map
 }
 
+# Discovers SKILL.md files under configured skill root directories.
 function Get-SkillMarkdownFiles {
     param(
         [string] $Root
@@ -625,6 +646,7 @@ function Get-SkillMarkdownFiles {
     return Get-ChildItem -LiteralPath $skillsRoot -Recurse -File -Filter 'SKILL.md' | Select-Object -ExpandProperty FullName
 }
 
+# Normalizes path lists into a hash set for efficient lookup.
 function Convert-PathListToHashSet {
     param(
         [string[]] $Paths
@@ -637,6 +659,7 @@ function Convert-PathListToHashSet {
     return $set
 }
 
+# Validates skill declarations against discovered skill markdown files.
 function Test-SkillDefinitions {
     param(
         [string] $Root

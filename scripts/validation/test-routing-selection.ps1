@@ -41,6 +41,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 
+# Writes verbose diagnostics with a logical color label.
 function Write-VerboseColor {
     param(
         [string] $Message,
@@ -52,6 +53,7 @@ function Write-VerboseColor {
     }
 }
 
+# Resolves and sets the working directory to the repository root.
 function Set-CorrectWorkingDirectory {
     param(
         [string] $RequestedRoot
@@ -89,6 +91,7 @@ function Set-CorrectWorkingDirectory {
     throw 'Could not detect repository root containing both .github and .codex.'
 }
 
+# Builds an absolute path from repository root and relative path input.
 function Resolve-RepoPath {
     param(
         [string] $Root,
@@ -102,6 +105,7 @@ function Resolve-RepoPath {
     return [System.IO.Path]::GetFullPath((Join-Path $Root $Path))
 }
 
+# Converts YAML scalar nodes into normalized PowerShell primitive values.
 function Convert-YamlScalar {
     param(
         [string] $Value
@@ -114,6 +118,7 @@ function Convert-YamlScalar {
     return $cleaned
 }
 
+# Loads and validates the routing catalog YAML into a normalized model.
 function Get-CatalogModel {
     param(
         [string] $CatalogPath
@@ -265,6 +270,7 @@ function Get-CatalogModel {
     }
 }
 
+# Evaluates route when-conditions against provided request context values.
 function Test-WhenCondition {
     param(
         [string] $When,
@@ -293,6 +299,7 @@ function Test-WhenCondition {
     return $false
 }
 
+# Selects matching routes based on include and exclude condition checks.
 function Get-RouteSelection {
     param(
         [object[]] $Routes,
@@ -367,6 +374,7 @@ function Get-RouteSelection {
     }
 }
 
+# Compares two arrays for length and element-wise equality.
 function Test-ArrayEquals {
     param(
         [string[]] $Expected,

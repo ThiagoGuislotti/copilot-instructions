@@ -1,0 +1,14 @@
+{
+  "id": "release-governance-baseline",
+  "description": "Required release governance files and validation scripts.",
+  "requiredFiles": [
+    "CHANGELOG.md",
+    "CODEOWNERS",
+    ".github/governance/release-governance.md",
+    "scripts/validation/validate-release-governance.ps1",
+    ".github/workflows/validate-release-governance.yml"
+  ],
+  "requiredDirectories": [
+    ".github/governance"
+  ]
+}

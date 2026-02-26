@@ -2,7 +2,8 @@
   "id": "ci-validation-workflow",
   "description": "Required CI workflow for source and instruction system validation.",
   "requiredFiles": [
-    ".github/workflows/validate-agent-system.yml"
+    ".github/workflows/validate-agent-system.yml",
+    ".github/workflows/validate-release-governance.yml"
   ],
   "requiredDirectories": [
     ".github/workflows"

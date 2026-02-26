@@ -55,6 +55,7 @@ Write-Host "This script will add AAA comments to pending tests" -ForegroundColor
 Write-Host ""
 
 # Function to process a file
+# Adds Arrange/Act/Assert section comments to test methods when missing.
 function Add-AAAComments {
     param (
         [string]$FilePath

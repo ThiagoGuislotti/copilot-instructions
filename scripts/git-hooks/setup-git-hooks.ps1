@@ -44,22 +44,25 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
+$script:IsVerboseEnabled = [bool] $Verbose
 
 # -------------------------------
 # Helpers
 # -------------------------------
+# Writes verbose diagnostics with a logical color label.
 function Write-VerboseColor {
     param(
         [string] $Message,
         [ConsoleColor] $Color = [ConsoleColor]::Gray
     )
 
-    if ($Verbose) {
-        Write-Host $Message -ForegroundColor $Color
+    if ($script:IsVerboseEnabled) {
+        Write-Output ("[VERBOSE:{0}] {1}" -f $Color, $Message)
     }
 }
 
-function Set-CorrectWorkingDirectory {
+# Resolves the repository root using explicit and fallback location candidates.
+function Resolve-RepositoryRoot {
     param(
         [string] $RequestedRoot
     )
@@ -86,7 +89,6 @@ function Set-CorrectWorkingDirectory {
         for ($i = 0; $i -lt 6 -and -not [string]::IsNullOrWhiteSpace($current); $i++) {
             $hasLayout = (Test-Path -LiteralPath (Join-Path $current '.github')) -and (Test-Path -LiteralPath (Join-Path $current '.codex'))
             if ($hasLayout) {
-                Set-Location -Path $current
                 Write-VerboseColor ("Repository root detected: {0}" -f $current) 'Green'
                 return $current
             }
@@ -98,6 +100,7 @@ function Set-CorrectWorkingDirectory {
     throw 'Could not detect repository root containing both .github and .codex.'
 }
 
+# Validates that a required command is available in the current environment.
 function Assert-CommandAvailable {
     param(
         [string] $CommandName
@@ -108,7 +111,8 @@ function Assert-CommandAvailable {
     }
 }
 
-function Assert-PathExists {
+# Validates that a required file path exists before execution continues.
+function Assert-PathPresent {
     param(
         [string] $Path,
         [string] $Label
@@ -119,7 +123,8 @@ function Assert-PathExists {
     }
 }
 
-function Set-HookExecutability {
+# Applies executable permission to hook files on Unix-like systems.
+function Invoke-HookExecutabilityUpdate {
     param(
         [string[]] $HookPaths
     )
@@ -139,7 +144,8 @@ function Set-HookExecutability {
 # -------------------------------
 # Main execution
 # -------------------------------
-$resolvedRepoRoot = Set-CorrectWorkingDirectory -RequestedRoot $RepoRoot
+$resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
+Set-Location -Path $resolvedRepoRoot
 Assert-CommandAvailable -CommandName 'git'
 
 $gitRoot = (& git -C $resolvedRepoRoot rev-parse --show-toplevel 2>$null)
@@ -150,11 +156,11 @@ if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($gitRoot)) {
 if ($Uninstall) {
     & git -C $resolvedRepoRoot config --local --unset core.hooksPath 2>$null
     if ($LASTEXITCODE -ne 0) {
-        Write-Host 'No local core.hooksPath configured.' -ForegroundColor Yellow
+        Write-Output 'No local core.hooksPath configured.'
         exit 0
     }
 
-    Write-Host 'Removed local Git hook path (core.hooksPath).' -ForegroundColor Yellow
+    Write-Output 'Removed local Git hook path (core.hooksPath).'
     exit 0
 }
 
@@ -173,7 +179,7 @@ $requiredHooks = @(
 $hookPaths = New-Object System.Collections.Generic.List[string]
 foreach ($hookName in $requiredHooks) {
     $hookPath = Join-Path $hooksDirectory $hookName
-    Assert-PathExists -Path $hookPath -Label ("hook file '{0}'" -f $hookName)
+    Assert-PathPresent -Path $hookPath -Label ("hook file '{0}'" -f $hookName)
     $hookPaths.Add($hookPath) | Out-Null
 }
 
@@ -182,22 +188,22 @@ if ($LASTEXITCODE -ne 0) {
     throw 'Failed to configure local Git hook path.'
 }
 
-Set-HookExecutability -HookPaths $hookPaths.ToArray()
+Invoke-HookExecutabilityUpdate -HookPaths $hookPaths.ToArray()
 
 $configuredPath = (& git -C $resolvedRepoRoot config --local --get core.hooksPath 2>$null)
 if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($configuredPath)) {
     throw 'Could not read configured core.hooksPath.'
 }
 
-Write-Host 'Git hooks configured successfully.' -ForegroundColor Green
-Write-Host ("  repo: {0}" -f $gitRoot)
-Write-Host ("  core.hooksPath: {0}" -f $configuredPath)
-Write-Host '  pre-commit: .githooks/pre-commit (runs validate-instructions + validate-policy)'
-Write-Host '  post-commit: .githooks/post-commit (syncs ~/.github and ~/.codex via scripts/runtime/bootstrap.ps1)'
-Write-Host '  post-merge: .githooks/post-merge (runs validate-instructions + validate-policy)'
-Write-Host '  post-checkout: .githooks/post-checkout (runs validate-instructions + validate-policy)'
-Write-Host '  skip sync (temporary): set CODEX_SKIP_POST_COMMIT_SYNC=1'
-Write-Host '  optional MCP apply on manifest change: set CODEX_APPLY_MCP_ON_POST_COMMIT=1'
-Write-Host '  MCP apply backup default: CODEX_BACKUP_MCP_CONFIG=1 (set 0 to disable backup)'
+Write-Output 'Git hooks configured successfully.'
+Write-Output ("  repo: {0}" -f $gitRoot)
+Write-Output ("  core.hooksPath: {0}" -f $configuredPath)
+Write-Output '  pre-commit: .githooks/pre-commit (runs validate-instructions + validate-policy + validate-release-governance)'
+Write-Output '  post-commit: .githooks/post-commit (syncs ~/.github and ~/.codex via scripts/runtime/bootstrap.ps1)'
+Write-Output '  post-merge: .githooks/post-merge (runs validate-instructions + validate-policy + validate-release-governance)'
+Write-Output '  post-checkout: .githooks/post-checkout (runs validate-instructions + validate-policy + validate-release-governance)'
+Write-Output '  skip sync (temporary): set CODEX_SKIP_POST_COMMIT_SYNC=1'
+Write-Output '  optional MCP apply on manifest change: set CODEX_APPLY_MCP_ON_POST_COMMIT=1'
+Write-Output '  MCP apply backup default: CODEX_BACKUP_MCP_CONFIG=1 (set 0 to disable backup)'
 
 exit 0

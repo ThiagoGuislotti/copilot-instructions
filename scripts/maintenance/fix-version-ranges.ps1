@@ -49,6 +49,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# Writes verbose diagnostics with a logical color label.
 function Write-VerboseColor {
   param(
     [string] $Message,

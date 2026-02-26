@@ -68,6 +68,7 @@ $methodPattern = '(?ms)((?:\s*\[[^\]]+\]\s*)+)\s*public\s+(?:async\s+)?(?:Task|V
 # -------------------------------
 # Helpers
 # -------------------------------
+# Writes verbose diagnostics with a logical color label.
 function Write-VerboseColor {
     param (
         [string] $Message,
@@ -79,6 +80,7 @@ function Write-VerboseColor {
     }
 }
 
+# Resolves and sets the working directory to the repository root.
 function Set-CorrectWorkingDirectory {
     param (
         [string] $StartPath
@@ -120,6 +122,7 @@ function Set-CorrectWorkingDirectory {
     throw "Could not find solution root."
 }
 
+# Resolves target test project files from explicit inputs or defaults.
 function Resolve-TestProjects {
     param (
         [string] $Root,
@@ -169,6 +172,7 @@ function Resolve-TestProjects {
     return $selected
 }
 
+# Collects test source files from resolved test project directories.
 function Get-TestFiles {
     param (
         [string] $ProjectDirectory
@@ -182,6 +186,7 @@ function Get-TestFiles {
         }
 }
 
+# Extracts test method names from a source file for naming validation.
 function Get-TestMethodsFromFile {
     param (
         [string] $FilePath

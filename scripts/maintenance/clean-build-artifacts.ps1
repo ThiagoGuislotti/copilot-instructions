@@ -58,6 +58,7 @@ $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 # -------------------------------
 # Helpers
 # -------------------------------
+# Resolves and sets the working directory to the repository root.
 function Set-CorrectWorkingDirectory {
     param (
         [string] $StartPath
@@ -98,6 +99,7 @@ function Set-CorrectWorkingDirectory {
     throw "Could not find solution root."
 }
 
+# Writes verbose diagnostics with a logical color label.
 function Write-VerboseColor {
     param (
         [string] $Message,
@@ -109,6 +111,7 @@ function Write-VerboseColor {
     }
 }
 
+# Prompts for deletion confirmation when interactive safeguards are enabled.
 function Confirm-Deletion {
     param (
         [string] $Prompt,
@@ -123,6 +126,7 @@ function Confirm-Deletion {
     return $answer -match '^[yY](?:es)?$'
 }
 
+# Builds an absolute target path from repository-relative or absolute input.
 function Get-TargetPath {
     param (
         [string] $RequestedPath,

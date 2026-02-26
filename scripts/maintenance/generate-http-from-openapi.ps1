@@ -38,6 +38,7 @@ param (
 
 $ErrorActionPreference = 'Stop'
 
+# Resolves the repository root by searching for known repository markers.
 function Get-RepoRoot {
     try {
         $gitRoot = (git rev-parse --show-toplevel 2>$null)

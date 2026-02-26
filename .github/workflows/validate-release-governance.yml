@@ -1,0 +1,27 @@
+name: Validate Release Governance
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-governance:
+    name: Release Governance Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate release governance contracts
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-release-governance.ps1 `
+            -RepoRoot $PWD

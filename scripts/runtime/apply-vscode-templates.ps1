@@ -57,6 +57,7 @@ $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 # -------------------------------
 # Helpers
 # -------------------------------
+# Writes verbose diagnostics with a logical color label.
 function Write-VerboseColor {
     param(
         [string] $Message,
@@ -68,6 +69,7 @@ function Write-VerboseColor {
     }
 }
 
+# Resolves and sets the working directory to the repository root.
 function Set-CorrectWorkingDirectory {
     param(
         [string] $RequestedRoot
@@ -107,6 +109,7 @@ function Set-CorrectWorkingDirectory {
     throw 'Could not detect repository root containing both .github and .codex.'
 }
 
+# Copies a template file to destination with optional overwrite control.
 function Copy-TemplateFile {
     param(
         [string] $SourcePath,

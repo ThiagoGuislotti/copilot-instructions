@@ -74,20 +74,24 @@ param(
 $ErrorActionPreference = 'Stop'
 
 # Logging functions
+# Writes informational messages to the console.
 function Write-Info($msg) {
     Write-Host "INFO: $msg" -ForegroundColor Green
 }
 
+# Writes verbose messages only when verbose mode is enabled.
 function Write-Verbose2($msg) {
     if ($Verbose) {
         Write-Host "VERBOSE: $msg" -ForegroundColor Gray
     }
 }
 
+# Writes warning messages to the console.
 function Write-Warning2($msg) {
     Write-Host "WARN: $msg" -ForegroundColor Yellow
 }
 
+# Writes minimal required progress output for non-verbose runs.
 function Write-Minimal($msg) {
     # Always show minimal essential information
     Write-Host $msg -ForegroundColor Cyan
@@ -111,6 +115,7 @@ Write-Verbose2 "Creating output directories..."
 New-Item -ItemType Directory -Force -Path $CoverageDir, $HistoryDir, $TrxDir | Out-Null
 
 # Ensure reportgenerator tool is available
+# Ensures the ReportGenerator global tool is installed and available.
 function Ensure-ReportGenerator {
     Write-Verbose2 "Checking for ReportGenerator tool..."
     $rg = Get-Command reportgenerator -ErrorAction SilentlyContinue
@@ -157,6 +162,7 @@ if ($Verbose) {
 $SolutionDir = ($RepoRoot.TrimEnd('\','/')) + '\'  # trailing backslash required by MSBuild
 
 # Project resolution function with improved error handling
+# Resolves a project name or path into a concrete .csproj file path.
 function Resolve-ProjectPath([string]$nameOrPath) {
     if ([string]::IsNullOrWhiteSpace($nameOrPath)) { return $null }
 

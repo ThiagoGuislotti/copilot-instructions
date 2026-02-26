@@ -62,7 +62,8 @@ param(
 $ErrorActionPreference = 'Stop'
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 
-function Set-CorrectWorkingDirectory {
+# Resolves the repository root using explicit and fallback location candidates.
+function Resolve-RepositoryRoot {
     param(
         [string] $RequestedRoot
     )
@@ -89,7 +90,6 @@ function Set-CorrectWorkingDirectory {
         for ($i = 0; $i -lt 6 -and -not [string]::IsNullOrWhiteSpace($current); $i++) {
             $hasLayout = (Test-Path -LiteralPath (Join-Path $current '.github')) -and (Test-Path -LiteralPath (Join-Path $current '.codex'))
             if ($hasLayout) {
-                Set-Location -Path $current
                 return $current
             }
             $current = Split-Path -Path $current -Parent
@@ -99,6 +99,7 @@ function Set-CorrectWorkingDirectory {
     throw 'Could not detect repository root containing both .github and .codex.'
 }
 
+# Builds a file hash inventory for drift comparison operations.
 function Get-FileInventory {
     param(
         [string] $RootPath
@@ -118,6 +119,7 @@ function Get-FileInventory {
     return $inventory
 }
 
+# Compares source and runtime inventories to detect missing, extra, and drifted files.
 function Compare-Mapping {
     param(
         [string] $Name,
@@ -188,35 +190,37 @@ function Compare-Mapping {
     }
 }
 
+# Prints a standardized summary for a single runtime mapping comparison.
 function Write-MappingReport {
     param(
-        [object] $Report
+        [object] $Report,
+        [switch] $DetailedReport
     )
 
-    $statusColor = if ($Report.IsHealthy) { 'Green' } else { 'Yellow' }
     $statusText = if ($Report.IsHealthy) { 'OK' } else { 'DRIFT' }
 
-    Write-Host ("[{0}] {1}" -f $statusText, $Report.Name) -ForegroundColor $statusColor
-    Write-Host ("  source: {0}" -f $Report.SourcePath)
-    Write-Host ("  target: {0}" -f $Report.TargetPath)
-    Write-Host ("  files: source={0} target={1}" -f $Report.SourceCount, $Report.TargetCount)
-    Write-Host ("  missing in runtime: {0}" -f $Report.MissingInRuntime.Count)
-    Write-Host ("  extra in runtime: {0}" -f $Report.ExtraInRuntime.Count)
-    Write-Host ("  drifted files: {0}" -f $Report.DriftedFiles.Count)
+    Write-Output ("[{0}] {1}" -f $statusText, $Report.Name)
+    Write-Output ("  source: {0}" -f $Report.SourcePath)
+    Write-Output ("  target: {0}" -f $Report.TargetPath)
+    Write-Output ("  files: source={0} target={1}" -f $Report.SourceCount, $Report.TargetCount)
+    Write-Output ("  missing in runtime: {0}" -f $Report.MissingInRuntime.Count)
+    Write-Output ("  extra in runtime: {0}" -f $Report.ExtraInRuntime.Count)
+    Write-Output ("  drifted files: {0}" -f $Report.DriftedFiles.Count)
 
-    if ($Detailed) {
+    if ($DetailedReport) {
         foreach ($path in $Report.MissingInRuntime) {
-            Write-Host ("    [missing] {0}" -f $path) -ForegroundColor Yellow
+            Write-Output ("    [missing] {0}" -f $path)
         }
         foreach ($path in $Report.ExtraInRuntime) {
-            Write-Host ("    [extra]   {0}" -f $path) -ForegroundColor Yellow
+            Write-Output ("    [extra]   {0}" -f $path)
         }
         foreach ($path in $Report.DriftedFiles) {
-            Write-Host ("    [drift]   {0}" -f $path) -ForegroundColor Yellow
+            Write-Output ("    [drift]   {0}" -f $path)
         }
     }
 }
 
+# Executes all runtime mapping drift checks and returns detailed reports.
 function Invoke-Doctor {
     param(
         [string] $ResolvedRepoRoot
@@ -257,7 +261,8 @@ function Invoke-Doctor {
     return $reports
 }
 
-function Test-HasExtraRuntimeFiles {
+# Checks whether runtime reports include any extra unmanaged files.
+function Test-HasExtraRuntimeFile {
     param(
         [object[]] $Reports
     )
@@ -265,20 +270,21 @@ function Test-HasExtraRuntimeFiles {
     return @($Reports | Where-Object { @($_.ExtraInRuntime).Count -gt 0 }).Count -gt 0
 }
 
-$resolvedRepoRoot = Set-CorrectWorkingDirectory -RequestedRoot $RepoRoot
-Write-Host 'Runtime doctor report' -ForegroundColor Cyan
-Write-Host ("  repo root: {0}" -f $resolvedRepoRoot)
+$resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
+Set-Location -Path $resolvedRepoRoot
+Write-Output 'Runtime doctor report'
+Write-Output ("  repo root: {0}" -f $resolvedRepoRoot)
 
 $reports = Invoke-Doctor -ResolvedRepoRoot $resolvedRepoRoot
 foreach ($report in $reports) {
-    Write-MappingReport -Report $report
+    Write-MappingReport -Report $report -DetailedReport:$Detailed
 }
 
 $hasDrift = @($reports | Where-Object { -not $_.IsHealthy }).Count -gt 0
-$hasExtras = Test-HasExtraRuntimeFiles -Reports $reports
+$hasExtras = Test-HasExtraRuntimeFile -Reports $reports
 
 if ($hasDrift -and $SyncOnDrift) {
-    Write-Host 'Drift detected. Running bootstrap sync...' -ForegroundColor Yellow
+    Write-Output 'Drift detected. Running bootstrap sync...'
     $bootstrapScript = Join-Path $resolvedRepoRoot 'scripts\runtime\bootstrap.ps1'
     if (-not (Test-Path -LiteralPath $bootstrapScript)) {
         throw "Bootstrap script not found: $bootstrapScript"
@@ -287,13 +293,13 @@ if ($hasDrift -and $SyncOnDrift) {
     & $bootstrapScript -RepoRoot $resolvedRepoRoot -TargetGithubPath $TargetGithubPath -TargetCodexPath $TargetCodexPath
     $reports = Invoke-Doctor -ResolvedRepoRoot $resolvedRepoRoot
     foreach ($report in $reports) {
-        Write-MappingReport -Report $report
+        Write-MappingReport -Report $report -DetailedReport:$Detailed
     }
     $hasDrift = @($reports | Where-Object { -not $_.IsHealthy }).Count -gt 0
-    $hasExtras = Test-HasExtraRuntimeFiles -Reports $reports
+    $hasExtras = Test-HasExtraRuntimeFile -Reports $reports
 }
 
-Write-Host ''
+Write-Output ''
 $statusText = if ($hasDrift) {
     'detected'
 }
@@ -304,12 +310,11 @@ else {
     'clean'
 }
 
-$statusColor = if ($hasDrift -or $hasExtras) { 'Yellow' } else { 'Green' }
-Write-Host ("Drift status: {0}" -f $statusText) -ForegroundColor $statusColor
+Write-Output ("Drift status: {0}" -f $statusText)
 
 if ($hasExtras -and (-not $StrictExtras)) {
-    Write-Host 'Runtime has extra files not tracked by source mappings.' -ForegroundColor Yellow
-    Write-Host 'Use -Detailed to inspect extras and -StrictExtras to fail on extras.'
+    Write-Output 'Runtime has extra files not tracked by source mappings.'
+    Write-Output 'Use -Detailed to inspect extras and -StrictExtras to fail on extras.'
 }
 
 if ($hasDrift) {

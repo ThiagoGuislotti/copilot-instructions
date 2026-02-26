@@ -1,0 +1,7 @@
+# Default ownership fallback
+* @ThiagoGuislotti
+
+# Governance and automation
+.github/ @ThiagoGuislotti
+.githooks/ @ThiagoGuislotti
+scripts/ @ThiagoGuislotti

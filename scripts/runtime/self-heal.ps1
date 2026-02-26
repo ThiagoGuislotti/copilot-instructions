@@ -80,21 +80,24 @@ param(
 $ErrorActionPreference = 'Stop'
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:LogFilePath = $null
+$script:IsVerboseEnabled = [bool] $Verbose
 
 # -------------------------------
 # Helpers
 # -------------------------------
+# Writes verbose diagnostics with a logical color label.
 function Write-VerboseColor {
     param(
         [string] $Message,
         [ConsoleColor] $Color = [ConsoleColor]::Gray
     )
 
-    if ($Verbose) {
-        Write-Host $Message -ForegroundColor $Color
+    if ($script:IsVerboseEnabled) {
+        Write-Output ("[VERBOSE:{0}] {1}" -f $Color, $Message)
     }
 }
 
+# Builds an absolute path from repository root and relative input path.
 function Resolve-RepoPath {
     param(
         [string] $Root,
@@ -108,7 +111,8 @@ function Resolve-RepoPath {
     return [System.IO.Path]::GetFullPath((Join-Path $Root $Path))
 }
 
-function Set-CorrectWorkingDirectory {
+# Resolves the repository root using explicit and fallback location candidates.
+function Resolve-RepositoryRoot {
     param(
         [string] $RequestedRoot
     )
@@ -135,7 +139,6 @@ function Set-CorrectWorkingDirectory {
         for ($i = 0; $i -lt 6 -and -not [string]::IsNullOrWhiteSpace($current); $i++) {
             $hasLayout = (Test-Path -LiteralPath (Join-Path $current '.github')) -and (Test-Path -LiteralPath (Join-Path $current '.codex'))
             if ($hasLayout) {
-                Set-Location -Path $current
                 Write-VerboseColor ("Repository root detected: {0}" -f $current) 'Green'
                 return $current
             }
@@ -147,20 +150,19 @@ function Set-CorrectWorkingDirectory {
     throw 'Could not detect repository root containing both .github and .codex.'
 }
 
-function Ensure-ParentDirectory {
+# Returns the parent directory for a given file path when available.
+function Get-ParentDirectoryPath {
     param(
         [string] $Path
     )
 
     $parent = Split-Path -Path $Path -Parent
-    if ([string]::IsNullOrWhiteSpace($parent)) {
-        return
-    }
-
-    New-Item -ItemType Directory -Path $parent -Force | Out-Null
+    if ([string]::IsNullOrWhiteSpace($parent)) { return $null }
+    return $parent
 }
 
-function Write-Log {
+# Writes execution log entries to console output and optional log file.
+function Write-ExecutionLog {
     param(
         [string] $Level,
         [string] $Message
@@ -173,15 +175,10 @@ function Write-Log {
         Add-Content -LiteralPath $script:LogFilePath -Value $line
     }
 
-    $color = 'Gray'
-    if ($Level -eq 'ERROR') { $color = 'Red' }
-    elseif ($Level -eq 'WARN') { $color = 'Yellow' }
-    elseif ($Level -eq 'OK') { $color = 'Green' }
-    elseif ($Level -eq 'INFO') { $color = 'Cyan' }
-
-    Write-Host $line -ForegroundColor $color
+    Write-Output $line
 }
 
+# Runs a script step and captures status, timing, and error metadata.
 function Invoke-ScriptStep {
     param(
         [string] $Name,
@@ -196,26 +193,26 @@ function Invoke-ScriptStep {
 
     if (-not (Test-Path -LiteralPath $ScriptPath -PathType Leaf)) {
         $errorMessage = "Script not found: $ScriptPath"
-        Write-Log -Level 'ERROR' -Message ("{0}: {1}" -f $Name, $errorMessage)
+        Write-ExecutionLog -Level 'ERROR' -Message ("{0}: {1}" -f $Name, $errorMessage)
     }
     else {
-        Write-Log -Level 'INFO' -Message ("Starting step: {0}" -f $Name)
+        Write-ExecutionLog -Level 'INFO' -Message ("Starting step: {0}" -f $Name)
 
         try {
             & $ScriptPath @Arguments
             $exitCode = if ($null -eq $LASTEXITCODE) { 0 } else { [int] $LASTEXITCODE }
             if ($exitCode -eq 0) {
                 $status = 'passed'
-                Write-Log -Level 'OK' -Message ("Step passed: {0}" -f $Name)
+                Write-ExecutionLog -Level 'OK' -Message ("Step passed: {0}" -f $Name)
             }
             else {
-                Write-Log -Level 'ERROR' -Message ("Step failed: {0} (exit code {1})" -f $Name, $exitCode)
+                Write-ExecutionLog -Level 'ERROR' -Message ("Step failed: {0} (exit code {1})" -f $Name, $exitCode)
             }
         }
         catch {
             $exitCode = 1
             $errorMessage = $_.Exception.Message
-            Write-Log -Level 'ERROR' -Message ("Step exception: {0} :: {1}" -f $Name, $errorMessage)
+            Write-ExecutionLog -Level 'ERROR' -Message ("Step exception: {0} :: {1}" -f $Name, $errorMessage)
         }
     }
 
@@ -243,7 +240,8 @@ function Invoke-ScriptStep {
 # -------------------------------
 # Main execution
 # -------------------------------
-$resolvedRepoRoot = Set-CorrectWorkingDirectory -RequestedRoot $RepoRoot
+$resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
+Set-Location -Path $resolvedRepoRoot
 $resolvedOutputPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $OutputPath
 
 $resolvedLogPath = if ([string]::IsNullOrWhiteSpace($LogPath)) {
@@ -254,14 +252,21 @@ else {
     Resolve-RepoPath -Root $resolvedRepoRoot -Path $LogPath
 }
 
-Ensure-ParentDirectory -Path $resolvedOutputPath
-Ensure-ParentDirectory -Path $resolvedLogPath
+$outputParent = Get-ParentDirectoryPath -Path $resolvedOutputPath
+if (-not [string]::IsNullOrWhiteSpace($outputParent)) {
+    New-Item -ItemType Directory -Path $outputParent -Force | Out-Null
+}
+
+$logParent = Get-ParentDirectoryPath -Path $resolvedLogPath
+if (-not [string]::IsNullOrWhiteSpace($logParent)) {
+    New-Item -ItemType Directory -Path $logParent -Force | Out-Null
+}
 Set-Content -LiteralPath $resolvedLogPath -Value ("# self-heal log`n# generatedAt={0}" -f (Get-Date).ToString('o'))
 $script:LogFilePath = $resolvedLogPath
 
-Write-Log -Level 'INFO' -Message ("Repo root: {0}" -f $resolvedRepoRoot)
-Write-Log -Level 'INFO' -Message ("Output report: {0}" -f $resolvedOutputPath)
-Write-Log -Level 'INFO' -Message ("Log file: {0}" -f $resolvedLogPath)
+Write-ExecutionLog -Level 'INFO' -Message ("Repo root: {0}" -f $resolvedRepoRoot)
+Write-ExecutionLog -Level 'INFO' -Message ("Output report: {0}" -f $resolvedOutputPath)
+Write-ExecutionLog -Level 'INFO' -Message ("Log file: {0}" -f $resolvedLogPath)
 
 $steps = New-Object System.Collections.Generic.List[object]
 
@@ -290,7 +295,7 @@ if ($ApplyVscodeTemplates) {
     $steps.Add((Invoke-ScriptStep -Name 'apply-vscode-templates' -ScriptPath $applyVscodeTemplatesScript -Arguments @{ RepoRoot = $resolvedRepoRoot; Force = $true })) | Out-Null
 }
 else {
-    Write-Log -Level 'WARN' -Message 'Skipping VS Code templates apply (enable with -ApplyVscodeTemplates).'
+    Write-ExecutionLog -Level 'WARN' -Message 'Skipping VS Code templates apply (enable with -ApplyVscodeTemplates).'
 }
 
 $healthcheckReportPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path '.temp/healthcheck-report.json'
@@ -318,7 +323,7 @@ if (Test-Path -LiteralPath $healthcheckReportPath -PathType Leaf) {
         $healthcheckSummary = Get-Content -Raw -LiteralPath $healthcheckReportPath | ConvertFrom-Json -Depth 100
     }
     catch {
-        Write-Log -Level 'WARN' -Message ("Could not parse healthcheck report: {0}" -f $healthcheckReportPath)
+        Write-ExecutionLog -Level 'WARN' -Message ("Could not parse healthcheck report: {0}" -f $healthcheckReportPath)
     }
 }
 
@@ -351,8 +356,8 @@ $report = [ordered]@{
 $reportJson = $report | ConvertTo-Json -Depth 100
 Set-Content -LiteralPath $resolvedOutputPath -Value $reportJson
 
-Write-Log -Level 'INFO' -Message ("Self-heal summary: total={0} passed={1} failed={2}" -f $steps.Count, $passedSteps, $failedSteps)
-Write-Log -Level 'INFO' -Message ("Self-heal report generated: {0}" -f $resolvedOutputPath)
+Write-ExecutionLog -Level 'INFO' -Message ("Self-heal summary: total={0} passed={1} failed={2}" -f $steps.Count, $passedSteps, $failedSteps)
+Write-ExecutionLog -Level 'INFO' -Message ("Self-heal report generated: {0}" -f $resolvedOutputPath)
 
 if ($overallStatus -ne 'passed') {
     exit 1

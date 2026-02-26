@@ -74,7 +74,7 @@ pwsh -File .\scripts\runtime\bootstrap.ps1
 # optional: also apply shared MCP servers to ~/.codex/config.toml
 pwsh -File .\scripts\runtime\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
 
-# enterprise healthcheck (instructions + policy + runtime doctor)
+# enterprise healthcheck (instructions + policy + release governance + runtime doctor)
 pwsh -File .\scripts\runtime\healthcheck.ps1 -StrictExtras
 ```
 
@@ -102,6 +102,7 @@ pwsh -File .\scripts\git-hooks\setup-git-hooks.ps1
 
 - Runs `scripts/validation/validate-instructions.ps1`
 - Runs `scripts/validation/validate-policy.ps1`
+- Runs `scripts/validation/validate-release-governance.ps1`
 - Blocks commit when validation fails
 - Requires `pwsh` or `powershell`
 
@@ -114,12 +115,14 @@ pwsh -File .\scripts\git-hooks\setup-git-hooks.ps1
 
 - Runs `scripts/validation/validate-instructions.ps1` (validation-only)
 - Runs `scripts/validation/validate-policy.ps1` (validation-only)
+- Runs `scripts/validation/validate-release-governance.ps1` (validation-only)
 - Does not run runtime sync
 
 ### post-checkout
 
 - Runs `scripts/validation/validate-instructions.ps1` (validation-only)
 - Runs `scripts/validation/validate-policy.ps1` (validation-only)
+- Runs `scripts/validation/validate-release-governance.ps1` (validation-only)
 - Does not run runtime sync
 
 Environment variables:
@@ -132,6 +135,15 @@ Environment variables:
 ```powershell
 # run end-to-end checks and generate .temp/healthcheck-report.json + logs
 pwsh -File .\scripts\runtime\healthcheck.ps1 -StrictExtras
+
+# validate release governance contracts (CHANGELOG + CODEOWNERS + baseline)
+pwsh -File .\scripts\validation\validate-release-governance.ps1
+
+# validate branch protection drift against baseline (no mutation)
+pwsh -File .\scripts\governance\set-branch-protection.ps1
+
+# apply branch protection baseline (opt-in remote mutation)
+pwsh -File .\scripts\governance\set-branch-protection.ps1 -Apply
 
 # repair runtime and validate final state
 pwsh -File .\scripts\runtime\self-heal.ps1 -Mirror -StrictExtras

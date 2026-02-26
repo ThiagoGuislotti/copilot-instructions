@@ -70,6 +70,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 # Helper: discover projects automatically
+# Enumerates project files under a folder while honoring exclusion rules.
 function Get-ProjectsFromFolder {
     param([string]$Folder)
 
@@ -150,6 +151,7 @@ $stats = @{
 
 $missingFiles = @()
 
+# Validates XML documentation coverage and quality for a source file.
 function Test-FileDocumentation {
     param([string]$FilePath, [string]$ProjectName)
 

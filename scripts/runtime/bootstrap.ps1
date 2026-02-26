@@ -59,22 +59,25 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
+$script:IsVerboseEnabled = [bool] $Verbose
 
 # -------------------------------
 # Helpers
 # -------------------------------
+# Writes verbose diagnostics with a logical color label.
 function Write-VerboseColor {
     param(
         [string] $Message,
         [ConsoleColor] $Color = [ConsoleColor]::Gray
     )
 
-    if ($Verbose) {
-        Write-Host $Message -ForegroundColor $Color
+    if ($script:IsVerboseEnabled) {
+        Write-Output ("[VERBOSE:{0}] {1}" -f $Color, $Message)
     }
 }
 
-function Set-CorrectWorkingDirectory {
+# Resolves the repository root using explicit and fallback location candidates.
+function Resolve-RepositoryRoot {
     param(
         [string] $RequestedRoot
     )
@@ -101,7 +104,6 @@ function Set-CorrectWorkingDirectory {
         for ($i = 0; $i -lt 6 -and -not [string]::IsNullOrWhiteSpace($current); $i++) {
             $hasLayout = (Test-Path -LiteralPath (Join-Path $current '.github')) -and (Test-Path -LiteralPath (Join-Path $current '.codex'))
             if ($hasLayout) {
-                Set-Location -Path $current
                 Write-VerboseColor ("Repository root detected: {0}" -f $current) 'Green'
                 return $current
             }
@@ -113,7 +115,8 @@ function Set-CorrectWorkingDirectory {
     throw 'Could not detect repository root containing both .github and .codex.'
 }
 
-function Assert-PathExists {
+# Validates that a required file path exists before execution continues.
+function Assert-PathPresent {
     param(
         [string] $Path,
         [string] $Label
@@ -124,6 +127,7 @@ function Assert-PathExists {
     }
 }
 
+# Synchronizes directories with Copy-Item when robocopy is unavailable.
 function Invoke-FallbackSync {
     param(
         [string] $Source,
@@ -145,6 +149,7 @@ function Invoke-FallbackSync {
     }
 }
 
+# Synchronizes source and destination directories with robocopy or fallback mode.
 function Invoke-DirectorySync {
     param(
         [string] $Source,
@@ -162,7 +167,7 @@ function Invoke-DirectorySync {
         New-Item -ItemType Directory -Path $Destination -Force | Out-Null
 
         $mode = if ($MirrorMode) { '/MIR' } else { '/E' }
-        $args = @(
+        $robocopyArgs = @(
             $Source,
             $Destination,
             $mode,
@@ -174,7 +179,7 @@ function Invoke-DirectorySync {
             '/NJS'
         )
 
-        & robocopy @args | Out-Null
+        & robocopy @robocopyArgs | Out-Null
         if ($LASTEXITCODE -ge 8) {
             throw "robocopy failed for '$Source' -> '$Destination' (exit code: $LASTEXITCODE)"
         }
@@ -188,6 +193,7 @@ function Invoke-DirectorySync {
     Write-VerboseColor ("Synced with fallback copy: {0} -> {1}" -f $Source, $Destination) 'Gray'
 }
 
+# Applies MCP manifest settings to target Codex config.toml.
 function Invoke-McpConfigApply {
     param(
         [string] $ResolvedRepoRoot,
@@ -199,9 +205,9 @@ function Invoke-McpConfigApply {
     $manifest = Join-Path $ResolvedRepoRoot '.codex\mcp\servers.manifest.json'
     $targetConfig = Join-Path $CodexPath 'config.toml'
 
-    Assert-PathExists -Path $syncScript -Label 'MCP sync script'
-    Assert-PathExists -Path $manifest -Label 'MCP manifest'
-    Assert-PathExists -Path $targetConfig -Label 'target Codex config'
+    Assert-PathPresent -Path $syncScript -Label 'MCP sync script'
+    Assert-PathPresent -Path $manifest -Label 'MCP manifest'
+    Assert-PathPresent -Path $targetConfig -Label 'target Codex config'
 
     $syncArgs = @{
         ManifestPath = $manifest
@@ -218,13 +224,14 @@ function Invoke-McpConfigApply {
 # -------------------------------
 # Main execution
 # -------------------------------
-$resolvedRepoRoot = Set-CorrectWorkingDirectory -RequestedRoot $RepoRoot
+$resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
+Set-Location -Path $resolvedRepoRoot
 
 $sourceGithub = Join-Path $resolvedRepoRoot '.github'
 $sourceCodex = Join-Path $resolvedRepoRoot '.codex'
 
-Assert-PathExists -Path $sourceGithub -Label 'source .github folder'
-Assert-PathExists -Path $sourceCodex -Label 'source .codex folder'
+Assert-PathPresent -Path $sourceGithub -Label 'source .github folder'
+Assert-PathPresent -Path $sourceCodex -Label 'source .codex folder'
 
 Invoke-DirectorySync -Source $sourceGithub -Destination $TargetGithubPath -MirrorMode:$Mirror
 Invoke-DirectorySync -Source (Join-Path $sourceCodex 'skills') -Destination (Join-Path $TargetCodexPath 'skills') -MirrorMode:$Mirror
@@ -237,11 +244,11 @@ if (Test-Path -LiteralPath $sharedReadme) {
     Copy-Item -LiteralPath $sharedReadme -Destination (Join-Path $TargetCodexPath 'README.shared.md') -Force
 }
 
-Write-Host 'Sync complete.' -ForegroundColor Green
-Write-Host ("  .github -> {0}" -f $TargetGithubPath)
-Write-Host ("  .codex/skills -> {0}" -f (Join-Path $TargetCodexPath 'skills'))
-Write-Host ("  .codex/mcp -> {0}" -f (Join-Path $TargetCodexPath 'shared-mcp'))
-Write-Host ("  .codex/scripts -> {0}" -f (Join-Path $TargetCodexPath 'shared-scripts'))
+Write-Output 'Sync complete.'
+Write-Output ("  .github -> {0}" -f $TargetGithubPath)
+Write-Output ("  .codex/skills -> {0}" -f (Join-Path $TargetCodexPath 'skills'))
+Write-Output ("  .codex/mcp -> {0}" -f (Join-Path $TargetCodexPath 'shared-mcp'))
+Write-Output ("  .codex/scripts -> {0}" -f (Join-Path $TargetCodexPath 'shared-scripts'))
 
 if ($ApplyMcpConfig) {
     Invoke-McpConfigApply -ResolvedRepoRoot $resolvedRepoRoot -CodexPath $TargetCodexPath -CreateBackup:$BackupConfig

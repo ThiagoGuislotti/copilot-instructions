@@ -43,39 +43,44 @@ $ErrorActionPreference = 'Stop'
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:Failures = New-Object System.Collections.Generic.List[string]
 $script:Warnings = New-Object System.Collections.Generic.List[string]
+$script:IsVerboseEnabled = [bool] $Verbose
 
 # -------------------------------
 # Helpers
 # -------------------------------
+# Writes verbose diagnostics with a logical color label.
 function Write-VerboseColor {
     param(
         [string] $Message,
         [ConsoleColor] $Color = [ConsoleColor]::Gray
     )
 
-    if ($Verbose) {
-        Write-Host $Message -ForegroundColor $Color
+    if ($script:IsVerboseEnabled) {
+        Write-Output ("[VERBOSE:{0}] {1}" -f $Color, $Message)
     }
 }
 
+# Registers a validation failure and prints a standardized failure message.
 function Add-ValidationFailure {
     param(
         [string] $Message
     )
 
     $script:Failures.Add($Message) | Out-Null
-    Write-Host ("[FAIL] {0}" -f $Message) -ForegroundColor Red
+    Write-Output ("[FAIL] {0}" -f $Message)
 }
 
+# Registers a validation warning and prints a standardized warning message.
 function Add-ValidationWarning {
     param(
         [string] $Message
     )
 
     $script:Warnings.Add($Message) | Out-Null
-    Write-Host ("[WARN] {0}" -f $Message) -ForegroundColor Yellow
+    Write-Output ("[WARN] {0}" -f $Message)
 }
 
+# Builds an absolute path from repository root and relative input path.
 function Resolve-RepoPath {
     param(
         [string] $Root,
@@ -89,7 +94,8 @@ function Resolve-RepoPath {
     return [System.IO.Path]::GetFullPath((Join-Path $Root $Path))
 }
 
-function Set-CorrectWorkingDirectory {
+# Resolves the repository root using explicit and fallback location candidates.
+function Resolve-RepositoryRoot {
     param(
         [string] $RequestedRoot
     )
@@ -116,7 +122,6 @@ function Set-CorrectWorkingDirectory {
         for ($i = 0; $i -lt 6 -and -not [string]::IsNullOrWhiteSpace($current); $i++) {
             $hasLayout = (Test-Path -LiteralPath (Join-Path $current '.github')) -and (Test-Path -LiteralPath (Join-Path $current '.codex'))
             if ($hasLayout) {
-                Set-Location -Path $current
                 Write-VerboseColor ("Repository root detected: {0}" -f $current) 'Green'
                 return $current
             }
@@ -128,6 +133,7 @@ function Set-CorrectWorkingDirectory {
     throw 'Could not detect repository root containing both .github and .codex.'
 }
 
+# Converts input values to a string array while handling null and scalar values.
 function Convert-ToStringArray {
     param(
         [object] $Value
@@ -144,6 +150,7 @@ function Convert-ToStringArray {
     return @($Value | ForEach-Object { [string] $_ })
 }
 
+# Validates a policy object against required repository governance contracts.
 function Test-PolicyContract {
     param(
         [string] $Root,
@@ -156,7 +163,7 @@ function Test-PolicyContract {
         $policyId = [System.IO.Path]::GetFileNameWithoutExtension($PolicyPath)
     }
 
-    Write-Host ("[POLICY] {0}" -f $policyId) -ForegroundColor Cyan
+    Write-Output ("[POLICY] {0}" -f $policyId)
 
     $allowedKeys = @(
         'id',
@@ -243,7 +250,8 @@ function Test-PolicyContract {
 # -------------------------------
 # Main execution
 # -------------------------------
-$resolvedRepoRoot = Set-CorrectWorkingDirectory -RequestedRoot $RepoRoot
+$resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
+Set-Location -Path $resolvedRepoRoot
 $resolvedPolicyDirectory = Resolve-RepoPath -Root $resolvedRepoRoot -Path $PolicyDirectory
 
 if (-not (Test-Path -LiteralPath $resolvedPolicyDirectory -PathType Container)) {
@@ -261,7 +269,7 @@ else {
 
             try {
                 $policyObject = Get-Content -Raw -LiteralPath $policyFile.FullName | ConvertFrom-Json -Depth 100
-                Write-Host ("[OK] Policy JSON parse: {0}" -f $relativePolicyPath) -ForegroundColor Green
+                Write-Output ("[OK] Policy JSON parse: {0}" -f $relativePolicyPath)
             }
             catch {
                 Add-ValidationFailure ("Invalid JSON in policy file {0} :: {1}" -f $relativePolicyPath, $_.Exception.Message)
@@ -273,14 +281,14 @@ else {
     }
 }
 
-Write-Host ''
-Write-Host 'Policy validation summary' -ForegroundColor Cyan
-Write-Host ("  Warnings: {0}" -f $script:Warnings.Count)
-Write-Host ("  Failures: {0}" -f $script:Failures.Count)
+Write-Output ''
+Write-Output 'Policy validation summary'
+Write-Output ("  Warnings: {0}" -f $script:Warnings.Count)
+Write-Output ("  Failures: {0}" -f $script:Failures.Count)
 
 if ($script:Failures.Count -gt 0) {
     exit 1
 }
 
-Write-Host 'All policy validations passed.' -ForegroundColor Green
+Write-Output 'All policy validations passed.'
 exit 0
