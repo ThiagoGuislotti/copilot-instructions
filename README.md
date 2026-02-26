@@ -14,6 +14,8 @@ Structured AI agent guidelines for software development projects. Focuses on rep
 - ✅ **Multi-Agent Contracts:** Versioned orchestration manifests, schemas, and runtime artifacts
 - ✅ **Guardrailed Multi-Agent Runner:** Deterministic pipeline execution with handoffs, budgets, and allowed-path enforcement
 - ✅ **Unified Validation Suite:** Single `validate-all` command for hooks/CI governance checks
+- ✅ **Security Baseline Validation:** Local enforcement for sensitive files and secret-like content patterns
+- ✅ **Release Provenance Validation:** Local traceability checks for release evidence and validation coverage
 
 ---
 
@@ -143,8 +145,24 @@ pwsh -File .\scripts\runtime\healthcheck.ps1 -StrictExtras
 # run full validation suite (instructions, policies, orchestration, docs standards)
 pwsh -File .\scripts\validation\validate-all.ps1
 
+# validate routing catalog coverage against golden fixtures
+pwsh -File .\scripts\validation\validate-routing-coverage.ps1
+
+# validate alignment between agents, skills, pipeline and evals
+pwsh -File .\scripts\validation\validate-agent-skill-alignment.ps1
+
 # validate release governance contracts (CHANGELOG + CODEOWNERS + baseline)
 pwsh -File .\scripts\validation\validate-release-governance.ps1
+
+# validate security baseline (sensitive paths + secret-like patterns)
+pwsh -File .\scripts\validation\validate-security-baseline.ps1
+
+# validate release provenance baseline (checks + evidence + git traceability)
+pwsh -File .\scripts\validation\validate-release-provenance.ps1
+
+# optional enforcing mode (default is warning-only)
+pwsh -File .\scripts\validation\validate-security-baseline.ps1 -WarningOnly:$false
+pwsh -File .\scripts\validation\validate-release-provenance.ps1 -WarningOnly:$false
 
 # validate multi-agent contracts and orchestration integrity
 pwsh -File .\scripts\validation\validate-agent-orchestration.ps1

@@ -19,6 +19,8 @@ This folder centralizes operational scripts used by this repository. It includes
 - ✅ Multi-agent contract and orchestration validation
 - ✅ Multi-agent pipeline runner with guardrails and deterministic stage handoffs
 - ✅ Release governance checks (CODEOWNERS, changelog contracts, branch-protection baseline)
+- ✅ Security baseline checks (sensitive file patterns and secret-like content scanning)
+- ✅ Release provenance checks (validation coverage, evidence files, git traceability, optional audit proof)
 - ✅ Unified validation suite runner (`validate-all`) for local hooks and CI
 - ✅ Healthcheck and self-heal flows with JSON reports and execution logs
 
@@ -117,6 +119,8 @@ scripts/
 │   ├── validate-agent-orchestration.ps1
 │   ├── validate-policy.ps1
 │   ├── validate-release-governance.ps1
+│   ├── validate-routing-coverage.ps1
+│   ├── validate-agent-skill-alignment.ps1
 │   └── export-audit-report.ps1
 ├── deploy/
 ├── doc/
@@ -153,14 +157,18 @@ Runtime-sensitive files such as `~/.codex/auth.json`, `~/.codex/sessions/`, and 
 | `validation/validate-dotnet-standards.ps1` | Validates .NET template standards under `.github/templates/*.cs`. | `pwsh -File scripts/validation/validate-dotnet-standards.ps1` |
 | `validation/validate-architecture-boundaries.ps1` | Validates architecture boundaries from `.github/governance/architecture-boundaries.baseline.json`. | `pwsh -File scripts/validation/validate-architecture-boundaries.ps1` |
 | `validation/validate-instruction-metadata.ps1` | Validates frontmatter metadata for `.github/instructions`, `.github/prompts`, and `.github/chatmodes`. | `pwsh -File scripts/validation/validate-instruction-metadata.ps1` |
+| `validation/validate-routing-coverage.ps1` | Validates route coverage between `instruction-routing.catalog.yml` and golden fixtures. | `pwsh -File scripts/validation/validate-routing-coverage.ps1` |
+| `validation/validate-agent-skill-alignment.ps1` | Validates consistency among agent manifest, skills, pipeline stages, and eval requiredAgents. | `pwsh -File scripts/validation/validate-agent-skill-alignment.ps1` |
+| `validation/validate-security-baseline.ps1` | Validates `.github/governance/security-baseline.json` (required governance paths, forbidden sensitive files, and secret-like pattern scanning). Runs in warning-only mode by default. | `pwsh -File scripts/validation/validate-security-baseline.ps1` |
 | `validation/validate-all.ps1` | Runs the complete validation suite in deterministic order with a single command. | `pwsh -File scripts/validation/validate-all.ps1` |
+| `validation/validate-release-provenance.ps1` | Validates release provenance baseline (`requiredValidationChecks`, `requiredEvidenceFiles`, changelog recency, git traceability, optional audit report). Runs in warning-only mode by default. | `pwsh -File scripts/validation/validate-release-provenance.ps1` |
 | `validation/export-audit-report.ps1` | Runs health baseline and exports consolidated JSON audit report with git metadata and policy inventory. | `pwsh -File scripts/validation/export-audit-report.ps1` |
 | `validation/test-routing-selection.ps1` | Runs deterministic golden tests for static routing behavior based on catalog + fixtures. | `pwsh -File scripts/validation/test-routing-selection.ps1` |
 | `governance/set-branch-protection.ps1` | Validates or applies branch protection from `.github/governance/branch-protection.baseline.json` using GitHub CLI. | `pwsh -File scripts/governance/set-branch-protection.ps1 -Apply` |
 | `git-hooks/setup-git-hooks.ps1` | Configures local Git hooks path (`core.hooksPath=.githooks`) and enables `pre-commit` validation + `post-commit` sync. | `pwsh -File scripts/git-hooks/setup-git-hooks.ps1` |
 | `runtime/doctor.ps1` | Diagnoses drift between repository-managed runtime assets and local `~/.github`/`~/.codex` copies. | `pwsh -File scripts/runtime/doctor.ps1` |
 | `runtime/apply-vscode-templates.ps1` | Applies `.vscode/*.tamplate.jsonc` into active `.vscode/settings.json` and `.vscode/mcp.json` files. | `pwsh -File scripts/runtime/apply-vscode-templates.ps1 -Force` |
-| `runtime/healthcheck.ps1` | Executes end-to-end validation (`validate-instructions`, `validate-policy`, `validate-agent-orchestration`, `validate-release-governance`, `doctor`) and writes log/report artifacts. | `pwsh -File scripts/runtime/healthcheck.ps1 -StrictExtras` |
+| `runtime/healthcheck.ps1` | Executes end-to-end validation (`validate-instructions`, `validate-readme-standards`, `validate-powershell-standards`, `validate-dotnet-standards`, `validate-architecture-boundaries`, `validate-instruction-metadata`, `validate-routing-coverage`, `validate-agent-skill-alignment`, `validate-policy`, `validate-security-baseline`, `validate-agent-orchestration`, `validate-release-governance`, `validate-release-provenance`, `doctor`) and writes log/report artifacts. | `pwsh -File scripts/runtime/healthcheck.ps1 -StrictExtras` |
 | `runtime/self-heal.ps1` | Runs controlled repair flow (bootstrap + optional templates) and validates final state via healthcheck. | `pwsh -File scripts/runtime/self-heal.ps1 -Mirror -StrictExtras` |
 | `runtime/run-agent-pipeline.ps1` | Executes default multi-agent pipeline with blocked-command, allowed-path, and budget guardrails; writes run artifacts under `.temp/runs/<traceId>/`. | `pwsh -File scripts/runtime/run-agent-pipeline.ps1 -RequestText "Implement and validate change"` |
 | `runtime/clean-codex-runtime.ps1` | Cleans local Codex runtime garbage (`tmp`, `vendor_imports`) and prunes `log`/`sessions` files older than retention using `LastWriteTime` (default 30 days). | `pwsh -File scripts/runtime/clean-codex-runtime.ps1 -IncludeSessions -SessionRetentionDays 30 -LogRetentionDays 30 -Apply` |
@@ -215,8 +223,24 @@ pwsh -File .\scripts\validation\validate-policy.ps1
 # validate multi-agent contracts and pipeline integrity
 pwsh -File .\scripts\validation\validate-agent-orchestration.ps1
 
+# validate routing catalog coverage against golden fixtures
+pwsh -File .\scripts\validation\validate-routing-coverage.ps1
+
+# validate agent, skill, pipeline, and eval alignment
+pwsh -File .\scripts\validation\validate-agent-skill-alignment.ps1
+
 # validate release governance contracts
 pwsh -File .\scripts\validation\validate-release-governance.ps1
+
+# validate security baseline (paths + secret-like content patterns)
+pwsh -File .\scripts\validation\validate-security-baseline.ps1
+
+# validate release provenance baseline and evidence traceability
+pwsh -File .\scripts\validation\validate-release-provenance.ps1
+
+# enforce blocking mode explicitly (optional)
+pwsh -File .\scripts\validation\validate-security-baseline.ps1 -WarningOnly:$false
+pwsh -File .\scripts\validation\validate-release-provenance.ps1 -WarningOnly:$false
 
 # validate branch protection drift from baseline
 pwsh -File .\scripts\governance\set-branch-protection.ps1

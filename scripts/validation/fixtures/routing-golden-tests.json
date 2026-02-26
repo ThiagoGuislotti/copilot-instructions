@@ -48,6 +48,92 @@
       ]
     },
     {
+      "id": "github-meta-route",
+      "request": "Update .github instruction prompt template for repository guidance.",
+      "expected_route_ids": [
+        "github-meta"
+      ],
+      "expected_selected_paths": [
+        "instructions/copilot-instruction-creation.instructions.md",
+        "instructions/prompt-templates.instructions.md"
+      ]
+    },
+    {
+      "id": "changelog-route",
+      "request": "Generate changelog release notes with semver versioning.",
+      "expected_route_ids": [
+        "changelog"
+      ],
+      "expected_selected_paths": [
+        "instructions/feedback-changelog.instructions.md"
+      ]
+    },
+    {
+      "id": "database-orm-route",
+      "request": "Design database migration using ef core dbcontext and repository.",
+      "expected_route_ids": [
+        "database-orm"
+      ],
+      "expected_selected_paths": [
+        "instructions/database.instructions.md",
+        "instructions/orm.instructions.md"
+      ]
+    },
+    {
+      "id": "devops-containers-route",
+      "request": "Create dockerfile kubernetes helm and pipeline workflow baseline.",
+      "expected_route_ids": [
+        "devops-containers"
+      ],
+      "expected_selected_paths": [
+        "instructions/docker.instructions.md",
+        "instructions/k8s.instructions.md",
+        "instructions/ci-cd-devops.instructions.md"
+      ]
+    },
+    {
+      "id": "dotnet-solution-build-route",
+      "request": "Run dotnet build dotnet test for solution sln with net8 and net9 target frameworks.",
+      "expected_route_ids": [
+        "dotnet-solution-build"
+      ],
+      "expected_selected_paths": [
+        "instructions/dotnet-csharp.instructions.md"
+      ]
+    },
+    {
+      "id": "dotnet-integration-e2e-route",
+      "request": "Create integration test with testcontainers and playwright for end-to-end validation.",
+      "expected_route_ids": [
+        "dotnet-testing-integration-e2e"
+      ],
+      "expected_selected_paths": [
+        "instructions/e2e-testing.instructions.md",
+        "instructions/backend.instructions.md"
+      ]
+    },
+    {
+      "id": "quality-static-analysis-route",
+      "request": "Run sonarqube static analysis lint and enforce quality gate.",
+      "expected_route_ids": [
+        "quality-static-analysis"
+      ],
+      "expected_selected_paths": [
+        "instructions/static-analysis-sonarqube.instructions.md"
+      ]
+    },
+    {
+      "id": "rust-route",
+      "request": "Run cargo test and improve rust crate organization.",
+      "expected_route_ids": [
+        "rust"
+      ],
+      "expected_selected_paths": [
+        "instructions/rust-code-organization.instructions.md",
+        "instructions/rust-testing.instructions.md"
+      ]
+    },
+    {
       "id": "docs-nuget-route",
       "request": "Create a README for NuGet package installation with quick start and API reference.",
       "expected_route_ids": [

@@ -35,8 +35,10 @@ At minimum:
 1. Run baseline validations:
    - `pwsh -File .\scripts\validation\validate-instructions.ps1`
    - `pwsh -File .\scripts\validation\validate-policy.ps1`
+   - `pwsh -File .\scripts\validation\validate-security-baseline.ps1`
    - `pwsh -File .\scripts\validation\validate-agent-orchestration.ps1`
    - `pwsh -File .\scripts\validation\validate-release-governance.ps1`
+   - `pwsh -File .\scripts\validation\validate-release-provenance.ps1`
 2. Confirm branch protection drift is zero:
    - `pwsh -File .\scripts\governance\set-branch-protection.ps1`
 3. Update `CHANGELOG.md` with semantic version entry `[X.Y.Z] - YYYY-MM-DD`.

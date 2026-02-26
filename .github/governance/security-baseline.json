@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "requiredFiles": [
+    "CODEOWNERS",
+    "CHANGELOG.md",
+    ".github/AGENTS.md",
+    ".github/copilot-instructions.md",
+    ".github/policies/instruction-system.policy.json",
+    ".githooks/pre-commit",
+    ".githooks/post-commit",
+    ".githooks/post-merge"
+  ],
+  "requiredDirectories": [
+    ".github/policies",
+    ".github/governance",
+    "scripts/validation"
+  ],
+  "scanExtensions": [
+    ".md",
+    ".txt",
+    ".json",
+    ".jsonc",
+    ".yml",
+    ".yaml",
+    ".toml",
+    ".ps1",
+    ".psm1",
+    ".cs",
+    ".props",
+    ".targets",
+    ".xml",
+    ".ts",
+    ".tsx",
+    ".js",
+    ".jsx",
+    ".cmd",
+    ".bat",
+    ".sh"
+  ],
+  "excludedPathGlobs": [
+    ".git/**",
+    ".temp/**",
+    "**/bin/**",
+    "**/obj/**",
+    "**/.vs/**",
+    "**/.vscode-test/**",
+    "**/*.sln"
+  ],
+  "forbiddenPathGlobs": [
+    "**/*.pfx",
+    "**/*.p12",
+    "**/*.key",
+    "**/*.pem",
+    "**/id_rsa",
+    "**/id_ed25519"
+  ],
+  "forbiddenContentPatterns": [
+    {
+      "id": "github-classic-pat",
+      "pattern": "ghp_[A-Za-z0-9]{36}",
+      "severity": "failure"
+    },
+    {
+      "id": "github-fine-grained-pat",
+      "pattern": "github_pat_[A-Za-z0-9_]{80,}",
+      "severity": "failure"
+    },
+    {
+      "id": "aws-access-key-id",
+      "pattern": "AKIA[0-9A-Z]{16}",
+      "severity": "failure"
+    },
+    {
+      "id": "private-key-block",
+      "pattern": "-----BEGIN (?:RSA|EC|DSA|OPENSSH|PRIVATE) KEY-----",
+      "severity": "failure"
+    },
+    {
+      "id": "hardcoded-password-assignment",
+      "pattern": "(?i)(password|passwd|pwd)\\s*[:=]\\s*[\"'](?!\\*{3}|changeme|password|example|your-password)[^\"']{8,}[\"']",
+      "severity": "warning"
+    },
+    {
+      "id": "inline-bearer-token",
+      "pattern": "(?i)authorization\\s*[:=]\\s*[\"']?bearer\\s+[A-Za-z0-9\\-_.]{20,}",
+      "severity": "warning"
+    }
+  ],
+  "allowedContentPatterns": [
+    "(?i)example-token",
+    "(?i)example-password",
+    "(?i)sample-secret"
+  ]
+}

@@ -15,9 +15,13 @@
     - scripts/validation/validate-dotnet-standards.ps1
     - scripts/validation/validate-architecture-boundaries.ps1
     - scripts/validation/validate-instruction-metadata.ps1
+    - scripts/validation/validate-routing-coverage.ps1
+    - scripts/validation/validate-agent-skill-alignment.ps1
     - scripts/validation/validate-policy.ps1
+    - scripts/validation/validate-security-baseline.ps1
     - scripts/validation/validate-agent-orchestration.ps1
     - scripts/validation/validate-release-governance.ps1
+    - scripts/validation/validate-release-provenance.ps1
     - scripts/runtime/doctor.ps1
 
     Optional:
@@ -278,9 +282,13 @@ $validatePowershellStandardsScript = Join-Path $resolvedRepoRoot 'scripts/valida
 $validateDotnetStandardsScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-dotnet-standards.ps1'
 $validateArchitectureBoundariesScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-architecture-boundaries.ps1'
 $validateInstructionMetadataScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-instruction-metadata.ps1'
+$validateRoutingCoverageScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-routing-coverage.ps1'
+$validateAgentSkillAlignmentScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-agent-skill-alignment.ps1'
 $validatePolicyScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-policy.ps1'
+$validateSecurityBaselineScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-security-baseline.ps1'
 $validateAgentOrchestrationScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-agent-orchestration.ps1'
 $validateReleaseGovernanceScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-release-governance.ps1'
+$validateReleaseProvenanceScript = Join-Path $resolvedRepoRoot 'scripts/validation/validate-release-provenance.ps1'
 $doctorScript = Join-Path $resolvedRepoRoot 'scripts/runtime/doctor.ps1'
 
 if ($SyncRuntime) {
@@ -302,9 +310,19 @@ $checks.Add((Invoke-ScriptCheck -Name 'validate-powershell-standards' -ScriptPat
 $checks.Add((Invoke-ScriptCheck -Name 'validate-dotnet-standards' -ScriptPath $validateDotnetStandardsScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
 $checks.Add((Invoke-ScriptCheck -Name 'validate-architecture-boundaries' -ScriptPath $validateArchitectureBoundariesScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
 $checks.Add((Invoke-ScriptCheck -Name 'validate-instruction-metadata' -ScriptPath $validateInstructionMetadataScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
+$checks.Add((Invoke-ScriptCheck -Name 'validate-routing-coverage' -ScriptPath $validateRoutingCoverageScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
+$checks.Add((Invoke-ScriptCheck -Name 'validate-agent-skill-alignment' -ScriptPath $validateAgentSkillAlignmentScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
 $checks.Add((Invoke-ScriptCheck -Name 'validate-policy' -ScriptPath $validatePolicyScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
+$checks.Add((Invoke-ScriptCheck -Name 'validate-security-baseline' -ScriptPath $validateSecurityBaselineScript -Arguments @{
+    RepoRoot = $resolvedRepoRoot
+    WarningOnly = $true
+})) | Out-Null
 $checks.Add((Invoke-ScriptCheck -Name 'validate-agent-orchestration' -ScriptPath $validateAgentOrchestrationScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
 $checks.Add((Invoke-ScriptCheck -Name 'validate-release-governance' -ScriptPath $validateReleaseGovernanceScript -Arguments @{ RepoRoot = $resolvedRepoRoot })) | Out-Null
+$checks.Add((Invoke-ScriptCheck -Name 'validate-release-provenance' -ScriptPath $validateReleaseProvenanceScript -Arguments @{
+    RepoRoot = $resolvedRepoRoot
+    WarningOnly = $true
+})) | Out-Null
 
 $doctorArgs = @{
     RepoRoot = $resolvedRepoRoot

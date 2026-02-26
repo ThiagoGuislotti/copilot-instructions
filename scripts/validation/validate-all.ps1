@@ -9,13 +9,17 @@
     Included checks:
     - validate-instructions
     - validate-policy
+    - validate-security-baseline
     - validate-agent-orchestration
-    - validate-release-governance
+    - validate-agent-skill-alignment
+    - validate-routing-coverage
     - validate-readme-standards
     - validate-powershell-standards
     - validate-dotnet-standards
     - validate-architecture-boundaries
     - validate-instruction-metadata
+    - validate-release-governance
+    - validate-release-provenance
 
     Exit code:
     - 0 when every check passes
@@ -148,7 +152,7 @@ function Invoke-ValidationScript {
     else {
         Write-Output ("[RUN] {0}" -f $Name)
         try {
-            & $resolvedScriptPath @Arguments
+            & $resolvedScriptPath @Arguments | Out-Host
             $exitCode = if ($null -eq $LASTEXITCODE) { 0 } else { [int] $LASTEXITCODE }
             if ($exitCode -eq 0) {
                 $status = 'passed'
@@ -197,14 +201,29 @@ $checkDefinitions.Add([pscustomobject]@{
 }) | Out-Null
 
 $checkDefinitions.Add([pscustomobject]@{
+    name = 'validate-security-baseline'
+    script = 'scripts/validation/validate-security-baseline.ps1'
+    args = @{
+        RepoRoot = $resolvedRepoRoot
+        WarningOnly = $true
+    }
+}) | Out-Null
+
+$checkDefinitions.Add([pscustomobject]@{
     name = 'validate-agent-orchestration'
     script = 'scripts/validation/validate-agent-orchestration.ps1'
     args = @{ RepoRoot = $resolvedRepoRoot }
 }) | Out-Null
 
 $checkDefinitions.Add([pscustomobject]@{
-    name = 'validate-release-governance'
-    script = 'scripts/validation/validate-release-governance.ps1'
+    name = 'validate-agent-skill-alignment'
+    script = 'scripts/validation/validate-agent-skill-alignment.ps1'
+    args = @{ RepoRoot = $resolvedRepoRoot }
+}) | Out-Null
+
+$checkDefinitions.Add([pscustomobject]@{
+    name = 'validate-routing-coverage'
+    script = 'scripts/validation/validate-routing-coverage.ps1'
     args = @{ RepoRoot = $resolvedRepoRoot }
 }) | Out-Null
 
@@ -247,6 +266,21 @@ $checkDefinitions.Add([pscustomobject]@{
     name = 'validate-instruction-metadata'
     script = 'scripts/validation/validate-instruction-metadata.ps1'
     args = @{ RepoRoot = $resolvedRepoRoot }
+}) | Out-Null
+
+$checkDefinitions.Add([pscustomobject]@{
+    name = 'validate-release-governance'
+    script = 'scripts/validation/validate-release-governance.ps1'
+    args = @{ RepoRoot = $resolvedRepoRoot }
+}) | Out-Null
+
+$checkDefinitions.Add([pscustomobject]@{
+    name = 'validate-release-provenance'
+    script = 'scripts/validation/validate-release-provenance.ps1'
+    args = @{
+        RepoRoot = $resolvedRepoRoot
+        WarningOnly = $true
+    }
 }) | Out-Null
 
 $results = New-Object System.Collections.Generic.List[object]
