@@ -28,6 +28,21 @@ resolve_ps_cmd() {
   return 0
 }
 
+# Runs a PowerShell script with cross-platform flags.
+run_ps_file() {
+  cmd="$1"
+  script_path="$2"
+  shift 2
+
+  if [ "$cmd" = "powershell" ]; then
+    "$cmd" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$script_path" "$@"
+    return $?
+  fi
+
+  "$cmd" -NoLogo -NoProfile -File "$script_path" "$@"
+  return $?
+}
+
 # Keep local runtime folders aligned with repo source-of-truth.
 run_sync() {
   cmd="$1"
@@ -39,7 +54,7 @@ run_sync() {
     sync_args="-Mirror"
   fi
 
-  if ! "$cmd" -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/runtime/bootstrap.ps1 $sync_args; then
+  if ! run_ps_file "$cmd" ./scripts/runtime/bootstrap.ps1 $sync_args; then
     echo "[post-commit] Warning: sync failed." >&2
     return 0
   fi
@@ -71,7 +86,7 @@ run_runtime_cleanup() {
     cleanup_args="$cleanup_args -IncludeSessions -SessionRetentionDays $session_retention_days"
   fi
 
-  if ! "$cmd" -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/runtime/clean-codex-runtime.ps1 $cleanup_args; then
+  if ! run_ps_file "$cmd" ./scripts/runtime/clean-codex-runtime.ps1 $cleanup_args; then
     echo "[post-commit] Warning: runtime cleanup failed." >&2
     return 0
   fi
@@ -111,12 +126,12 @@ run_optional_mcp_apply() {
   echo "[post-commit] MCP manifest changed. Applying mcp_servers to $target_config ..."
 
   if [ "${CODEX_BACKUP_MCP_CONFIG:-1}" = "1" ]; then
-    if ! "$cmd" -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./.codex/scripts/sync-mcp-to-codex-config.ps1 -ManifestPath ./.codex/mcp/servers.manifest.json -TargetConfigPath "$target_config" -CreateBackup; then
+    if ! run_ps_file "$cmd" ./.codex/scripts/sync-mcp-to-codex-config.ps1 -ManifestPath ./.codex/mcp/servers.manifest.json -TargetConfigPath "$target_config" -CreateBackup; then
       echo "[post-commit] Warning: MCP apply failed." >&2
       return 0
     fi
   else
-    if ! "$cmd" -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./.codex/scripts/sync-mcp-to-codex-config.ps1 -ManifestPath ./.codex/mcp/servers.manifest.json -TargetConfigPath "$target_config"; then
+    if ! run_ps_file "$cmd" ./.codex/scripts/sync-mcp-to-codex-config.ps1 -ManifestPath ./.codex/mcp/servers.manifest.json -TargetConfigPath "$target_config"; then
       echo "[post-commit] Warning: MCP apply failed." >&2
       return 0
     fi

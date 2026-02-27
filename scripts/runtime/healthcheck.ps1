@@ -21,10 +21,10 @@
     Optional repository root. If omitted, auto-detects a root containing .github and .codex.
 
 .PARAMETER TargetGithubPath
-    Runtime target path for .github assets. Defaults to $env:USERPROFILE\.github.
+    Runtime target path for .github assets. Defaults to <user-home>/.github.
 
 .PARAMETER TargetCodexPath
-    Runtime target path for .codex assets. Defaults to $env:USERPROFILE\.codex.
+    Runtime target path for .codex assets. Defaults to <user-home>/.codex.
 
 .PARAMETER SyncRuntime
     Runs bootstrap sync before health checks.
@@ -63,14 +63,14 @@
     pwsh -File scripts/runtime/healthcheck.ps1 -WarningOnly:$false -TreatRuntimeDriftAsWarning:$false
 
 .NOTES
-    Version: 2.0
+    Version: 2.1
     Requirements: PowerShell 7+.
 #>
 
 param(
     [string] $RepoRoot,
-    [string] $TargetGithubPath = "$env:USERPROFILE\.github",
-    [string] $TargetCodexPath = "$env:USERPROFILE\.codex",
+    [string] $TargetGithubPath,
+    [string] $TargetCodexPath,
     [switch] $SyncRuntime,
     [switch] $Mirror,
     [switch] $StrictExtras,
@@ -94,6 +94,24 @@ if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:LogFilePath = $null
 $script:IsVerboseEnabled = [bool] $Verbose
+
+# Resolves the current user home directory with cross-platform fallbacks.
+function Resolve-UserHome {
+    if (-not [string]::IsNullOrWhiteSpace($env:USERPROFILE)) {
+        return $env:USERPROFILE
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($HOME)) {
+        return $HOME
+    }
+
+    $profileFolder = [Environment]::GetFolderPath([Environment+SpecialFolder]::UserProfile)
+    if (-not [string]::IsNullOrWhiteSpace($profileFolder)) {
+        return $profileFolder
+    }
+
+    throw 'Could not resolve user home path. Set USERPROFILE or HOME.'
+}
 
 # Writes verbose diagnostics.
 function Write-VerboseLog {
@@ -273,6 +291,14 @@ function Invoke-ScriptCheck {
 $resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
 Set-Location -Path $resolvedRepoRoot
 
+$userHome = Resolve-UserHome
+if ([string]::IsNullOrWhiteSpace($TargetGithubPath)) {
+    $TargetGithubPath = Join-Path $userHome '.github'
+}
+if ([string]::IsNullOrWhiteSpace($TargetCodexPath)) {
+    $TargetCodexPath = Join-Path $userHome '.codex'
+}
+
 $resolvedOutputPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $OutputPath
 $resolvedTargetGithubPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $TargetGithubPath
 $resolvedTargetCodexPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $TargetCodexPath
@@ -320,7 +346,10 @@ if ($SyncRuntime) {
         $bootstrapArgs.Mirror = $true
     }
 
-    $checks.Add((Invoke-ScriptCheck -Name 'runtime-bootstrap' -ScriptPath $bootstrapScript -Arguments $bootstrapArgs -TreatFailureAsWarning:$WarningOnly)) | Out-Null
+    $bootstrapCheck = @(Invoke-ScriptCheck -Name 'runtime-bootstrap' -ScriptPath $bootstrapScript -Arguments $bootstrapArgs -TreatFailureAsWarning:$WarningOnly) | Select-Object -Last 1
+    if ($null -ne $bootstrapCheck) {
+        $checks.Add($bootstrapCheck) | Out-Null
+    }
 }
 
 $validateAllArgs = @{
@@ -328,7 +357,10 @@ $validateAllArgs = @{
     ValidationProfile = $ValidationProfile
     WarningOnly = $WarningOnly
 }
-$checks.Add((Invoke-ScriptCheck -Name 'validate-all' -ScriptPath $validateAllScript -Arguments $validateAllArgs -TreatFailureAsWarning:$WarningOnly)) | Out-Null
+$validateAllCheck = @(Invoke-ScriptCheck -Name 'validate-all' -ScriptPath $validateAllScript -Arguments $validateAllArgs -TreatFailureAsWarning:$WarningOnly) | Select-Object -Last 1
+if ($null -ne $validateAllCheck) {
+    $checks.Add($validateAllCheck) | Out-Null
+}
 
 $doctorArgs = @{
     RepoRoot = $resolvedRepoRoot
@@ -340,7 +372,10 @@ if ($StrictExtras) {
 }
 
 $doctorAsWarning = [bool] ($WarningOnly -or $TreatRuntimeDriftAsWarning)
-$checks.Add((Invoke-ScriptCheck -Name 'runtime-doctor' -ScriptPath $doctorScript -Arguments $doctorArgs -TreatFailureAsWarning:$doctorAsWarning)) | Out-Null
+$doctorCheck = @(Invoke-ScriptCheck -Name 'runtime-doctor' -ScriptPath $doctorScript -Arguments $doctorArgs -TreatFailureAsWarning:$doctorAsWarning) | Select-Object -Last 1
+if ($null -ne $doctorCheck) {
+    $checks.Add($doctorCheck) | Out-Null
+}
 
 $passedChecks = @($checks | Where-Object { $_.status -eq 'passed' }).Count
 $warningChecks = @($checks | Where-Object { $_.status -eq 'warning' }).Count

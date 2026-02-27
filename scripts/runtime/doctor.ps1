@@ -23,10 +23,10 @@
     Optional repository root. If omitted, detects from script location and current directory.
 
 .PARAMETER TargetGithubPath
-    Runtime target path for .github assets. Defaults to $env:USERPROFILE\.github.
+    Runtime target path for .github assets. Defaults to <user-home>/.github.
 
 .PARAMETER TargetCodexPath
-    Runtime target path for .codex assets. Defaults to $env:USERPROFILE\.codex.
+    Runtime target path for .codex assets. Defaults to <user-home>/.codex.
 
 .PARAMETER Detailed
     Prints file-level entries for missing, extra, and drifted files.
@@ -47,14 +47,14 @@
     pwsh -File scripts/runtime/doctor.ps1 -SyncOnDrift
 
 .NOTES
-    Version: 1.1
+    Version: 1.2
     Requirements: PowerShell 7+.
 #>
 
 param(
     [string] $RepoRoot,
-    [string] $TargetGithubPath = "$env:USERPROFILE\.github",
-    [string] $TargetCodexPath = "$env:USERPROFILE\.codex",
+    [string] $TargetGithubPath,
+    [string] $TargetCodexPath,
     [switch] $Detailed,
     [switch] $SyncOnDrift,
     [switch] $StrictExtras
@@ -70,6 +70,24 @@ if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
     . $script:ConsoleStylePath
 }
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
+
+# Resolves the current user home directory with cross-platform fallbacks.
+function Resolve-UserHome {
+    if (-not [string]::IsNullOrWhiteSpace($env:USERPROFILE)) {
+        return $env:USERPROFILE
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($HOME)) {
+        return $HOME
+    }
+
+    $profileFolder = [Environment]::GetFolderPath([Environment+SpecialFolder]::UserProfile)
+    if (-not [string]::IsNullOrWhiteSpace($profileFolder)) {
+        return $profileFolder
+    }
+
+    throw 'Could not resolve user home path. Set USERPROFILE or HOME.'
+}
 
 # Resolves the repository root using explicit and fallback location candidates.
 function Resolve-RepositoryRoot {
@@ -287,6 +305,15 @@ function Test-HasExtraRuntimeFile {
 
 $resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
 Set-Location -Path $resolvedRepoRoot
+
+$userHome = Resolve-UserHome
+if ([string]::IsNullOrWhiteSpace($TargetGithubPath)) {
+    $TargetGithubPath = Join-Path $userHome '.github'
+}
+if ([string]::IsNullOrWhiteSpace($TargetCodexPath)) {
+    $TargetCodexPath = Join-Path $userHome '.codex'
+}
+
 Write-StyledOutput 'Runtime doctor report'
 Write-StyledOutput ("  repo root: {0}" -f $resolvedRepoRoot)
 

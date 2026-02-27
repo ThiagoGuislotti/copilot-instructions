@@ -64,6 +64,12 @@ git clone https://github.com/ThiagoGuislotti/copilot-instructions.git
 cd copilot-instructions
 ```
 
+### Cross-Platform Prerequisites
+
+- PowerShell 7+ (`pwsh`) installed on Windows, Linux, or macOS.
+- Git installed and available in `PATH`.
+- Optional on Linux/macOS: ensure `chmod` is available (used by hook setup).
+
 ### Repository Layout
 
 ```text
@@ -78,13 +84,13 @@ copilot-instructions/
 ### Bootstrap Local Folders
 
 ```powershell
-pwsh -File .\scripts\runtime\bootstrap.ps1
+pwsh -File ./scripts/runtime/bootstrap.ps1
 
 # optional: also apply shared MCP servers to ~/.codex/config.toml
-pwsh -File .\scripts\runtime\bootstrap.ps1 -ApplyMcpConfig -BackupConfig
+pwsh -File ./scripts/runtime/bootstrap.ps1 -ApplyMcpConfig -BackupConfig
 
 # enterprise healthcheck (instructions + policy + agent orchestration + release governance + runtime doctor)
-pwsh -File .\scripts\runtime\healthcheck.ps1 -StrictExtras
+pwsh -File ./scripts/runtime/healthcheck.ps1 -StrictExtras
 ```
 
 This syncs versioned `.github/` and `.codex/` assets into your local runtime paths (`~/.github` and `~/.codex`).
@@ -92,18 +98,18 @@ This syncs versioned `.github/` and `.codex/` assets into your local runtime pat
 To apply active VS Code workspace files from templates:
 
 ```powershell
-pwsh -File .\scripts\runtime\apply-vscode-templates.ps1 -Force
+pwsh -File ./scripts/runtime/apply-vscode-templates.ps1 -Force
 ```
 
 ---
 
 ## Parameterization & Privacy
 
-To avoid exposing machine-specific information (for example `C:\Users\<name>\...`) in docs, logs, screenshots, or commits, prefer parameterized paths and environment variables.
+To avoid exposing machine-specific information (for example `<HOME_PATH>/...`) in docs, logs, screenshots, or commits, prefer parameterized paths and environment variables.
 
 ### Rules
 
-- Use relative repo paths in documentation and examples (`.\scripts\...`) whenever possible.
+- Use relative repo paths in documentation and examples (`./scripts/...`) whenever possible.
 - Use environment variables for runtime locations: `$env:USERPROFILE`, `$HOME`, `$env:REPO_ROOT`.
 - Use placeholders in shared docs: `<REPO_ROOT>`, `<GITHUB_RUNTIME_PATH>`, `<CODEX_RUNTIME_PATH>`.
 - Do not hardcode personal absolute paths in tracked files, prompts, or snippets.
@@ -116,14 +122,45 @@ if ([string]::IsNullOrWhiteSpace($RepoRoot)) {
     $RepoRoot = (Get-Location).Path
 }
 
-$GithubRuntimePath = Join-Path $env:USERPROFILE '.github'
-$CodexRuntimePath = Join-Path $env:USERPROFILE '.codex'
+function Resolve-UserHome {
+    if (-not [string]::IsNullOrWhiteSpace($env:USERPROFILE)) {
+        return $env:USERPROFILE
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($HOME)) {
+        return $HOME
+    }
+
+    $folder = [Environment]::GetFolderPath([Environment+SpecialFolder]::UserProfile)
+    if (-not [string]::IsNullOrWhiteSpace($folder)) {
+        return $folder
+    }
+
+    throw 'Could not resolve user home path. Set USERPROFILE or HOME.'
+}
+
+$UserHome = Resolve-UserHome
+$GithubRuntimePath = Join-Path $UserHome '.github'
+$CodexRuntimePath = Join-Path $UserHome '.codex'
 
 pwsh -File (Join-Path $RepoRoot 'scripts/runtime/bootstrap.ps1') `
     -RepoRoot $RepoRoot `
     -TargetGithubPath $GithubRuntimePath `
     -TargetCodexPath $CodexRuntimePath `
     -Mirror
+```
+
+### Bash Example (Linux/macOS)
+
+```bash
+export REPO_ROOT="${REPO_ROOT:-$(pwd)}"
+export HOME_DIR="${HOME:-$USERPROFILE}"
+
+pwsh -File "$REPO_ROOT/scripts/runtime/bootstrap.ps1" \
+  -RepoRoot "$REPO_ROOT" \
+  -TargetGithubPath "$HOME_DIR/.github" \
+  -TargetCodexPath "$HOME_DIR/.codex" \
+  -Mirror
 ```
 
 ### Optional Local Override (Not Committed)
@@ -143,7 +180,7 @@ Local hooks are managed by `core.hooksPath=.githooks`.
 ### Setup
 
 ```powershell
-pwsh -File .\scripts\git-hooks\setup-git-hooks.ps1
+pwsh -File ./scripts/git-hooks/setup-git-hooks.ps1
 ```
 
 ### pre-commit
@@ -183,61 +220,61 @@ Environment variables:
 
 ```powershell
 # run end-to-end checks and generate .temp/healthcheck-report.json + logs
-pwsh -File .\scripts\runtime\healthcheck.ps1 -StrictExtras
+pwsh -File ./scripts/runtime/healthcheck.ps1 -StrictExtras
 
 # run full validation suite (instructions, policies, orchestration, docs standards)
-pwsh -File .\scripts\validation\validate-all.ps1
+pwsh -File ./scripts/validation/validate-all.ps1
 
 # run full suite with release profile
-pwsh -File .\scripts\validation\validate-all.ps1 -ValidationProfile release
+pwsh -File ./scripts/validation/validate-all.ps1 -ValidationProfile release
 
 # validate routing catalog coverage against golden fixtures
-pwsh -File .\scripts\validation\validate-routing-coverage.ps1
+pwsh -File ./scripts/validation/validate-routing-coverage.ps1
 
 # validate alignment between agents, skills, pipeline and evals
-pwsh -File .\scripts\validation\validate-agent-skill-alignment.ps1
+pwsh -File ./scripts/validation/validate-agent-skill-alignment.ps1
 
 # validate agent permission matrix
-pwsh -File .\scripts\validation\validate-agent-permissions.ps1
+pwsh -File ./scripts/validation/validate-agent-permissions.ps1
 
 # validate release governance contracts (CHANGELOG + CODEOWNERS + baseline)
-pwsh -File .\scripts\validation\validate-release-governance.ps1
+pwsh -File ./scripts/validation/validate-release-governance.ps1
 
 # validate security baseline (sensitive paths + secret-like patterns)
-pwsh -File .\scripts\validation\validate-security-baseline.ps1
+pwsh -File ./scripts/validation/validate-security-baseline.ps1
 
 # validate supply-chain baseline and generate SBOM artifact
-pwsh -File .\scripts\validation\validate-supply-chain.ps1
+pwsh -File ./scripts/validation/validate-supply-chain.ps1
 
 # validate analyzer warning baseline
-pwsh -File .\scripts\validation\validate-warning-baseline.ps1
+pwsh -File ./scripts/validation/validate-warning-baseline.ps1
 
 # validate release provenance baseline (checks + evidence + git traceability)
-pwsh -File .\scripts\validation\validate-release-provenance.ps1
+pwsh -File ./scripts/validation/validate-release-provenance.ps1
 
 # validate audit ledger hash chain
-pwsh -File .\scripts\validation\validate-audit-ledger.ps1
+pwsh -File ./scripts/validation/validate-audit-ledger.ps1
 
 # validate multi-agent contracts and orchestration integrity
-pwsh -File .\scripts\validation\validate-agent-orchestration.ps1
+pwsh -File ./scripts/validation/validate-agent-orchestration.ps1
 
 # execute default multi-agent pipeline and generate run artifacts
-pwsh -File .\scripts\runtime\run-agent-pipeline.ps1 -RequestText "Implement and validate request"
+pwsh -File ./scripts/runtime/run-agent-pipeline.ps1 -RequestText "Implement and validate request"
 
 # validate branch protection drift against baseline (no mutation)
-pwsh -File .\scripts\governance\set-branch-protection.ps1
+pwsh -File ./scripts/governance/set-branch-protection.ps1
 
 # apply branch protection baseline (opt-in remote mutation)
-pwsh -File .\scripts\governance\set-branch-protection.ps1 -Apply
+pwsh -File ./scripts/governance/set-branch-protection.ps1 -Apply
 
 # repair runtime and validate final state
-pwsh -File .\scripts\runtime\self-heal.ps1 -Mirror -StrictExtras
+pwsh -File ./scripts/runtime/self-heal.ps1 -Mirror -StrictExtras
 
 # clean local Codex runtime garbage and prune sessions by retention window
-pwsh -File .\scripts\runtime\clean-codex-runtime.ps1 -IncludeSessions -SessionRetentionDays 30 -LogRetentionDays 30 -Apply
+pwsh -File ./scripts/runtime/clean-codex-runtime.ps1 -IncludeSessions -SessionRetentionDays 30 -LogRetentionDays 30 -Apply
 
 # export consolidated audit report with git metadata and policy inventory
-pwsh -File .\scripts\validation\export-audit-report.ps1 -ValidationProfile release -StrictExtras
+pwsh -File ./scripts/validation/export-audit-report.ps1 -ValidationProfile release -StrictExtras
 ```
 
 Audit logs are generated under `.temp/logs/`.

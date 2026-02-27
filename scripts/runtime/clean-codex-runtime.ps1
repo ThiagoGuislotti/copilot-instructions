@@ -13,7 +13,7 @@
     Default behavior is preview-only. Use -Apply to perform deletions.
 
 .PARAMETER CodexHome
-    Local Codex home path. Defaults to $env:USERPROFILE\.codex.
+    Local Codex home path. Defaults to <user-home>/.codex.
 
 .PARAMETER IncludeSessions
     Includes session-file cleanup based on SessionRetentionDays.
@@ -42,12 +42,12 @@
     pwsh -File scripts/runtime/clean-codex-runtime.ps1 -IncludeSessions -SessionRetentionDays 30 -LogRetentionDays 30 -Apply
 
 .NOTES
-    Version: 1.2
+    Version: 1.3
     Requirements: PowerShell 7+.
 #>
 
 param(
-    [string] $CodexHome = "$env:USERPROFILE\.codex",
+    [string] $CodexHome,
     [switch] $IncludeSessions,
     [ValidateRange(1, 3650)] [int] $SessionRetentionDays = 30,
     [ValidateRange(1, 3650)] [int] $LogRetentionDays = 30,
@@ -68,6 +68,24 @@ $script:IsDetailedOutputEnabled = [bool] $DetailedOutput
 $script:RemovedEntries = 0
 $script:FailedEntries = 0
 $script:ReclaimedBytes = 0
+
+# Resolves the current user home directory with cross-platform fallbacks.
+function Resolve-UserHome {
+    if (-not [string]::IsNullOrWhiteSpace($env:USERPROFILE)) {
+        return $env:USERPROFILE
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($HOME)) {
+        return $HOME
+    }
+
+    $profileFolder = [Environment]::GetFolderPath([Environment+SpecialFolder]::UserProfile)
+    if (-not [string]::IsNullOrWhiteSpace($profileFolder)) {
+        return $profileFolder
+    }
+
+    throw 'Could not resolve user home path. Set USERPROFILE or HOME.'
+}
 
 # Writes diagnostics when detailed mode is enabled.
 function Write-DetailedLog {
@@ -244,6 +262,11 @@ function Invoke-EmptyDirectoryRemoval {
             Invoke-PathRemoval -Path $directory.FullName
         }
     }
+}
+
+if ([string]::IsNullOrWhiteSpace($CodexHome)) {
+    $userHome = Resolve-UserHome
+    $CodexHome = Join-Path $userHome '.codex'
 }
 
 $resolvedCodexHome = Resolve-CodexHomePath -RequestedPath $CodexHome

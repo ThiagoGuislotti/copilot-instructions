@@ -4,11 +4,11 @@
 
 .DESCRIPTION
     Detects the repository root and copies shared assets to:
-    - $env:USERPROFILE\.github
-    - $env:USERPROFILE\.codex\skills
-    - $env:USERPROFILE\.codex\shared-mcp
-    - $env:USERPROFILE\.codex\shared-scripts
-    - $env:USERPROFILE\.codex\shared-orchestration
+    - <user-home>/.github
+    - <user-home>/.codex/skills
+    - <user-home>/.codex/shared-mcp
+    - <user-home>/.codex/shared-scripts
+    - <user-home>/.codex/shared-orchestration
 
     When -ApplyMcpConfig is specified, applies MCP servers from the shared manifest
     into the local Codex config.toml file.
@@ -17,10 +17,10 @@
     Optional repository root. If omitted, the script detects root from the script location.
 
 .PARAMETER TargetGithubPath
-    Target path for .github runtime assets. Defaults to $env:USERPROFILE\.github.
+    Target path for .github runtime assets. Defaults to <user-home>/.github.
 
 .PARAMETER TargetCodexPath
-    Target path for .codex runtime assets. Defaults to $env:USERPROFILE\.codex.
+    Target path for .codex runtime assets. Defaults to <user-home>/.codex.
 
 .PARAMETER Mirror
     Mirrors target folders (removes files not present in source) when supported by the sync mode.
@@ -35,23 +35,23 @@
     Shows detailed sync diagnostics.
 
 .EXAMPLE
-    pwsh -File scripts/runtime/bootstrap.ps1
+    pwsh -File ./scripts/runtime/bootstrap.ps1
 
 .EXAMPLE
-    pwsh -File scripts/runtime/bootstrap.ps1 -Mirror
+    pwsh -File ./scripts/runtime/bootstrap.ps1 -Mirror
 
 .EXAMPLE
-    pwsh -File scripts/runtime/bootstrap.ps1 -ApplyMcpConfig -BackupConfig
+    pwsh -File ./scripts/runtime/bootstrap.ps1 -ApplyMcpConfig -BackupConfig
 
 .NOTES
-    Version: 1.1
-    Requirements: PowerShell 7+, robocopy (Windows, recommended).
+    Version: 1.2
+    Requirements: PowerShell 7+.
 #>
 
 param(
     [string] $RepoRoot,
-    [string] $TargetGithubPath = "$env:USERPROFILE\.github",
-    [string] $TargetCodexPath = "$env:USERPROFILE\.codex",
+    [string] $TargetGithubPath,
+    [string] $TargetCodexPath,
     [switch] $Mirror,
     [switch] $ApplyMcpConfig,
     [switch] $BackupConfig,
@@ -83,6 +83,24 @@ function Write-VerboseColor {
     if ($script:IsVerboseEnabled) {
         Write-StyledOutput ("[VERBOSE:{0}] {1}" -f $Color, $Message)
     }
+}
+
+# Resolves the current user home directory with cross-platform fallbacks.
+function Resolve-UserHome {
+    if (-not [string]::IsNullOrWhiteSpace($env:USERPROFILE)) {
+        return $env:USERPROFILE
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($HOME)) {
+        return $HOME
+    }
+
+    $profileFolder = [Environment]::GetFolderPath([Environment+SpecialFolder]::UserProfile)
+    if (-not [string]::IsNullOrWhiteSpace($profileFolder)) {
+        return $profileFolder
+    }
+
+    throw 'Could not resolve user home path. Set USERPROFILE or HOME.'
 }
 
 # Resolves the repository root using explicit and fallback location candidates.
@@ -235,6 +253,14 @@ function Invoke-McpConfigApply {
 # -------------------------------
 $resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
 Set-Location -Path $resolvedRepoRoot
+
+$userHome = Resolve-UserHome
+if ([string]::IsNullOrWhiteSpace($TargetGithubPath)) {
+    $TargetGithubPath = Join-Path $userHome '.github'
+}
+if ([string]::IsNullOrWhiteSpace($TargetCodexPath)) {
+    $TargetCodexPath = Join-Path $userHome '.codex'
+}
 
 $sourceGithub = Join-Path $resolvedRepoRoot '.github'
 $sourceCodex = Join-Path $resolvedRepoRoot '.codex'

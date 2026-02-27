@@ -16,10 +16,10 @@
     Optional repository root. If omitted, auto-detects a root containing .github and .codex.
 
 .PARAMETER TargetGithubPath
-    Runtime target path for .github assets. Defaults to $env:USERPROFILE\.github.
+    Runtime target path for .github assets. Defaults to <user-home>/.github.
 
 .PARAMETER TargetCodexPath
-    Runtime target path for .codex assets. Defaults to $env:USERPROFILE\.codex.
+    Runtime target path for .codex assets. Defaults to <user-home>/.codex.
 
 .PARAMETER SyncRuntime
     Runs bootstrap sync before health checks.
@@ -58,14 +58,14 @@
     pwsh -File scripts/validation/export-audit-report.ps1 -SyncRuntime -Mirror -StrictExtras
 
 .NOTES
-    Version: 1.0
+    Version: 1.1
     Requirements: PowerShell 7+.
 #>
 
 param(
     [string] $RepoRoot,
-    [string] $TargetGithubPath = "$env:USERPROFILE\.github",
-    [string] $TargetCodexPath = "$env:USERPROFILE\.codex",
+    [string] $TargetGithubPath,
+    [string] $TargetCodexPath,
     [switch] $SyncRuntime,
     [switch] $Mirror,
     [switch] $StrictExtras,
@@ -94,6 +94,24 @@ $script:IsVerboseEnabled = [bool] $Verbose
 # -------------------------------
 # Helpers
 # -------------------------------
+# Resolves the current user home directory with cross-platform fallbacks.
+function Resolve-UserHome {
+    if (-not [string]::IsNullOrWhiteSpace($env:USERPROFILE)) {
+        return $env:USERPROFILE
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($HOME)) {
+        return $HOME
+    }
+
+    $profileFolder = [Environment]::GetFolderPath([Environment+SpecialFolder]::UserProfile)
+    if (-not [string]::IsNullOrWhiteSpace($profileFolder)) {
+        return $profileFolder
+    }
+
+    throw 'Could not resolve user home path. Set USERPROFILE or HOME.'
+}
+
 # Writes verbose diagnostics with a logical color label.
 function Write-VerboseColor {
     param(
@@ -221,6 +239,15 @@ function Get-GitState {
 # -------------------------------
 $resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
 Set-Location -Path $resolvedRepoRoot
+
+$userHome = Resolve-UserHome
+if ([string]::IsNullOrWhiteSpace($TargetGithubPath)) {
+    $TargetGithubPath = Join-Path $userHome '.github'
+}
+if ([string]::IsNullOrWhiteSpace($TargetCodexPath)) {
+    $TargetCodexPath = Join-Path $userHome '.codex'
+}
+
 $resolvedOutputPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $OutputPath
 $resolvedHealthcheckOutputPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $HealthcheckOutputPath
 

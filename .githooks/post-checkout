@@ -9,7 +9,7 @@ echo "[post-checkout] Running validation suite..."
 
 # Validate instruction/routing/skills contracts after checkout/switch.
 if command -v pwsh >/dev/null 2>&1; then
-  if ! pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-all.ps1 -ValidationProfile dev -WarningOnly true; then
+  if ! pwsh -NoLogo -NoProfile -File ./scripts/validation/validate-all.ps1 -ValidationProfile dev -WarningOnly true; then
     echo "[post-checkout] Warning: validation command failed." >&2
   fi
   exit 0

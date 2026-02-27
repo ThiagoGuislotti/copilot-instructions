@@ -17,10 +17,10 @@
     Optional repository root. If omitted, auto-detects a root containing .github and .codex.
 
 .PARAMETER TargetGithubPath
-    Runtime target path for .github assets. Defaults to $env:USERPROFILE\.github.
+    Runtime target path for .github assets. Defaults to <user-home>/.github.
 
 .PARAMETER TargetCodexPath
-    Runtime target path for .codex assets. Defaults to $env:USERPROFILE\.codex.
+    Runtime target path for .codex assets. Defaults to <user-home>/.codex.
 
 .PARAMETER Mirror
     Uses mirror mode for bootstrap sync.
@@ -59,14 +59,14 @@
     pwsh -File scripts/runtime/self-heal.ps1 -ApplyVscodeTemplates
 
 .NOTES
-    Version: 1.0
+    Version: 1.1
     Requirements: PowerShell 7+.
 #>
 
 param(
     [string] $RepoRoot,
-    [string] $TargetGithubPath = "$env:USERPROFILE\.github",
-    [string] $TargetCodexPath = "$env:USERPROFILE\.codex",
+    [string] $TargetGithubPath,
+    [string] $TargetCodexPath,
     [switch] $Mirror,
     [switch] $ApplyMcpConfig,
     [switch] $BackupConfig,
@@ -93,6 +93,24 @@ $script:IsVerboseEnabled = [bool] $Verbose
 # -------------------------------
 # Helpers
 # -------------------------------
+# Resolves the current user home directory with cross-platform fallbacks.
+function Resolve-UserHome {
+    if (-not [string]::IsNullOrWhiteSpace($env:USERPROFILE)) {
+        return $env:USERPROFILE
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($HOME)) {
+        return $HOME
+    }
+
+    $profileFolder = [Environment]::GetFolderPath([Environment+SpecialFolder]::UserProfile)
+    if (-not [string]::IsNullOrWhiteSpace($profileFolder)) {
+        return $profileFolder
+    }
+
+    throw 'Could not resolve user home path. Set USERPROFILE or HOME.'
+}
+
 # Writes verbose diagnostics with a logical color label.
 function Write-VerboseColor {
     param(
@@ -250,6 +268,15 @@ function Invoke-ScriptStep {
 # -------------------------------
 $resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
 Set-Location -Path $resolvedRepoRoot
+
+$userHome = Resolve-UserHome
+if ([string]::IsNullOrWhiteSpace($TargetGithubPath)) {
+    $TargetGithubPath = Join-Path $userHome '.github'
+}
+if ([string]::IsNullOrWhiteSpace($TargetCodexPath)) {
+    $TargetCodexPath = Join-Path $userHome '.codex'
+}
+
 $resolvedOutputPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $OutputPath
 
 $resolvedLogPath = if ([string]::IsNullOrWhiteSpace($LogPath)) {
@@ -297,10 +324,16 @@ if ($BackupConfig) {
     $bootstrapArgs.BackupConfig = $true
 }
 
-$steps.Add((Invoke-ScriptStep -Name 'runtime-bootstrap' -ScriptPath $bootstrapScript -Arguments $bootstrapArgs)) | Out-Null
+$bootstrapStep = @(Invoke-ScriptStep -Name 'runtime-bootstrap' -ScriptPath $bootstrapScript -Arguments $bootstrapArgs) | Select-Object -Last 1
+if ($null -ne $bootstrapStep) {
+    $steps.Add($bootstrapStep) | Out-Null
+}
 
 if ($ApplyVscodeTemplates) {
-    $steps.Add((Invoke-ScriptStep -Name 'apply-vscode-templates' -ScriptPath $applyVscodeTemplatesScript -Arguments @{ RepoRoot = $resolvedRepoRoot; Force = $true })) | Out-Null
+    $vscodeStep = @(Invoke-ScriptStep -Name 'apply-vscode-templates' -ScriptPath $applyVscodeTemplatesScript -Arguments @{ RepoRoot = $resolvedRepoRoot; Force = $true }) | Select-Object -Last 1
+    if ($null -ne $vscodeStep) {
+        $steps.Add($vscodeStep) | Out-Null
+    }
 }
 else {
     Write-ExecutionLog -Level 'WARN' -Message 'Skipping VS Code templates apply (enable with -ApplyVscodeTemplates).'
@@ -319,7 +352,10 @@ if ($StrictExtras) {
     $healthcheckArgs.StrictExtras = $true
 }
 
-$steps.Add((Invoke-ScriptStep -Name 'healthcheck' -ScriptPath $healthcheckScript -Arguments $healthcheckArgs)) | Out-Null
+$healthcheckStep = @(Invoke-ScriptStep -Name 'healthcheck' -ScriptPath $healthcheckScript -Arguments $healthcheckArgs) | Select-Object -Last 1
+if ($null -ne $healthcheckStep) {
+    $steps.Add($healthcheckStep) | Out-Null
+}
 
 $passedSteps = @($steps | Where-Object { $_.status -eq 'passed' }).Count
 $failedSteps = @($steps | Where-Object { $_.status -ne 'passed' }).Count

@@ -12,7 +12,7 @@ session_retention_days="${CODEX_SESSION_RETENTION_DAYS:-30}"
 
 # Validate instruction/routing/skills contracts after merge updates.
 if command -v pwsh >/dev/null 2>&1; then
-  if ! pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-all.ps1 -ValidationProfile release -WarningOnly true; then
+  if ! pwsh -NoLogo -NoProfile -File ./scripts/validation/validate-all.ps1 -ValidationProfile release -WarningOnly true; then
     echo "[post-merge] Warning: validation command failed." >&2
   fi
 
@@ -25,7 +25,7 @@ if command -v pwsh >/dev/null 2>&1; then
       cleanup_args="$cleanup_args -IncludeSessions -SessionRetentionDays $session_retention_days"
     fi
 
-    if ! pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/runtime/clean-codex-runtime.ps1 $cleanup_args; then
+    if ! pwsh -NoLogo -NoProfile -File ./scripts/runtime/clean-codex-runtime.ps1 $cleanup_args; then
       echo "[post-merge] Warning: runtime cleanup failed." >&2
     fi
   fi

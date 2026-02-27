@@ -133,9 +133,10 @@ function Initialize-ReportGenerator {
     $rg = Get-Command reportgenerator -ErrorAction SilentlyContinue
     if (-not $rg) {
         if ($Verbose) { Write-Info "ReportGenerator not found, attempting to install/update..." }
-        $tools = Join-Path $env:USERPROFILE '.dotnet\tools'
+        $homePath = if (-not [string]::IsNullOrWhiteSpace($env:USERPROFILE)) { $env:USERPROFILE } elseif (-not [string]::IsNullOrWhiteSpace($HOME)) { $HOME } else { [Environment]::GetFolderPath([Environment+SpecialFolder]::UserProfile) }
+        $tools = Join-Path $homePath '.dotnet/tools'
         if (Test-Path $tools) {
-            $env:PATH = "$tools;$env:PATH"
+            $env:PATH = "$tools$([System.IO.Path]::PathSeparator)$env:PATH"
             Write-Verbose2 "Added .NET tools to PATH: $tools"
         }
         try {
@@ -170,8 +171,9 @@ if ($Verbose) {
     Write-Minimal "Running test coverage collection..."
 }
 
-# Resolve SolutionDir and pass it explicitly (required for MSBuild property evaluation)
-$SolutionDir = ($RepoRoot.TrimEnd('\','/')) + '\'  # trailing backslash required by MSBuild
+# Resolve SolutionDir and pass it explicitly (required for MSBuild property evaluation).
+$separator = [System.IO.Path]::DirectorySeparatorChar
+$SolutionDir = ($RepoRoot.TrimEnd('\', '/')) + $separator
 
 # Project resolution function with improved error handling
 # Resolves a project name or path into a concrete .csproj file path.

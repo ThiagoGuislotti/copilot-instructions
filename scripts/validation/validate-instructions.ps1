@@ -328,7 +328,7 @@ function Test-SnippetReference {
     }
 }
 
-# Converts user-profile absolute paths into repository-relative paths when possible.
+# Converts runtime-home absolute paths into repository-relative paths when possible.
 function Convert-UserProfileReferenceToRepoPath {
     param(
         [string] $Root,
@@ -340,17 +340,48 @@ function Convert-UserProfileReferenceToRepoPath {
     }
 
     $normalized = $Reference.Replace('/', '\')
-    $githubPrefix = '%USERPROFILE%\.github\'
-    $codexPrefix = '%USERPROFILE%\.codex\'
+    $githubPrefixes = @(
+        '%USERPROFILE%\.github\',
+        '%USERPROFILE%\.github',
+        '${env:USERPROFILE}\.github\',
+        '${env:USERPROFILE}\.github',
+        '${env:HOME}\.github\',
+        '${env:HOME}\.github',
+        '$HOME\.github\',
+        '$HOME\.github',
+        '~\.github\',
+        '~\.github'
+    )
 
-    if ($normalized.StartsWith($githubPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
-        $rest = $normalized.Substring($githubPrefix.Length)
+    $codexPrefixes = @(
+        '%USERPROFILE%\.codex\',
+        '%USERPROFILE%\.codex',
+        '${env:USERPROFILE}\.codex\',
+        '${env:USERPROFILE}\.codex',
+        '${env:HOME}\.codex\',
+        '${env:HOME}\.codex',
+        '$HOME\.codex\',
+        '$HOME\.codex',
+        '~\.codex\',
+        '~\.codex'
+    )
+
+    foreach ($prefix in $githubPrefixes) {
+        if (-not $normalized.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+            continue
+        }
+
+        $rest = $normalized.Substring($prefix.Length).TrimStart('\')
         $relative = if ([string]::IsNullOrWhiteSpace($rest)) { '.github' } else { ".github\$rest" }
         return Resolve-RepoPath -Root $Root -Path $relative
     }
 
-    if ($normalized.StartsWith($codexPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
-        $rest = $normalized.Substring($codexPrefix.Length)
+    foreach ($prefix in $codexPrefixes) {
+        if (-not $normalized.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+            continue
+        }
+
+        $rest = $normalized.Substring($prefix.Length).TrimStart('\')
         $relative = if ([string]::IsNullOrWhiteSpace($rest)) { '.codex' } else { ".codex\$rest" }
         return Resolve-RepoPath -Root $Root -Path $relative
     }
