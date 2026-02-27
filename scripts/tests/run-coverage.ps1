@@ -59,6 +59,10 @@
 .EXAMPLE
     Executes every test project, preserves attachments and prints detailed dotnet commands.
     .\scripts\tests\run-coverage.ps1 -ProjectsDir tests -NoClean -Verbose
+
+.NOTES
+    Version: 1.0
+    Requirements: PowerShell 7+, .NET SDK, and ReportGenerator tool.
 #>
 
 param(

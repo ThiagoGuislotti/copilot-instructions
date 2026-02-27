@@ -171,14 +171,34 @@ function Convert-ToStringArray {
     )
 
     if ($null -eq $Value) {
-        return @()
+        return ,@()
     }
 
     if ($Value -is [string]) {
-        return @([string] $Value)
+        return ,@([string] $Value)
     }
 
-    return @($Value | ForEach-Object { [string] $_ })
+    return ,@($Value | ForEach-Object { [string] $_ })
+}
+
+# Reads an optional boolean setting from a JSON object.
+function Get-BooleanSetting {
+    param(
+        [object] $InputObject,
+        [string] $PropertyName,
+        [bool] $DefaultValue
+    )
+
+    if ($null -eq $InputObject) {
+        return $DefaultValue
+    }
+
+    $property = $InputObject.PSObject.Properties[$PropertyName]
+    if ($null -eq $property -or $null -eq $property.Value) {
+        return $DefaultValue
+    }
+
+    return [bool] $property.Value
 }
 
 # Reads and parses a required JSON document.
@@ -362,15 +382,20 @@ function Test-AuditReportContract {
     param(
         [string] $AuditFilePath,
         [bool] $IsRequired,
-        [string] $HeadCommit
+        [string] $HeadCommit,
+        [bool] $WarnOnMissingOptionalReport,
+        [bool] $WarnOnCommitMismatch
     )
 
     if (-not (Test-Path -LiteralPath $AuditFilePath -PathType Leaf)) {
         if ($IsRequired) {
             Add-ValidationFailure ("Required audit report not found: {0}" -f $AuditFilePath)
         }
-        else {
+        elseif ($WarnOnMissingOptionalReport) {
             Add-ValidationWarning ("Audit report not found (optional): {0}" -f $AuditFilePath)
+        }
+        else {
+            Write-VerboseLog ("Optional audit report not found: {0}" -f $AuditFilePath)
         }
 
         return
@@ -403,7 +428,7 @@ function Test-AuditReportContract {
         }
     }
 
-    if (-not [string]::IsNullOrWhiteSpace($HeadCommit)) {
+    if ($WarnOnCommitMismatch -and -not [string]::IsNullOrWhiteSpace($HeadCommit)) {
         $auditCommit = [string] $auditReport.git.commit
         if (-not [string]::IsNullOrWhiteSpace($auditCommit) -and $auditCommit -ne $HeadCommit) {
             Add-ValidationWarning ("Audit report commit differs from HEAD (audit={0}, head={1})." -f $auditCommit, $HeadCommit)
@@ -438,8 +463,11 @@ if ($baselineVersion -lt 1) {
 }
 
 $releaseBranch = [string] $baseline.releaseBranch
-$requireCleanWorktree = [bool] $baseline.requireCleanWorktree
-$baselineRequiresAuditReport = [bool] $baseline.requireAuditReport
+$requireCleanWorktree = Get-BooleanSetting -InputObject $baseline -PropertyName 'requireCleanWorktree' -DefaultValue $false
+$baselineRequiresAuditReport = Get-BooleanSetting -InputObject $baseline -PropertyName 'requireAuditReport' -DefaultValue $false
+$warnOnDirtyWorktree = Get-BooleanSetting -InputObject $baseline -PropertyName 'warnOnDirtyWorktree' -DefaultValue $true
+$warnOnAuditCommitMismatch = Get-BooleanSetting -InputObject $baseline -PropertyName 'warnOnAuditCommitMismatch' -DefaultValue $true
+$warnOnMissingOptionalAuditReport = Get-BooleanSetting -InputObject $baseline -PropertyName 'warnOnMissingOptionalAuditReport' -DefaultValue $true
 $shouldRequireAuditReport = [bool] ($baselineRequiresAuditReport -or $RequireAuditReport)
 
 $changelogPath = [string] $baseline.changelogPath
@@ -511,14 +539,22 @@ else {
     if ($isDirty -and $requireCleanWorktree) {
         Add-ValidationFailure 'Worktree is dirty and release-provenance baseline requires clean state.'
     }
-    elseif ($isDirty) {
+    elseif ($isDirty -and $warnOnDirtyWorktree) {
         Add-ValidationWarning 'Worktree is dirty; provenance checks usually run cleaner in committed state.'
+    }
+    elseif ($isDirty) {
+        Write-VerboseLog 'Worktree is dirty; warning suppressed by baseline setting.'
     }
 
     Test-GitEvidenceTraceability -Root $resolvedRepoRoot -EvidenceFileList $requiredEvidenceFiles -AllowPendingChanges:$isDirty
 }
 
-Test-AuditReportContract -AuditFilePath $resolvedAuditReportPath -IsRequired:$shouldRequireAuditReport -HeadCommit $headCommit
+Test-AuditReportContract `
+    -AuditFilePath $resolvedAuditReportPath `
+    -IsRequired:$shouldRequireAuditReport `
+    -HeadCommit $headCommit `
+    -WarnOnMissingOptionalReport:$warnOnMissingOptionalAuditReport `
+    -WarnOnCommitMismatch:$warnOnAuditCommitMismatch
 
 Write-StyledOutput ''
 Write-StyledOutput 'Release provenance validation summary'

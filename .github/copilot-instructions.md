@@ -82,6 +82,8 @@ Follow this order of operations on every task:
 - Data/ORM/Databases: instructions/orm.instructions.md; instructions/database.instructions.md (e.g., EF Core, migrations).
 - Microservices and performance: instructions/microservices-performance.instructions.md (e.g., async patterns, caching).
 - Infrastructure and DevOps: instructions/docker.instructions.md; instructions/k8s.instructions.md; instructions/ci-cd-devops.instructions.md; instructions/static-analysis-sonarqube.instructions.md (e.g., pipelines, security scans).
+- Security and vulnerabilities: instructions/security-vulnerabilities.instructions.md (e.g., OWASP/NIST-aligned controls for API, frontend, backend, database).
+- Dependency vulnerability automation scripts: scripts/security/Invoke-PreBuildSecurityGate.ps1; scripts/security/Invoke-VulnerabilityAudit.ps1; scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1; scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1.
 - PowerShell script authoring: instructions/powershell-script-creation.instructions.md (e.g., script skeleton, root detection, mutation safety, exit codes).
 
 ## Testing and Documentation

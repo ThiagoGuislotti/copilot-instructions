@@ -37,7 +37,7 @@ description: Implement and refactor application code in this repository across .
 2. Implement the smallest safe change that satisfies the request.
 3. Preserve layer boundaries and dependency direction.
 4. Add or update tests for changed behavior.
-5. Run targeted validation commands and report outcomes.
+5. Run targeted validation commands and dependency vulnerability audit for each impacted stack before build/package.
 
 ## Prompt accelerators
 
@@ -51,7 +51,12 @@ description: Implement and refactor application code in this repository across .
 ## Validation examples
 
 ```powershell
+pwsh -File scripts/security/Invoke-PreBuildSecurityGate.ps1 -FailOnSeverities Critical,High
 dotnet build
 dotnet test --filter "Category=Unit"
+pwsh -File scripts/security/Invoke-VulnerabilityAudit.ps1 -FailOnSeverities Critical,High
+npm run build
+pwsh -File scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1 -ProjectPath src/WebApp -FailOnSeverities Critical,High
 cargo test
+pwsh -File scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1 -ProjectPath . -FailOnSeverities Critical,High
 ```

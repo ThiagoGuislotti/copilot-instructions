@@ -215,14 +215,14 @@ function Convert-ToStringArray {
     )
 
     if ($null -eq $Value) {
-        return @()
+        return ,@()
     }
 
     if ($Value -is [string]) {
-        return @([string] $Value)
+        return ,@([string] $Value)
     }
 
-    return @($Value | ForEach-Object { [string] $_ })
+    return ,@($Value | ForEach-Object { [string] $_ })
 }
 
 # Converts absolute path to repository-relative path.
@@ -266,7 +266,7 @@ function Get-DependencyManifestFile {
         }) | Out-Null
     }
 
-    return @($fileEntries.ToArray())
+    return ,$fileEntries.ToArray()
 }
 
 # Parses package.json dependencies.
@@ -300,7 +300,7 @@ function Get-NodeDependencyItem {
         Add-ValidationWarning ("Skipping invalid package.json parse: {0}" -f $RelativePath)
     }
 
-    return @($result.ToArray())
+    return ,$result.ToArray()
 }
 
 # Parses PackageReference entries from csproj/props files.
@@ -346,7 +346,7 @@ function Get-DotnetDependencyItem {
         Add-ValidationWarning ("Skipping invalid XML parse: {0}" -f $RelativePath)
     }
 
-    return @($result.ToArray())
+    return ,$result.ToArray()
 }
 
 # Parses dependencies section from Cargo.toml.
@@ -398,7 +398,7 @@ function Get-RustDependencyItem {
         }) | Out-Null
     }
 
-    return @($result.ToArray())
+    return ,$result.ToArray()
 }
 
 # Returns regex objects from input pattern text list.
@@ -422,7 +422,27 @@ function Get-RegexPatternList {
         }
     }
 
-    return @($regexList.ToArray())
+    return ,$regexList.ToArray()
+}
+
+# Reads an optional boolean setting from a JSON object.
+function Get-BooleanSetting {
+    param(
+        [object] $InputObject,
+        [string] $PropertyName,
+        [bool] $DefaultValue
+    )
+
+    if ($null -eq $InputObject) {
+        return $DefaultValue
+    }
+
+    $property = $InputObject.PSObject.Properties[$PropertyName]
+    if ($null -eq $property -or $null -eq $property.Value) {
+        return $DefaultValue
+    }
+
+    return [bool] $property.Value
 }
 
 # Checks dependency names against blocked and sensitive patterns.
@@ -533,7 +553,8 @@ foreach ($manifestFile in $manifestFiles) {
 }
 
 $dependencies = @($dependencyList.ToArray())
-if ($dependencies.Count -eq 0) {
+$warnOnEmptyDependencySet = Get-BooleanSetting -InputObject $baseline -PropertyName 'warnOnEmptyDependencySet' -DefaultValue $true
+if ($dependencies.Count -eq 0 -and $warnOnEmptyDependencySet) {
     Add-ValidationWarning 'No dependencies discovered in scanned manifests.'
 }
 
@@ -543,13 +564,19 @@ $resolvedSbomPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path ([string] $ba
 Write-SbomReport -Path $resolvedSbomPath -RepoRootPath $resolvedRepoRoot -Dependencies $dependencies
 Write-VerboseLog ("SBOM report generated at: {0}" -f $resolvedSbomPath)
 
-$requireLicenseEvidence = [bool] $baseline.requireLicenseEvidence
+$requireLicenseEvidence = Get-BooleanSetting -InputObject $baseline -PropertyName 'requireLicenseEvidence' -DefaultValue $false
+$warnOnMissingLicenseEvidence = Get-BooleanSetting -InputObject $baseline -PropertyName 'warnOnMissingLicenseEvidence' -DefaultValue $true
 $licenseEvidencePath = Resolve-RepoPath -Root $resolvedRepoRoot -Path ([string] $baseline.licenseEvidencePath)
 if ($requireLicenseEvidence -and -not (Test-Path -LiteralPath $licenseEvidencePath -PathType Leaf)) {
     Add-ValidationFailure ("License evidence file is required but missing: {0}" -f [string] $baseline.licenseEvidencePath)
 }
 elseif (-not (Test-Path -LiteralPath $licenseEvidencePath -PathType Leaf)) {
-    Add-ValidationWarning ("License evidence file not found (optional): {0}" -f [string] $baseline.licenseEvidencePath)
+    if ($warnOnMissingLicenseEvidence) {
+        Add-ValidationWarning ("License evidence file not found (optional): {0}" -f [string] $baseline.licenseEvidencePath)
+    }
+    else {
+        Write-VerboseLog ("Optional license evidence file not found: {0}" -f [string] $baseline.licenseEvidencePath)
+    }
 }
 
 Write-StyledOutput ''

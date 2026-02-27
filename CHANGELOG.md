@@ -1,3 +1,80 @@
+## [1.1.6] - 2026-02-27
+
+### Added
+- Added unified pre-build security gate script:
+  - `scripts/security/Invoke-PreBuildSecurityGate.ps1`
+- Added frontend dependency vulnerability audit script:
+  - `scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1`
+- Added Rust dependency vulnerability audit script:
+  - `scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1`
+- Added dedicated security skill:
+  - `.codex/skills/security-vulnerability-engineer/SKILL.md`
+  - `.codex/skills/security-vulnerability-engineer/agents/openai.yaml`
+
+### Changed
+- Updated .NET audit script summary/examples:
+  - `scripts/security/Invoke-VulnerabilityAudit.ps1`
+- Updated build-oriented skills to enforce dependency vulnerability audit before build/package:
+  - `.codex/skills/software-engineer/SKILL.md`
+  - `.codex/skills/dotnet-backend-engineer/SKILL.md`
+  - `.codex/skills/frontend-vue-quasar-engineer/SKILL.md`
+  - `.codex/skills/rust-engineer/SKILL.md`
+  - `.codex/skills/devops-platform-engineer/SKILL.md`
+  - `.codex/skills/test-engineer/SKILL.md`
+- Updated security instruction with practical SCA automation commands:
+  - `.github/instructions/security-vulnerabilities.instructions.md`
+- Extended security route triggers for dependency-audit terms:
+  - `.github/instruction-routing.catalog.yml`
+- Updated documentation references:
+  - `scripts/README.md`
+  - `.codex/skills/README.md`
+  - `.github/AGENTS.md`
+  - `.github/copilot-instructions.md`
+
+### Feedback Integration
+- File: `scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1` | context: frontend package audit automation | problem: no dedicated vulnerability gate script for npm/pnpm/yarn before build | solution: introduced manager-aware audit with severity gate and report artifacts | workspace-impact: consistent frontend SCA gate and reproducible evidence.
+- File: `scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1` | context: rust package audit automation | problem: no dedicated Rust vulnerability gate before cargo build/test | solution: introduced cargo-audit based script with normalized severity handling and summary artifacts | workspace-impact: standardized Rust SCA gate with explicit fail thresholds.
+
+## [1.1.5] - 2026-02-27
+
+### Added
+- Added script-authoring assets:
+  - `.github/templates/powershell-script-template.ps1`
+  - `.github/prompts/create-powershell-script.prompt.md`
+- Added missing .NET hosted-worker template:
+  - `.github/templates/background-service-template.cs`
+
+### Changed
+- Updated PowerShell template and prompt references:
+  - `.github/instructions/powershell-script-creation.instructions.md`
+  - `.github/instructions/prompt-templates.instructions.md`
+  - `.github/instruction-routing.catalog.yml`
+  - `README.md` (Prompt Templates section)
+
+### Feedback Integration
+- File: `.github/templates/powershell-script-template.ps1` | context: PowerShell script scaffolding | problem: no canonical script template for `scripts/*` workflows | solution: created a template with repo-root resolution, dry-run support, warning tracking, and deterministic summary output | workspace-impact: consistent and faster script authoring with lower drift.
+
+## [1.1.4] - 2026-02-26
+
+### Added
+- Added cross-layer security instruction:
+  - `.github/instructions/security-vulnerabilities.instructions.md`
+  - covers API, frontend, backend, and database vulnerability prevention aligned with current OWASP and NIST baselines.
+- Added routing coverage fixture for security route:
+  - `scripts/validation/fixtures/routing-golden-tests.json`
+
+### Changed
+- Updated static routing catalog with dedicated security route:
+  - `.github/instruction-routing.catalog.yml`
+  - new route id `security-vulnerabilities` with OWASP/security-focused triggers.
+- Updated instruction references to include the new security instruction:
+  - `.github/AGENTS.md`
+  - `.github/copilot-instructions.md`
+  - `README.md` instruction matrix
+
+### Feedback Integration
+- File: `.github/instructions/security-vulnerabilities.instructions.md` | context: secure development baseline | problem: security guidance was fragmented across domain files | solution: consolidated a dedicated OWASP/NIST-aligned instruction for API, frontend, backend, and database | workspace-impact: clearer security posture and consistent vulnerability prevention guidance.
+
 ## [1.1.3] - 2026-02-25
 
 ### Added

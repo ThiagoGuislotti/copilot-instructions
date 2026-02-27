@@ -414,7 +414,12 @@ if ($evalCaseList.Count -eq 0) {
 
 $agentMap = Get-AgentMap -AgentList $agentList
 foreach ($agent in $agentList) {
-    $fallbackAgentId = [string] $agent.fallbackAgentId
+    $fallbackProperty = $agent.PSObject.Properties['fallbackAgentId']
+    if ($null -eq $fallbackProperty) {
+        continue
+    }
+
+    $fallbackAgentId = [string] $fallbackProperty.Value
     if (-not [string]::IsNullOrWhiteSpace($fallbackAgentId) -and -not $agentMap.ContainsKey($fallbackAgentId)) {
         Add-ValidationFailure ("Agent '{0}' references unknown fallback agent '{1}'." -f $agent.id, $fallbackAgentId)
     }

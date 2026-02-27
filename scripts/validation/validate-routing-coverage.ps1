@@ -148,14 +148,14 @@ function Convert-ToStringArray {
     )
 
     if ($null -eq $Value) {
-        return @()
+        return ,@()
     }
 
     if ($Value -is [string]) {
-        return @([string] $Value)
+        return ,@([string] $Value)
     }
 
-    return @($Value | ForEach-Object { [string] $_ })
+    return ,@($Value | ForEach-Object { [string] $_ })
 }
 
 # Converts YAML scalar values to plain text.
@@ -266,7 +266,7 @@ function Get-FixtureCaseList {
         return @()
     }
 
-    return $cases
+    return ,$cases
 }
 
 # Validates that route include paths resolve to existing files.

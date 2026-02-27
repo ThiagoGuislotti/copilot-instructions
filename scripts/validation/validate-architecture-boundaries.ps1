@@ -159,14 +159,33 @@ function Convert-ToStringArray {
     )
 
     if ($null -eq $Value) {
-        return @()
+        return ,@()
     }
 
     if ($Value -is [string]) {
-        return @([string] $Value)
+        return ,@([string] $Value)
     }
 
-    return @($Value | ForEach-Object { [string] $_ })
+    return ,@($Value | ForEach-Object { [string] $_ })
+}
+
+# Reads an optional property value without triggering strict-mode errors.
+function Get-OptionalPropertyValue {
+    param(
+        [object] $InputObject,
+        [string] $PropertyName
+    )
+
+    if ($null -eq $InputObject) {
+        return $null
+    }
+
+    $property = $InputObject.PSObject.Properties[$PropertyName]
+    if ($null -eq $property) {
+        return $null
+    }
+
+    return $property.Value
 }
 
 # Returns repository files used for rule wildcard matching.
@@ -239,7 +258,7 @@ function Get-RuleFileMatchList {
         $fileSet.Add($absolutePath) | Out-Null
     }
 
-    return @($fileSet)
+    return ,([string[]] @($fileSet))
 }
 
 # Returns line number from content index for diagnostics.
@@ -290,15 +309,15 @@ function Test-BoundaryRule {
         $severity = 'failure'
     }
 
-    $ruleFiles = Get-RuleFileMatchList -Root $Root -RepositoryFiles $RepositoryFiles -RuleFilePatterns (Convert-ToStringArray -Value $Rule.files) -RuleId $ruleId
+    $ruleFiles = Get-RuleFileMatchList -Root $Root -RepositoryFiles $RepositoryFiles -RuleFilePatterns (Convert-ToStringArray -Value (Get-OptionalPropertyValue -InputObject $Rule -PropertyName 'files')) -RuleId $ruleId
     if ($ruleFiles.Count -eq 0) {
         Add-ValidationWarning ("Boundary rule '{0}' has no files to evaluate." -f $ruleId)
         return
     }
 
-    $requiredPatterns = Convert-ToStringArray -Value $Rule.requiredPatterns
-    $forbiddenPatterns = Convert-ToStringArray -Value $Rule.forbiddenPatterns
-    $allowedPatterns = Convert-ToStringArray -Value $Rule.allowedPatterns
+    $requiredPatterns = Convert-ToStringArray -Value (Get-OptionalPropertyValue -InputObject $Rule -PropertyName 'requiredPatterns')
+    $forbiddenPatterns = Convert-ToStringArray -Value (Get-OptionalPropertyValue -InputObject $Rule -PropertyName 'forbiddenPatterns')
+    $allowedPatterns = Convert-ToStringArray -Value (Get-OptionalPropertyValue -InputObject $Rule -PropertyName 'allowedPatterns')
 
     foreach ($filePath in $ruleFiles) {
         $script:FileChecks++

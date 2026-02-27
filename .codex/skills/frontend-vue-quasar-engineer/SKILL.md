@@ -29,4 +29,12 @@ description: Implement and refactor frontend features using Vue and Quasar with 
 2. Reuse shared components/composables before creating new abstractions.
 3. Enforce responsive and accessibility constraints.
 4. Keep UI copy/keys and i18n behavior aligned with repo policy.
-5. Validate behavior on desktop and mobile scenarios.
+5. Run dependency vulnerability audit before frontend build and validate behavior on desktop/mobile scenarios.
+
+## Validation examples
+
+```powershell
+pwsh -File scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1 -ProjectPath src/WebApp -FailOnSeverities Critical,High
+pnpm build
+pnpm test
+```

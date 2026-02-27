@@ -244,6 +244,32 @@ routing:
       - path: instructions/static-analysis-sonarqube.instructions.md
         reason: Static analysis and quality gate conventions
 
+  - id: security-vulnerabilities
+    tags: [security, vulnerabilities, owasp, api, frontend, backend, database]
+    triggers:
+      - "security"
+      - "vulnerability"
+      - "dependency vulnerability"
+      - "package vulnerability"
+      - "sca"
+      - "npm audit"
+      - "pnpm audit"
+      - "yarn audit"
+      - "cargo audit"
+      - "dotnet list package --vulnerable"
+      - "owasp"
+      - "asvs"
+      - "xss"
+      - "sql injection"
+      - "csrf"
+      - "ssrf"
+      - "authentication"
+      - "authorization"
+      - "hardening"
+    include:
+      - path: instructions/security-vulnerabilities.instructions.md
+        reason: Cross-layer vulnerability prevention and security hardening baseline
+
   - id: frontend-vue
     tags: [frontend, vue, quasar, ui, ux]
     triggers:
@@ -288,12 +314,19 @@ routing:
         reason: PowerShell execution safety and conventions
       - path: instructions/powershell-script-creation.instructions.md
         reason: PowerShell script authoring standards for scripts/*
+    notes:
+      - Prefer prompt prompts/create-powershell-script.prompt.md for script scaffolding.
 
 prompts:
   - id: route-instructions
     path: prompts/route-instructions.prompt.md
     tags: [rag, routing, instructions]
     purpose: Generate a Context Pack (which instruction files to load)
+
+  - id: powershell-create-script
+    path: prompts/create-powershell-script.prompt.md
+    tags: [powershell, scripts, automation]
+    purpose: Generate scripts/* PowerShell scripts with template-driven safe defaults
 
   - id: dotnet-create-class
     path: prompts/create-dotnet-class.prompt.md

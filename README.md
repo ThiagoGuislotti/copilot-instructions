@@ -338,6 +338,7 @@ Specialized mode for creating new instruction files following meta-conventions.
 
 Located in `.github/prompts/`:
 - **create-dotnet-class.prompt.md** - Generate Clean Architecture compliant classes
+- **create-powershell-script.prompt.md** - Generate `scripts/*` PowerShell automation with safe defaults
 - **generate-changelog.prompt.md** - Create semantic versioning CHANGELOG entries
 - **generate-unit-tests.prompt.md** - Generate comprehensive xUnit/NUnit tests
 
@@ -371,6 +372,7 @@ Located in `.github/prompts/poml/templates/`:
 | **Frontend** | `frontend.instructions.md`, `vue-quasar.instructions.md` | SPA, Vue 3, Quasar, state management |
 | **Data** | `orm.instructions.md`, `database.instructions.md` | EF Core, SQL, schema design |
 | **DevOps** | `docker.instructions.md`, `k8s.instructions.md`, `ci-cd-devops.instructions.md` | Containers, orchestration, pipelines |
+| **Security** | `security-vulnerabilities.instructions.md` | OWASP/NIST-aligned controls for API, frontend, backend, and database |
 | **Testing** | `e2e-testing.instructions.md` | E2E strategies, test frameworks |
 | **Quality** | `static-analysis-sonarqube.instructions.md` | Code quality, static analysis |
 | **Documentation** | `readme.instructions.md`, `pr.instructions.md` | READMEs, PR guidelines |

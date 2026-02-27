@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Refactors Rust test files to follow AAA (Arrange-Act-Assert) pattern.
 

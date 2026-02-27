@@ -27,11 +27,13 @@ description: Implement, organize, and test Rust modules in this repository follo
 2. Implement behavior changes with explicit error handling and public API focus.
 3. Add/update required tests, including error-path coverage.
 4. Ensure `tests/test_suite.rs` discovery strategy remains valid.
-5. Run Rust tests before finishing.
+5. Run dependency vulnerability audit before build/test and finish only after green checks.
 
 ## Validation examples
 
 ```powershell
+pwsh -File scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1 -ProjectPath . -FailOnSeverities Critical,High
 cargo fmt --check
+cargo build
 cargo test
 ```

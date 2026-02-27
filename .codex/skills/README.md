@@ -15,6 +15,7 @@ This folder stores versioned Codex skills aligned with `.github/instructions`. S
 - ✅ Skills versioned in source control
 - ✅ Runtime sync through root bootstrap
 - ✅ Reusable workflows mapped to repository instruction packs
+- ✅ Build-time dependency vulnerability auditing for .NET, frontend, and Rust stacks
 
 ---
 
@@ -68,6 +69,14 @@ Use skill: `codex-runtime-sync`
 
 Use skills: `dotnet-backend-engineer`, `frontend-vue-quasar-engineer`, `rust-engineer`, `task-planner`
 
+### Example 5: Security Gate Before Build
+
+Use skills: `software-engineer`, `devops-platform-engineer`, `test-engineer` with:
+- `scripts/security/Invoke-PreBuildSecurityGate.ps1`
+- `scripts/security/Invoke-VulnerabilityAudit.ps1`
+- `scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1`
+- `scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1`
+
 ---
 
 ## API Reference
@@ -83,6 +92,7 @@ Use skills: `dotnet-backend-engineer`, `frontend-vue-quasar-engineer`, `rust-eng
 - `docs-release-engineer`
 - `dotnet-backend-engineer`
 - `frontend-vue-quasar-engineer`
+- `security-vulnerability-engineer`
 - `rust-engineer`
 - `task-planner`
 

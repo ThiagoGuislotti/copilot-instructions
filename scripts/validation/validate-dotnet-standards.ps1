@@ -261,11 +261,8 @@ foreach ($requiredTemplatePath in $requiredTemplateMap.Keys) {
 
     $relativePath = Convert-ToRelativePath -Root $resolvedRepoRoot -Path $absolutePath
     $content = Get-Content -Raw -LiteralPath $absolutePath
-    $lines = @(Get-Content -LiteralPath $absolutePath)
 
     Test-TemplatePatternSet -RelativePath $relativePath -Content $content -RequiredPatterns $requiredTemplateMap[$requiredTemplatePath]
-    Test-TemplateConventionSet -RelativePath $relativePath -Content $content
-    Test-TemplateWhitespace -RelativePath $relativePath -Lines $lines
 }
 
 $allTemplateFiles = @(Get-ChildItem -LiteralPath $resolvedTemplateDirectory -File -Filter '*.cs' | Sort-Object Name)

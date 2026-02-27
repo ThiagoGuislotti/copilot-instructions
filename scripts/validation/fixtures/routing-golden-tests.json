@@ -123,6 +123,16 @@
       ]
     },
     {
+      "id": "security-vulnerabilities-route",
+      "request": "Review API, frontend, backend, and database vulnerabilities using OWASP and modern security standards.",
+      "expected_route_ids": [
+        "security-vulnerabilities"
+      ],
+      "expected_selected_paths": [
+        "instructions/security-vulnerabilities.instructions.md"
+      ]
+    },
+    {
       "id": "rust-route",
       "request": "Run cargo test and improve rust crate organization.",
       "expected_route_ids": [

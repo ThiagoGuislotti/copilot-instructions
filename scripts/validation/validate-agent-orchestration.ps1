@@ -260,7 +260,12 @@ function Test-AgentManifestIntegrity {
 
     foreach ($agent in $agents) {
         $agentId = [string] $agent.id
-        $fallback = [string] $agent.fallbackAgentId
+        $fallbackProperty = $agent.PSObject.Properties['fallbackAgentId']
+        if ($null -eq $fallbackProperty) {
+            continue
+        }
+
+        $fallback = [string] $fallbackProperty.Value
         if ([string]::IsNullOrWhiteSpace($fallback)) {
             continue
         }

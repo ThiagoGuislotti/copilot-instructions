@@ -112,11 +112,42 @@ function Write-VerboseLog {
 }
 
 # Registers script-level warning diagnostics.
+function Initialize-SuiteWarningList {
+    $restoredWarnings = New-Object System.Collections.Generic.List[string]
+    $sourceWarnings = @()
+
+    if ($null -ne $script:Warnings) {
+        if ($script:Warnings -is [System.Collections.Generic.List[string]]) {
+            $sourceWarnings = @($script:Warnings.ToArray())
+        }
+        else {
+            $sourceWarnings = @($script:Warnings)
+        }
+    }
+
+    foreach ($item in $sourceWarnings) {
+        $text = [string] $item
+        if (-not [string]::IsNullOrWhiteSpace($text)) {
+            $restoredWarnings.Add($text) | Out-Null
+        }
+    }
+
+    $script:Warnings = $restoredWarnings
+}
+
+# Returns suite warning count safely under strict mode.
+function Get-SuiteWarningCount {
+    Initialize-SuiteWarningList
+    return $script:Warnings.Count
+}
+
+# Registers script-level warning diagnostics.
 function Add-SuiteWarning {
     param(
         [string] $Message
     )
 
+    Initialize-SuiteWarningList
     $script:Warnings.Add($Message) | Out-Null
     Write-StyledOutput ("[WARN] {0}" -f $Message)
 }
@@ -671,11 +702,11 @@ foreach ($checkName in $selectedCheckOrder) {
         -Arguments $checkArguments `
         -TreatFailureAsWarning:$checkWarningOnly
 
-    $results.Add($result) | Out-Null
+$results.Add($result) | Out-Null
 }
 
 $passed = @($results | Where-Object { $_.status -eq 'passed' }).Count
-$warnings = @($results | Where-Object { $_.status -eq 'warning' }).Count
+$warningChecks = @($results | Where-Object { $_.status -eq 'warning' }).Count
 $failed = @($results | Where-Object { $_.status -eq 'failed' }).Count
 
 Write-StyledOutput ''
@@ -684,11 +715,12 @@ Write-StyledOutput ("  Profile: {0}" -f $profileId)
 Write-StyledOutput ("  Warning-only mode: {0}" -f $effectiveWarningOnly)
 Write-StyledOutput ("  Total checks: {0}" -f $results.Count)
 Write-StyledOutput ("  Passed: {0}" -f $passed)
-Write-StyledOutput ("  Warnings: {0}" -f $warnings)
+Write-StyledOutput ("  Warnings: {0}" -f $warningChecks)
 Write-StyledOutput ("  Failed: {0}" -f $failed)
 
-if ($script:Warnings.Count -gt 0) {
-    Write-StyledOutput ("  Suite warnings: {0}" -f $script:Warnings.Count)
+$suiteWarningCount = Get-SuiteWarningCount
+if ($suiteWarningCount -gt 0) {
+    Write-StyledOutput ("  Suite warnings: {0}" -f $suiteWarningCount)
 }
 
 if ($WriteLedger) {
@@ -716,7 +748,7 @@ if ($failed -gt 0) {
     }
 }
 
-if ($warnings -gt 0 -or $script:Warnings.Count -gt 0) {
+if ($warningChecks -gt 0 -or $suiteWarningCount -gt 0) {
     Write-StyledOutput 'Validation suite completed with warnings.'
 }
 else {

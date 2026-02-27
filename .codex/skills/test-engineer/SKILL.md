@@ -30,7 +30,7 @@ description: Design, implement, and stabilize automated tests in this repository
 2. Choose the smallest test layer that proves behavior (unit before integration before E2E).
 3. Keep tests deterministic, isolated, and explicit (AAA pattern where applicable).
 4. Cover success path, edge cases, and failure path.
-5. Run targeted test sets first, then broader suites if needed.
+5. Run dependency vulnerability audit for impacted stack before broader test/build validation.
 
 ## Prompt accelerators
 
@@ -39,6 +39,9 @@ description: Design, implement, and stabilize automated tests in this repository
 ## Validation examples
 
 ```powershell
+pwsh -File scripts/security/Invoke-VulnerabilityAudit.ps1 -FailOnSeverities Critical,High
+pwsh -File scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1 -ProjectPath src/WebApp -FailOnSeverities Critical,High
+pwsh -File scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1 -ProjectPath . -FailOnSeverities Critical,High
 dotnet test --filter "Category=Unit"
 dotnet test --filter "Category=Integration"
 cargo test

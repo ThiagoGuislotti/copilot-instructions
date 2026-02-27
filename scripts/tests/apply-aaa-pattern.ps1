@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Applies AAA (Arrange-Act-Assert) pattern comments to frontend TypeScript/Vue test files.
 

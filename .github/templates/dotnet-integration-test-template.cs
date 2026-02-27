@@ -24,6 +24,9 @@ namespace [Namespace].IntegrationTests.Tests.[Category]
     [RequiresThread]
     [SetCulture("pt-BR")]
     [Category("[Category]")]
+    /// <summary>
+    /// Integration test suite template for [Entity] mediator flows.
+    /// </summary>
     public class [HandlerClass]
     {
         #region Nested types

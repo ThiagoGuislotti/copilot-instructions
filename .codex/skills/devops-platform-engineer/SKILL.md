@@ -30,7 +30,7 @@ description: Build and maintain CI/CD pipelines, containerization, Kubernetes ma
 1. Define target environment and deployment constraints.
 2. Apply secure defaults (least privilege, explicit resources, health checks).
 3. Keep pipeline stages deterministic and cache-aware.
-4. Enforce quality/security checks before deployment.
+4. Enforce quality/security checks before deployment, including dependency vulnerability audits for impacted stacks.
 5. Validate manifests/scripts with local dry-run checks when available.
 
 ## Prompt accelerators
@@ -40,6 +40,10 @@ description: Build and maintain CI/CD pipelines, containerization, Kubernetes ma
 ## Validation examples
 
 ```powershell
+pwsh -File scripts/security/Invoke-PreBuildSecurityGate.ps1 -FailOnSeverities Critical,High
+pwsh -File scripts/security/Invoke-VulnerabilityAudit.ps1 -SolutionPath NetToolsKit.sln -FailOnSeverities Critical,High
+pwsh -File scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1 -ProjectPath src/WebApp -FailOnSeverities Critical,High
+pwsh -File scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1 -ProjectPath . -FailOnSeverities Critical,High
 docker build -f Dockerfile .
 kubectl apply --dry-run=client -f k8s/
 ```

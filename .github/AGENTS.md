@@ -133,7 +133,7 @@ Monorepo of libraries, modules, and samples for robust .NET services using Clean
 - `dotnet build NetToolsKit.sln`; targeted: `dotnet build -f net8.0|net9.0`.
 - Tests: `dotnet test --filter "Category=Unit"`; module integration: `dotnet test modules/Authentication --filter "Category=Integration"`.
 - Run sample API: `dotnet run --project samples/src/Rent.Service.Api`.
-- Pack/format/security: `dotnet pack -c Release`; `dotnet format`; `dotnet list package --vulnerable`.
+- Pack/format/security: `dotnet pack -c Release`; `dotnet format`; `dotnet list package --vulnerable`; `pwsh -File scripts/security/Invoke-PreBuildSecurityGate.ps1 -FailOnSeverities Critical,High`; `pwsh -File scripts/security/Invoke-VulnerabilityAudit.ps1 -FailOnSeverities Critical,High`; `pwsh -File scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1 -ProjectPath src/WebApp -FailOnSeverities Critical,High`; `pwsh -File scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1 -ProjectPath . -FailOnSeverities Critical,High`.
 
 ## Style
 - Namespaces mirror folders (`src/NetToolsKit.DynamicQuery/*` -> `NetToolsKit.DynamicQuery`). C#: PascalCase types, camelCase locals/params, UPPER_SNAKE_CASE constants.
@@ -161,7 +161,7 @@ Monorepo of libraries, modules, and samples for robust .NET services using Clean
 - Validate: namespace, TFMs, XML docs, sealed, usings, EOF; fix via Copilot if needed.
 
 ## Patterns
-- Multi-target .NET 8/9 with consistent public API; use `#if` only when necessary. Vulnerabilities: `dotnet list package --vulnerable`. Test attributes: xUnit `[Trait("Category","Unit")]`, NUnit `[Category("Integration")]`.
+- Multi-target .NET 8/9 with consistent public API; use `#if` only when necessary. Vulnerabilities: use stack-specific audit scripts under `scripts/security/` before build/package. Test attributes: xUnit `[Trait("Category","Unit")]`, NUnit `[Category("Integration")]`.
 
 ## Security & Changelog
 - No secrets in repo; use User Secrets/Azure Key Vault; typed options via `IOptions`.
@@ -171,5 +171,6 @@ Monorepo of libraries, modules, and samples for robust .NET services using Clean
 - Development: `instructions/clean-architecture-code.instructions.md`, `instructions/dotnet-csharp.instructions.md`, `instructions/backend.instructions.md`, `instructions/frontend.instructions.md`, `instructions/vue-quasar.instructions.md`, `instructions/ui-ux.instructions.md`
 - Data: `instructions/orm.instructions.md`, `instructions/database.instructions.md`, `instructions/microservices-performance.instructions.md`
 - Infrastructure: `instructions/docker.instructions.md`, `instructions/k8s.instructions.md`, `instructions/ci-cd-devops.instructions.md`, `instructions/static-analysis-sonarqube.instructions.md`, `instructions/powershell-script-creation.instructions.md`
+- Security: `instructions/security-vulnerabilities.instructions.md`
 - Testing: `instructions/e2e-testing.instructions.md`
 - Documentation: `instructions/readme.instructions.md`, `instructions/prompt-templates.instructions.md`, `instructions/effort-estimation-ucp.instructions.md`, `instructions/pr.instructions.md`

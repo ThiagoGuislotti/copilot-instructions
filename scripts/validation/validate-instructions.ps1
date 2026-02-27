@@ -404,7 +404,17 @@ function Test-VscodeSettingsReference {
                 continue
             }
 
-            $fileReference = [string]$entry.file
+            $fileReference = $null
+            if ($entry -is [string]) {
+                $fileReference = [string] $entry
+            }
+            else {
+                $fileProperty = $entry.PSObject.Properties['file']
+                if ($null -ne $fileProperty) {
+                    $fileReference = [string] $fileProperty.Value
+                }
+            }
+
             if ([string]::IsNullOrWhiteSpace($fileReference)) {
                 continue
             }

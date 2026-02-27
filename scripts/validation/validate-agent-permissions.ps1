@@ -226,14 +226,14 @@ function Convert-ToStringArray {
     )
 
     if ($null -eq $Value) {
-        return @()
+        return ,@()
     }
 
     if ($Value -is [string]) {
-        return @([string] $Value)
+        return ,@([string] $Value)
     }
 
-    return @($Value | ForEach-Object { [string] $_ })
+    return ,@($Value | ForEach-Object { [string] $_ })
 }
 
 # Builds an agent-id map from matrix entries.

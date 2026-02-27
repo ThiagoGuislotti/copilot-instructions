@@ -148,14 +148,33 @@ function Convert-ToStringArray {
     )
 
     if ($null -eq $Value) {
-        return @()
+        return ,@()
     }
 
     if ($Value -is [string]) {
-        return @([string] $Value)
+        return ,@([string] $Value)
     }
 
-    return @($Value | ForEach-Object { [string] $_ })
+    return ,@($Value | ForEach-Object { [string] $_ })
+}
+
+# Reads an optional property value without triggering strict-mode property errors.
+function Get-OptionalPropertyValue {
+    param(
+        [object] $InputObject,
+        [string] $PropertyName
+    )
+
+    if ($null -eq $InputObject) {
+        return $null
+    }
+
+    $property = $InputObject.PSObject.Properties[$PropertyName]
+    if ($null -eq $property) {
+        return $null
+    }
+
+    return $property.Value
 }
 
 # Validates a policy object against required repository governance contracts.
@@ -189,7 +208,8 @@ function Test-PolicyContract {
         }
     }
 
-    foreach ($relativePath in (Convert-ToStringArray -Value $PolicyObject.requiredFiles)) {
+    $requiredFiles = Get-OptionalPropertyValue -InputObject $PolicyObject -PropertyName 'requiredFiles'
+    foreach ($relativePath in (Convert-ToStringArray -Value $requiredFiles)) {
         $absolutePath = Resolve-RepoPath -Root $Root -Path $relativePath
         if (-not (Test-Path -LiteralPath $absolutePath -PathType Leaf)) {
             Add-ValidationFailure ("Missing required file '{0}' (policy: {1})" -f $relativePath, $policyId)
@@ -199,7 +219,8 @@ function Test-PolicyContract {
         }
     }
 
-    foreach ($relativePath in (Convert-ToStringArray -Value $PolicyObject.requiredDirectories)) {
+    $requiredDirectories = Get-OptionalPropertyValue -InputObject $PolicyObject -PropertyName 'requiredDirectories'
+    foreach ($relativePath in (Convert-ToStringArray -Value $requiredDirectories)) {
         $absolutePath = Resolve-RepoPath -Root $Root -Path $relativePath
         if (-not (Test-Path -LiteralPath $absolutePath -PathType Container)) {
             Add-ValidationFailure ("Missing required directory '{0}' (policy: {1})" -f $relativePath, $policyId)
@@ -209,7 +230,8 @@ function Test-PolicyContract {
         }
     }
 
-    foreach ($relativePath in (Convert-ToStringArray -Value $PolicyObject.forbiddenFiles)) {
+    $forbiddenFiles = Get-OptionalPropertyValue -InputObject $PolicyObject -PropertyName 'forbiddenFiles'
+    foreach ($relativePath in (Convert-ToStringArray -Value $forbiddenFiles)) {
         $absolutePath = Resolve-RepoPath -Root $Root -Path $relativePath
         if (Test-Path -LiteralPath $absolutePath -PathType Leaf) {
             Add-ValidationFailure ("Forbidden file present '{0}' (policy: {1})" -f $relativePath, $policyId)
@@ -219,7 +241,8 @@ function Test-PolicyContract {
         }
     }
 
-    foreach ($hookName in (Convert-ToStringArray -Value $PolicyObject.requiredGitHooks)) {
+    $requiredGitHooks = Get-OptionalPropertyValue -InputObject $PolicyObject -PropertyName 'requiredGitHooks'
+    foreach ($hookName in (Convert-ToStringArray -Value $requiredGitHooks)) {
         $hookPath = Resolve-RepoPath -Root $Root -Path (Join-Path '.githooks' $hookName)
         if (-not (Test-Path -LiteralPath $hookPath -PathType Leaf)) {
             Add-ValidationFailure ("Missing required git hook '.githooks/{0}' (policy: {1})" -f $hookName, $policyId)
@@ -229,13 +252,14 @@ function Test-PolicyContract {
         }
     }
 
-    if ($null -ne $PolicyObject.requiredGitConfig) {
+    $requiredGitConfig = Get-OptionalPropertyValue -InputObject $PolicyObject -PropertyName 'requiredGitConfig'
+    if ($null -ne $requiredGitConfig) {
         $gitCommand = Get-Command git -ErrorAction SilentlyContinue
         if ($null -eq $gitCommand) {
             Add-ValidationWarning ("Git command not found; skipping requiredGitConfig checks (policy: {0})" -f $policyId)
         }
         else {
-            foreach ($configEntry in $PolicyObject.requiredGitConfig.PSObject.Properties) {
+            foreach ($configEntry in $requiredGitConfig.PSObject.Properties) {
                 $key = [string] $configEntry.Name
                 $expectedValue = [string] $configEntry.Value
                 $currentValue = (& git config --local --get $key 2>$null)

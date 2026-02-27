@@ -2,7 +2,10 @@
   "version": 1,
   "releaseBranch": "main",
   "requireCleanWorktree": false,
+  "warnOnDirtyWorktree": false,
   "requireAuditReport": false,
+  "warnOnMissingOptionalAuditReport": false,
+  "warnOnAuditCommitMismatch": false,
   "changelogPath": "CHANGELOG.md",
   "validateAllPath": "scripts/validation/validate-all.ps1",
   "requiredValidationChecks": [

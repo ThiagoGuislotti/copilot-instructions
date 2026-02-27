@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Removes trailing blank lines and trailing whitespace from text files.
 

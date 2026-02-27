@@ -128,6 +128,7 @@ scripts/
 ├── deploy/
 ├── doc/
 ├── maintenance/
+├── security/
 ├── tests/
 └── README.md
 ```
@@ -184,6 +185,10 @@ Runtime-sensitive files such as `~/.codex/auth.json`, `~/.codex/sessions/`, and 
 | `maintenance/generate-http-from-openapi.ps1` | Generates a REST Client .http file from OpenAPI (default) or Swagger JSON. | `pwsh -File scripts/maintenance/generate-http-from-openapi.ps1 -Source http://localhost:5000` |
 | `maintenance/fix-version-ranges.ps1` | Normalises PackageReference versions into `[current, limit)` ranges. | `pwsh -File scripts/maintenance/fix-version-ranges.ps1 -Verbose` |
 | `maintenance/trim-trailing-blank-lines.ps1` | Removes trailing spaces and blank lines at EOF. | `pwsh -File scripts/maintenance/trim-trailing-blank-lines.ps1 -Path "C:\repo" -CheckOnly` |
+| `security/Invoke-VulnerabilityAudit.ps1` | Audits .NET backend package vulnerabilities via `dotnet list package --vulnerable --include-transitive`. | `pwsh -File scripts/security/Invoke-VulnerabilityAudit.ps1 -FailOnSeverities Critical,High` |
+| `security/Invoke-FrontendPackageVulnerabilityAudit.ps1` | Audits frontend dependencies using npm/pnpm/yarn and applies severity quality gate. | `pwsh -File scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1 -ProjectPath src/WebApp -FailOnSeverities Critical,High` |
+| `security/Invoke-RustPackageVulnerabilityAudit.ps1` | Audits Rust dependencies via `cargo audit --json` with severity quality gate. | `pwsh -File scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1 -ProjectPath . -FailOnSeverities Critical,High` |
+| `security/Invoke-PreBuildSecurityGate.ps1` | Runs unified pre-build vulnerability gate across .NET, frontend, and Rust using stack scripts and consolidated summary artifacts. | `pwsh -File scripts/security/Invoke-PreBuildSecurityGate.ps1 -FailOnSeverities Critical,High` |
 | `tests/apply-aaa-pattern.ps1` | Applies AAA comments to frontend TypeScript/Vue test files. | `pwsh -File scripts/tests/apply-aaa-pattern.ps1` |
 | `tests/check-test-naming.ps1` | Validates required underscore segments in test names. | `pwsh -File scripts/tests/check-test-naming.ps1 Projects "OpenApi.Readers.UnitTests"` |
 | `tests/refactor_tests_to_aaa.ps1` | Refactors Rust test files to follow AAA pattern with comments and formatting. | `pwsh -File scripts/tests/refactor_tests_to_aaa.ps1 -TestFile tests/unit/config_tests.rs` |
@@ -268,6 +273,18 @@ pwsh -File .\scripts\validation\export-audit-report.ps1 -ValidationProfile relea
 
 # validate deterministic route selection
 pwsh -File .\scripts\validation\test-routing-selection.ps1
+
+# audit backend .NET dependencies before build/package
+pwsh -File .\scripts\security\Invoke-VulnerabilityAudit.ps1 -FailOnSeverities Critical,High
+
+# audit frontend dependencies (auto npm/pnpm/yarn)
+pwsh -File .\scripts\security\Invoke-FrontendPackageVulnerabilityAudit.ps1 -ProjectPath src/WebApp -FailOnSeverities Critical,High
+
+# audit Rust dependencies
+pwsh -File .\scripts\security\Invoke-RustPackageVulnerabilityAudit.ps1 -ProjectPath . -FailOnSeverities Critical,High
+
+# run single pre-build security gate for all stacks
+pwsh -File .\scripts\security\Invoke-PreBuildSecurityGate.ps1 -FailOnSeverities Critical,High
 
 # install local Git hooks (validation + sync)
 pwsh -File .\scripts\git-hooks\setup-git-hooks.ps1

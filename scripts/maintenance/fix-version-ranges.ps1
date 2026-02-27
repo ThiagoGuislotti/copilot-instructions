@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Normalizes PackageReference version ranges in .csproj files.
 

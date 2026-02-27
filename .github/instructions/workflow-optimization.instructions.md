@@ -1,5 +1,5 @@
 ---
-applyTo: "**/*.*"
+applyTo: ".github/**/*.*"
 priority: high
 ---
 

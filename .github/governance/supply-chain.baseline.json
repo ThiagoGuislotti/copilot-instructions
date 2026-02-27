@@ -3,6 +3,8 @@
   "sbomOutputPath": ".temp/audit/sbom.latest.json",
   "licenseEvidencePath": ".temp/audit/licenses.latest.json",
   "requireLicenseEvidence": false,
+  "warnOnMissingLicenseEvidence": false,
+  "warnOnEmptyDependencySet": false,
   "excludedPathGlobs": [
     ".git/**",
     ".temp/**",

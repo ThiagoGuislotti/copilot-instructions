@@ -7,11 +7,20 @@ priority: high
 Standardize PowerShell scripts in scripts/ with the same structure and safety model used by maintenance scripts.
 
 # Required Template
+- Start from .github/templates/powershell-script-template.ps1 for every new script under scripts/.
+- For AI-assisted generation prefer .github/prompts/create-powershell-script.prompt.md first, then adapt as needed.
 - Start with comment-based help using SYNOPSIS, DESCRIPTION, PARAMETER, EXAMPLE, and NOTES.
 - Keep param block at the top of the executable body.
 - Set ErrorActionPreference to Stop.
 - Organize code in three sections: Helpers, Main execution, Summary/exit.
 - Use descriptive function names with approved verbs.
+
+# Template Placeholder Mapping
+- Replace [SHORT_SCRIPT_SUMMARY] with one-line script intent.
+- Replace [DETAILED_SCRIPT_DESCRIPTION] with operational behavior and scope.
+- Replace [AREA] and [SCRIPT_NAME] examples with concrete script path.
+- Replace [RELATIVE_TARGET_PATH] with the primary resource path used by script logic.
+- Keep helper function names unless there is a clear context-specific reason to rename them.
 
 # Root Detection
 - Detect repository root automatically when script behavior depends on repo layout.

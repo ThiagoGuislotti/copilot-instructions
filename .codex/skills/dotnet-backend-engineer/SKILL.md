@@ -33,12 +33,14 @@ description: Implement, refactor, and troubleshoot .NET/C# backend APIs in this 
 2. Implement minimal backend change preserving contracts.
 3. Apply validation, error model, and observability patterns.
 4. Add/update unit and integration tests for changed behavior.
-5. Run build and targeted tests before finishing.
+5. Run dependency vulnerability audit before build/pack and then execute targeted tests.
 
 ## Validation examples
 
 ```powershell
+pwsh -File scripts/security/Invoke-VulnerabilityAudit.ps1 -SolutionPath NetToolsKit.sln -FailOnSeverities Critical,High
 dotnet build
 dotnet test --filter "Category=Unit"
 dotnet test --filter "Category=Integration"
+dotnet pack -c Release
 ```
