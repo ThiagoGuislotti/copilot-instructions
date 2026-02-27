@@ -19,12 +19,17 @@ Structured AI agent guidelines for software development projects. Focuses on rep
 - ✅ **Validation Profiles:** `dev`, `release`, and `enforced` profiles with warning-only policy
 - ✅ **Immutable Audit Trail:** Hash-chained validation ledger under `.temp/audit/`
 - ✅ **Agent Permission Matrix + Supply Chain:** Governance checks for agent permissions and dependency risk baseline
+- ✅ **Enterprise Dev Container:** Standardized toolchain for .NET, Rust, Node, PowerShell, and GitHub CLI
+- ✅ **Dependency Automation:** Dependabot updates and PR dependency severity policy in warning-only observability mode
+- ✅ **Security Observability Pipelines:** SBOM, provenance attestation, CodeQL, and Scorecard workflows without blocking merges
+- ✅ **Trends Dashboard Export:** Consolidated metrics for validation warnings, vulnerability posture, and execution performance
 
 ---
 
 ## Table of Contents
 
 - [Installation](#installation)
+- [Dev Container](#dev-container)
 - [Parameterization & Privacy](#parameterization--privacy)
 - [Git Hooks](#git-hooks)
 - [Quick Start](#quick-start)
@@ -69,6 +74,24 @@ cd copilot-instructions
 - PowerShell 7+ (`pwsh`) installed on Windows, Linux, or macOS.
 - Git installed and available in `PATH`.
 - Optional on Linux/macOS: ensure `chmod` is available (used by hook setup).
+
+## Dev Container
+
+Use `.devcontainer/devcontainer.json` to run this repository with a standardized enterprise toolchain.
+
+### Includes
+
+- .NET SDK (`8.0`)
+- Rust toolchain
+- Node.js LTS
+- PowerShell (`pwsh`)
+- GitHub CLI
+
+### Usage
+
+1. Open the repository in VS Code.
+2. Run `Dev Containers: Reopen in Container`.
+3. Wait for `postCreateCommand` to execute runtime bootstrap + instruction validation.
 
 ### Repository Layout
 
@@ -275,10 +298,23 @@ pwsh -File ./scripts/runtime/clean-codex-runtime.ps1 -IncludeSessions -SessionRe
 
 # export consolidated audit report with git metadata and policy inventory
 pwsh -File ./scripts/validation/export-audit-report.ps1 -ValidationProfile release -StrictExtras
+
+# export enterprise trends dashboard artifacts
+pwsh -File ./scripts/validation/export-enterprise-trends.ps1 -MaxEntries 30
+
+# validate/install audit prerequisites and run security gate
+pwsh -File ./scripts/security/Install-SecurityAuditPrerequisites.ps1 -FrontendPackageManager auto
+pwsh -File ./scripts/security/Invoke-PreBuildSecurityGate.ps1 -InstallMissingPrerequisites -FailOnSeverities Critical,High
 ```
 
 Audit logs are generated under `.temp/logs/`.
 Validation ledger and SBOM artifacts are generated under `.temp/audit/`.
+
+Security and governance observability workflows:
+- `.github/workflows/dependency-risk-observability.yml`
+- `.github/workflows/enterprise-trends-dashboard.yml`
+- `.github/workflows/sbom-attestation-observability.yml`
+- `.github/workflows/security-static-observability.yml`
 
 ---
 

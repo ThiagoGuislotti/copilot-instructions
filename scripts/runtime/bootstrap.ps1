@@ -67,6 +67,16 @@ if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
 if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
     . $script:ConsoleStylePath
 }
+$script:RuntimePathsPath = Join-Path $PSScriptRoot '..\common\runtime-paths.ps1'
+if (-not (Test-Path -LiteralPath $script:RuntimePathsPath -PathType Leaf)) {
+    $script:RuntimePathsPath = Join-Path $PSScriptRoot '..\..\common\runtime-paths.ps1'
+}
+if (Test-Path -LiteralPath $script:RuntimePathsPath -PathType Leaf) {
+    . $script:RuntimePathsPath
+}
+else {
+    throw "Missing shared runtime path helper: $script:RuntimePathsPath"
+}
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:IsVerboseEnabled = [bool] $Verbose
 
@@ -83,24 +93,6 @@ function Write-VerboseColor {
     if ($script:IsVerboseEnabled) {
         Write-StyledOutput ("[VERBOSE:{0}] {1}" -f $Color, $Message)
     }
-}
-
-# Resolves the current user home directory with cross-platform fallbacks.
-function Resolve-UserHome {
-    if (-not [string]::IsNullOrWhiteSpace($env:USERPROFILE)) {
-        return $env:USERPROFILE
-    }
-
-    if (-not [string]::IsNullOrWhiteSpace($HOME)) {
-        return $HOME
-    }
-
-    $profileFolder = [Environment]::GetFolderPath([Environment+SpecialFolder]::UserProfile)
-    if (-not [string]::IsNullOrWhiteSpace($profileFolder)) {
-        return $profileFolder
-    }
-
-    throw 'Could not resolve user home path. Set USERPROFILE or HOME.'
 }
 
 # Resolves the repository root using explicit and fallback location candidates.
@@ -254,7 +246,7 @@ function Invoke-McpConfigApply {
 $resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
 Set-Location -Path $resolvedRepoRoot
 
-$userHome = Resolve-UserHome
+$userHome = Resolve-UserHomePath
 if ([string]::IsNullOrWhiteSpace($TargetGithubPath)) {
     $TargetGithubPath = Join-Path $userHome '.github'
 }

@@ -16,6 +16,8 @@
     - validate-routing-coverage
     - validate-readme-standards
     - validate-powershell-standards
+    - validate-shell-hooks
+    - validate-runtime-script-tests
     - validate-warning-baseline
     - validate-dotnet-standards
     - validate-architecture-boundaries
@@ -57,6 +59,9 @@
 .PARAMETER LedgerPath
     Validation ledger path relative to repository root.
 
+.PARAMETER OutputPath
+    Validation report output path relative to repository root.
+
 .PARAMETER Verbose
     Shows detailed diagnostics.
 
@@ -70,7 +75,7 @@
     pwsh -File scripts/validation/validate-all.ps1 -WarningOnly:$false -ValidationProfile enforced
 
 .NOTES
-    Version: 2.0
+    Version: 2.1
     Requirements: PowerShell 7+.
 #>
 
@@ -84,6 +89,7 @@ param(
     [bool] $WarningOnly = $true,
     [bool] $WriteLedger = $true,
     [string] $LedgerPath = '.temp/audit/validation-ledger.jsonl',
+    [string] $OutputPath = '.temp/audit/validate-all.latest.json',
     [switch] $Verbose
 )
 
@@ -99,6 +105,7 @@ if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:IsVerboseEnabled = [bool] $Verbose
 $script:Warnings = New-Object System.Collections.Generic.List[string]
+$script:SuiteStartedAt = Get-Date
 
 # Writes verbose diagnostics.
 function Write-VerboseLog {
@@ -164,6 +171,20 @@ function Resolve-RepoPath {
     }
 
     return [System.IO.Path]::GetFullPath((Join-Path $Root $Path))
+}
+
+# Returns parent directory path when available.
+function Get-ParentDirectoryPath {
+    param(
+        [string] $Path
+    )
+
+    $parent = Split-Path -Path $Path -Parent
+    if ([string]::IsNullOrWhiteSpace($parent)) {
+        return $null
+    }
+
+    return $parent
 }
 
 # Resolves repository root from input and fallback candidates.
@@ -593,6 +614,18 @@ $baseCheckDefinitions['validate-powershell-standards'] = [pscustomobject]@{
     args = $powershellArgs
 }
 
+$baseCheckDefinitions['validate-shell-hooks'] = [pscustomobject]@{
+    name = 'validate-shell-hooks'
+    script = 'scripts/validation/validate-shell-hooks.ps1'
+    args = @{ RepoRoot = $resolvedRepoRoot }
+}
+
+$baseCheckDefinitions['validate-runtime-script-tests'] = [pscustomobject]@{
+    name = 'validate-runtime-script-tests'
+    script = 'scripts/validation/validate-runtime-script-tests.ps1'
+    args = @{ RepoRoot = $resolvedRepoRoot }
+}
+
 $baseCheckDefinitions['validate-warning-baseline'] = [pscustomobject]@{
     name = 'validate-warning-baseline'
     script = 'scripts/validation/validate-warning-baseline.ps1'
@@ -644,6 +677,8 @@ $defaultCheckOrder = @(
     'validate-routing-coverage',
     'validate-readme-standards',
     'validate-powershell-standards',
+    'validate-shell-hooks',
+    'validate-runtime-script-tests',
     'validate-warning-baseline',
     'validate-dotnet-standards',
     'validate-architecture-boundaries',
@@ -708,6 +743,18 @@ $results.Add($result) | Out-Null
 $passed = @($results | Where-Object { $_.status -eq 'passed' }).Count
 $warningChecks = @($results | Where-Object { $_.status -eq 'warning' }).Count
 $failed = @($results | Where-Object { $_.status -eq 'failed' }).Count
+$suiteFinishedAt = Get-Date
+$totalDurationMs = [int] ($suiteFinishedAt - $script:SuiteStartedAt).TotalMilliseconds
+$durationSum = (@($results | Measure-Object -Property durationMs -Sum).Sum)
+if ($null -eq $durationSum) {
+    $durationSum = 0
+}
+$averageCheckDurationMs = if ($results.Count -gt 0) {
+    [math]::Round(([double]$durationSum / [double]$results.Count), 2)
+}
+else {
+    0
+}
 
 Write-StyledOutput ''
 Write-StyledOutput 'Validation suite summary'
@@ -717,6 +764,8 @@ Write-StyledOutput ("  Total checks: {0}" -f $results.Count)
 Write-StyledOutput ("  Passed: {0}" -f $passed)
 Write-StyledOutput ("  Warnings: {0}" -f $warningChecks)
 Write-StyledOutput ("  Failed: {0}" -f $failed)
+Write-StyledOutput ("  Duration (ms): {0}" -f $totalDurationMs)
+Write-StyledOutput ("  Average check duration (ms): {0}" -f $averageCheckDurationMs)
 
 $suiteWarningCount = Get-SuiteWarningCount
 if ($suiteWarningCount -gt 0) {
@@ -732,6 +781,77 @@ if ($WriteLedger) {
         if (-not $effectiveWarningOnly) {
             $failed++
         }
+    }
+}
+
+$resolvedOutputPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path $OutputPath
+$reportParent = Get-ParentDirectoryPath -Path $resolvedOutputPath
+if (-not [string]::IsNullOrWhiteSpace($reportParent)) {
+    New-Item -ItemType Directory -Path $reportParent -Force | Out-Null
+}
+
+$slowestChecks = @(
+    $results |
+        Sort-Object -Property durationMs -Descending |
+        Select-Object -First 5 |
+        ForEach-Object {
+            [ordered]@{
+                name = $_.name
+                durationMs = $_.durationMs
+                status = $_.status
+            }
+        }
+)
+
+$suiteWarningList = @()
+if ($null -ne $script:Warnings) {
+    if ($script:Warnings -is [System.Collections.Generic.List[string]]) {
+        $suiteWarningList = @($script:Warnings.ToArray())
+    }
+    else {
+        $suiteWarningList = @($script:Warnings)
+    }
+}
+
+$report = [ordered]@{
+    schemaVersion = 1
+    generatedAt = $suiteFinishedAt.ToString('o')
+    profile = $profileId
+    warningOnly = [bool] $effectiveWarningOnly
+    repoRoot = $resolvedRepoRoot
+    summary = [ordered]@{
+        totalChecks = $results.Count
+        passed = $passed
+        warnings = $warningChecks
+        failed = $failed
+        suiteWarnings = $suiteWarningCount
+    }
+    performance = [ordered]@{
+        totalDurationMs = $totalDurationMs
+        averageCheckDurationMs = $averageCheckDurationMs
+        slowestChecks = $slowestChecks
+    }
+    checks = @($results | ForEach-Object {
+        [ordered]@{
+            name = $_.name
+            script = $_.script
+            status = $_.status
+            exitCode = $_.exitCode
+            durationMs = $_.durationMs
+            error = $_.error
+        }
+    })
+    suiteWarningMessages = $suiteWarningList
+}
+
+try {
+    Set-Content -LiteralPath $resolvedOutputPath -Value ($report | ConvertTo-Json -Depth 100)
+    Write-StyledOutput ("  Report: {0}" -f [System.IO.Path]::GetRelativePath($resolvedRepoRoot, $resolvedOutputPath))
+}
+catch {
+    Add-SuiteWarning ("Could not write validation report: {0}" -f $_.Exception.Message)
+    if (-not $effectiveWarningOnly) {
+        $failed++
     }
 }
 

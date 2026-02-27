@@ -1,0 +1,71 @@
+name: SBOM and Attestation Observability
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  schedule:
+    - cron: "15 9 * * 2"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+concurrency:
+  group: sbom-attestation-observability-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sbom:
+    name: Generate SBOM and Attestation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare output directory
+        shell: bash
+        run: |
+          mkdir -p .temp/audit
+
+      - name: Generate SPDX SBOM (warning-only mode)
+        id: sbom
+        continue-on-error: true
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          output-file: .temp/audit/sbom.spdx.json
+
+      - name: Emit warning when SBOM generation fails
+        if: steps.sbom.outcome != 'success'
+        run: |
+          echo "::warning::SBOM generation failed in observability mode."
+
+      - name: Generate provenance attestation for SBOM
+        id: attest
+        if: always() && hashFiles('.temp/audit/sbom.spdx.json') != ''
+        continue-on-error: true
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: .temp/audit/sbom.spdx.json
+
+      - name: Emit warning when attestation fails
+        if: steps.attest.outcome == 'failure'
+        run: |
+          echo "::warning::SBOM attestation failed in observability mode."
+
+      - name: Upload SBOM artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-attestation-${{ github.run_id }}
+          path: |
+            .temp/audit/sbom.spdx.json
+          if-no-files-found: warn
+          retention-days: 30

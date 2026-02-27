@@ -11,6 +11,13 @@
   1. AGENTS.md (this file)
   2. copilot-instructions.md
 
+# Enterprise-First Default
+- All tasks must be designed and implemented with real-world enterprise standards by default.
+- Target the highest feasible quality level by default across planning, implementation, validation, and documentation.
+- This includes architecture consistency, security, testing, observability, maintainability, documentation, and operational safety.
+- Exception: only relax this standard when the user explicitly states the task is a `POC`, `spike`, or `informal test`.
+- In non-enterprise exceptions, keep minimum safety (no secrets exposure, no destructive commands without explicit approval).
+
 Default workflow for all tasks: Static RAGs Routing (Route → Execute)
 - Route first (pick minimal context):
   - `instruction-routing.catalog.yml` (single source of truth for routes)

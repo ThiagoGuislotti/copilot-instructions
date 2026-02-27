@@ -158,6 +158,8 @@ Runtime-sensitive files such as `~/.codex/auth.json`, `~/.codex/sessions/`, and 
 | `validation/validate-release-governance.ps1` | Validates release-governance baseline (`CHANGELOG`, `CODEOWNERS`, branch-protection baseline, governance docs). | `pwsh -File scripts/validation/validate-release-governance.ps1` |
 | `validation/validate-readme-standards.ps1` | Validates README structure/formatting using `.github/governance/readme-standards.baseline.json`. | `pwsh -File scripts/validation/validate-readme-standards.ps1` |
 | `validation/validate-powershell-standards.ps1` | Validates script standards for PowerShell files (help, param block, function docs, approved verbs). | `pwsh -File scripts/validation/validate-powershell-standards.ps1` |
+| `validation/validate-shell-hooks.ps1` | Validates `.githooks/*` shell syntax with `sh -n` and optional `shellcheck`. | `pwsh -File scripts/validation/validate-shell-hooks.ps1` |
+| `validation/validate-runtime-script-tests.ps1` | Runs Pester tests for critical runtime scripts under `scripts/tests/pester`. | `pwsh -File scripts/validation/validate-runtime-script-tests.ps1` |
 | `validation/validate-dotnet-standards.ps1` | Validates .NET template standards under `.github/templates/*.cs`. | `pwsh -File scripts/validation/validate-dotnet-standards.ps1` |
 | `validation/validate-architecture-boundaries.ps1` | Validates architecture boundaries from `.github/governance/architecture-boundaries.baseline.json`. | `pwsh -File scripts/validation/validate-architecture-boundaries.ps1` |
 | `validation/validate-instruction-metadata.ps1` | Validates frontmatter metadata for `.github/instructions`, `.github/prompts`, and `.github/chatmodes`. | `pwsh -File scripts/validation/validate-instruction-metadata.ps1` |
@@ -169,8 +171,9 @@ Runtime-sensitive files such as `~/.codex/auth.json`, `~/.codex/sessions/`, and 
 | `validation/validate-supply-chain.ps1` | Validates dependency manifests against `.github/governance/supply-chain.baseline.json` and exports local SBOM artifact. | `pwsh -File scripts/validation/validate-supply-chain.ps1` |
 | `validation/validate-release-provenance.ps1` | Validates release provenance baseline (`requiredValidationChecks`, `requiredEvidenceFiles`, changelog recency, git traceability, optional audit report). Runs in warning-only mode by default. | `pwsh -File scripts/validation/validate-release-provenance.ps1` |
 | `validation/validate-audit-ledger.ps1` | Validates `.temp/audit/validation-ledger.jsonl` hash-chain integrity. | `pwsh -File scripts/validation/validate-audit-ledger.ps1` |
-| `validation/validate-all.ps1` | Runs full profile-based suite, warning-only by default, and appends hash-chained ledger evidence. | `pwsh -File scripts/validation/validate-all.ps1 -ValidationProfile dev` |
+| `validation/validate-all.ps1` | Runs full profile-based suite, warning-only by default, appends hash-chained ledger evidence, and emits performance report at `.temp/audit/validate-all.latest.json`. | `pwsh -File scripts/validation/validate-all.ps1 -ValidationProfile dev` |
 | `validation/export-audit-report.ps1` | Runs health baseline and exports consolidated JSON audit report with git metadata and policy inventory. | `pwsh -File scripts/validation/export-audit-report.ps1` |
+| `validation/export-enterprise-trends.ps1` | Exports trends dashboard artifacts (`warnings`, `vulnerabilities`, and validation performance) from ledger + latest reports. | `pwsh -File scripts/validation/export-enterprise-trends.ps1` |
 | `validation/test-routing-selection.ps1` | Runs deterministic golden tests for static routing behavior based on catalog + fixtures. | `pwsh -File scripts/validation/test-routing-selection.ps1` |
 | `governance/set-branch-protection.ps1` | Validates or applies branch protection from `.github/governance/branch-protection.baseline.json` using GitHub CLI. | `pwsh -File scripts/governance/set-branch-protection.ps1 -Apply` |
 | `git-hooks/setup-git-hooks.ps1` | Configures local Git hooks path (`core.hooksPath=.githooks`) and enables `pre-commit` validation + `post-commit` sync. | `pwsh -File scripts/git-hooks/setup-git-hooks.ps1` |
@@ -188,7 +191,8 @@ Runtime-sensitive files such as `~/.codex/auth.json`, `~/.codex/sessions/`, and 
 | `security/Invoke-VulnerabilityAudit.ps1` | Audits .NET backend package vulnerabilities via `dotnet list package --vulnerable --include-transitive`. | `pwsh -File scripts/security/Invoke-VulnerabilityAudit.ps1 -FailOnSeverities Critical,High` |
 | `security/Invoke-FrontendPackageVulnerabilityAudit.ps1` | Audits frontend dependencies using npm/pnpm/yarn and applies severity quality gate. | `pwsh -File scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1 -ProjectPath src/WebApp -FailOnSeverities Critical,High` |
 | `security/Invoke-RustPackageVulnerabilityAudit.ps1` | Audits Rust dependencies via `cargo audit --json` with severity quality gate. | `pwsh -File scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1 -ProjectPath . -FailOnSeverities Critical,High` |
-| `security/Invoke-PreBuildSecurityGate.ps1` | Runs unified pre-build vulnerability gate across .NET, frontend, and Rust using stack scripts and consolidated summary artifacts. | `pwsh -File scripts/security/Invoke-PreBuildSecurityGate.ps1 -FailOnSeverities Critical,High` |
+| `security/Install-SecurityAuditPrerequisites.ps1` | Validates and auto-installs audit prerequisites (`dotnet`, `cargo`, `cargo-audit`, npm/pnpm/yarn) with optional system package manager support. | `pwsh -File scripts/security/Install-SecurityAuditPrerequisites.ps1 -FrontendPackageManager auto` |
+| `security/Invoke-PreBuildSecurityGate.ps1` | Runs unified pre-build vulnerability gate across .NET, frontend, and Rust using stack scripts and consolidated summary artifacts; optionally runs prerequisite setup first. | `pwsh -File scripts/security/Invoke-PreBuildSecurityGate.ps1 -InstallMissingPrerequisites -FailOnSeverities Critical,High` |
 | `tests/apply-aaa-pattern.ps1` | Applies AAA comments to frontend TypeScript/Vue test files. | `pwsh -File scripts/tests/apply-aaa-pattern.ps1` |
 | `tests/check-test-naming.ps1` | Validates required underscore segments in test names. | `pwsh -File scripts/tests/check-test-naming.ps1 Projects "OpenApi.Readers.UnitTests"` |
 | `tests/refactor_tests_to_aaa.ps1` | Refactors Rust test files to follow AAA pattern with comments and formatting. | `pwsh -File scripts/tests/refactor_tests_to_aaa.ps1 -TestFile tests/unit/config_tests.rs` |
@@ -271,6 +275,9 @@ pwsh -File .\scripts\governance\set-branch-protection.ps1
 # export consolidated audit report (JSON + logs)
 pwsh -File .\scripts\validation\export-audit-report.ps1 -ValidationProfile release -StrictExtras
 
+# export enterprise trends dashboard artifacts
+pwsh -File .\scripts\validation\export-enterprise-trends.ps1 -MaxEntries 30
+
 # validate deterministic route selection
 pwsh -File .\scripts\validation\test-routing-selection.ps1
 
@@ -283,13 +290,19 @@ pwsh -File .\scripts\security\Invoke-FrontendPackageVulnerabilityAudit.ps1 -Proj
 # audit Rust dependencies
 pwsh -File .\scripts\security\Invoke-RustPackageVulnerabilityAudit.ps1 -ProjectPath . -FailOnSeverities Critical,High
 
+# validate/install security audit prerequisites
+pwsh -File .\scripts\security\Install-SecurityAuditPrerequisites.ps1 -FrontendPackageManager auto
+
 # run single pre-build security gate for all stacks
-pwsh -File .\scripts\security\Invoke-PreBuildSecurityGate.ps1 -FailOnSeverities Critical,High
+pwsh -File .\scripts\security\Invoke-PreBuildSecurityGate.ps1 -InstallMissingPrerequisites -FailOnSeverities Critical,High
+
+# same gate with system-level installation attempts (winget/choco/brew/apt/etc)
+pwsh -File .\scripts\security\Invoke-PreBuildSecurityGate.ps1 -InstallMissingPrerequisites -AllowSystemPrerequisiteInstall -FailOnSeverities Critical,High
 
 # run same gate from shared runtime in any repository (Windows/Linux/macOS)
 $HomePath = if (-not [string]::IsNullOrWhiteSpace($env:USERPROFILE)) { $env:USERPROFILE } else { $HOME }
 $SecurityScriptsRoot = Join-Path $HomePath '.codex/shared-scripts/security'
-pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-PreBuildSecurityGate.ps1') -RepoRoot $PWD -FailOnSeverities Critical,High
+pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-PreBuildSecurityGate.ps1') -RepoRoot $PWD -InstallMissingPrerequisites -FailOnSeverities Critical,High
 
 # install local Git hooks (validation + sync)
 pwsh -File .\scripts\git-hooks\setup-git-hooks.ps1

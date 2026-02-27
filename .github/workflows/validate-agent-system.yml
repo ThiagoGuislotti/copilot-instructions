@@ -11,70 +11,61 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: validate-agent-system-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
-    name: Validate Instructions Runtime, Policies, and Orchestration
-    runs-on: ubuntu-latest
+    name: Validate Agent System (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
-      - name: Run unified validation suite
+      - name: Export audit report (includes healthcheck + validate-all)
         shell: pwsh
         run: |
-          pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-all.ps1 `
+          pwsh -NoLogo -NoProfile -File ./scripts/validation/export-audit-report.ps1 `
             -RepoRoot $PWD `
-            -ValidationProfile release `
-            -WarningOnly:$true
-
-      - name: Execute multi-agent pipeline smoke test
-        shell: pwsh
-        run: |
-          pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/runtime/run-agent-pipeline.ps1 `
-            -RepoRoot $PWD `
-            -RunRoot ./.temp/runs `
-            -TraceId ci-smoke-run-${{ github.run_id }}-${{ github.run_attempt }} `
-            -RequestText "Validate pipeline orchestration in CI"
-
-      - name: Run healthcheck
-        shell: pwsh
-        run: |
-          pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/runtime/healthcheck.ps1 `
-            -RepoRoot $PWD `
+            -SyncRuntime `
+            -Mirror `
+            -StrictExtras `
             -ValidationProfile release `
             -WarningOnly:$true `
             -TreatRuntimeDriftAsWarning:$true `
             -TargetGithubPath ./.temp/runtime/github `
             -TargetCodexPath ./.temp/runtime/codex `
-            -SyncRuntime `
-            -Mirror `
-            -StrictExtras `
-            -OutputPath ./.temp/healthcheck-report.json `
-            -LogPath ./.temp/logs/healthcheck-ci.log
-
-      - name: Export audit report
-        if: always()
-        continue-on-error: true
-        shell: pwsh
-        run: |
-          pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/export-audit-report.ps1 `
-            -RepoRoot $PWD `
-            -TargetGithubPath ./.temp/runtime/github `
-            -TargetCodexPath ./.temp/runtime/codex `
-            -StrictExtras `
             -OutputPath ./.temp/audit-report.json `
             -HealthcheckOutputPath ./.temp/healthcheck-report.json `
             -LogPath ./.temp/logs/audit-ci.log
 
+      - name: Execute multi-agent pipeline smoke test
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -File ./scripts/runtime/run-agent-pipeline.ps1 `
+            -RepoRoot $PWD `
+            -RunRoot ./.temp/runs `
+            -TraceId ci-smoke-run-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.os }} `
+            -RequestText "Validate pipeline orchestration in CI"
+
       - name: Upload audit artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: agent-audit-report
+          name: agent-audit-report-${{ matrix.os }}
           path: |
             .temp/audit-report.json
             .temp/healthcheck-report.json
             .temp/runs/
             .temp/logs/
           if-no-files-found: warn
+          retention-days: 14

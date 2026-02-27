@@ -54,6 +54,12 @@
 .PARAMETER SkipRust
     Skips Rust dependency vulnerability audit.
 
+.PARAMETER InstallMissingPrerequisites
+    Runs prerequisite installer before audits to auto-install missing commands when possible.
+
+.PARAMETER AllowSystemPrerequisiteInstall
+    Allows prerequisite installer to use system package managers (winget/choco/brew/apt/etc).
+
 .PARAMETER FailOnSeverities
     Severity values that fail each stack quality gate.
     Default: Critical, High
@@ -76,8 +82,15 @@
       -RustProjectPaths crates/core `
       -FailOnSeverities Critical,High
 
+.EXAMPLE
+    $SecurityScriptsRoot = Join-Path $env:USERPROFILE '.codex\shared-scripts\security'
+    pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-PreBuildSecurityGate.ps1') -RepoRoot $PWD `
+      -InstallMissingPrerequisites `
+      -AllowSystemPrerequisiteInstall `
+      -FailOnSeverities Critical,High
+
 .NOTES
-    Version: 1.0
+    Version: 1.1
     Requirements: PowerShell 7+.
 #>
 
@@ -116,6 +129,12 @@ param(
 
     [Parameter(Mandatory = $false)]
     [switch] $SkipRust,
+
+    [Parameter(Mandatory = $false)]
+    [switch] $InstallMissingPrerequisites,
+
+    [Parameter(Mandatory = $false)]
+    [switch] $AllowSystemPrerequisiteInstall,
 
     [Parameter(Mandatory = $false)]
     [string[]] $FailOnSeverities = @('Critical', 'High'),
@@ -380,6 +399,50 @@ function Invoke-AuditScript {
     }
 }
 
+# Runs prerequisite setup script before security audits when enabled.
+function Invoke-PrerequisiteSetup {
+    param(
+        [string] $RootPath,
+        [bool] $DotnetEnabled,
+        [bool] $FrontendEnabled,
+        [bool] $RustEnabled,
+        [string[]] $ResolvedFrontendPaths,
+        [string[]] $ResolvedRustPaths
+    )
+
+    if (-not $InstallMissingPrerequisites) {
+        return
+    }
+
+    $prerequisiteScript = Resolve-AuditScriptPath -RootPath $RootPath -ScriptFileName 'Install-SecurityAuditPrerequisites.ps1'
+    $prerequisiteArgs = @(
+        '-RepoRoot', $RootPath,
+        '-FrontendPackageManager', $FrontendPackageManager
+    )
+
+    if (-not $DotnetEnabled) {
+        $prerequisiteArgs += '-SkipDotnet'
+    }
+
+    if (-not $FrontendEnabled -or @($ResolvedFrontendPaths).Count -eq 0) {
+        $prerequisiteArgs += '-SkipFrontend'
+    }
+
+    if (-not $RustEnabled -or @($ResolvedRustPaths).Count -eq 0) {
+        $prerequisiteArgs += '-SkipRust'
+    }
+
+    if ($AllowSystemPrerequisiteInstall) {
+        $prerequisiteArgs += '-AllowSystemInstall'
+    }
+
+    if ($DetailedLogs) {
+        $prerequisiteArgs += '-DetailedLogs'
+    }
+
+    Invoke-AuditScript -AuditName 'Security audit prerequisites setup' -ScriptPath $prerequisiteScript -ArgumentList $prerequisiteArgs
+}
+
 # Writes consolidated gate summary artifacts.
 function Write-GateSummaryArtifact {
     param(
@@ -482,6 +545,8 @@ try {
     $resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
     Set-Location -LiteralPath $resolvedRepoRoot
     Write-StyledOutput ("[INFO] Repo root: {0}" -f $resolvedRepoRoot)
+    Write-VerboseLog ("InstallMissingPrerequisites: {0}" -f [bool] $InstallMissingPrerequisites)
+    Write-VerboseLog ("AllowSystemPrerequisiteInstall: {0}" -f [bool] $AllowSystemPrerequisiteInstall)
 
     $dotnetAuditScript = Resolve-AuditScriptPath -RootPath $resolvedRepoRoot -ScriptFileName 'Invoke-VulnerabilityAudit.ps1'
     $frontendAuditScript = Resolve-AuditScriptPath -RootPath $resolvedRepoRoot -ScriptFileName 'Invoke-FrontendPackageVulnerabilityAudit.ps1'
@@ -516,6 +581,14 @@ try {
             $resolvedRustPaths = @(Get-RustProjectPathList -RootPath $resolvedRepoRoot)
         }
     }
+
+    Invoke-PrerequisiteSetup `
+        -RootPath $resolvedRepoRoot `
+        -DotnetEnabled $dotnetEnabled `
+        -FrontendEnabled $frontendEnabled `
+        -RustEnabled $rustEnabled `
+        -ResolvedFrontendPaths $resolvedFrontendPaths `
+        -ResolvedRustPaths $resolvedRustPaths
 
     if ($dotnetEnabled) {
         if (-not (Test-Path -LiteralPath $resolvedDotnetSolution -PathType Leaf)) {

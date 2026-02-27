@@ -77,7 +77,8 @@ pwsh -File .\.codex\scripts\render-vscode-mcp.ps1 `
 
 ```powershell
 $SecurityScriptsRoot = Join-Path $env:USERPROFILE '.codex\shared-scripts\security'
-pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-PreBuildSecurityGate.ps1') -RepoRoot $PWD -FailOnSeverities Critical,High
+pwsh -File (Join-Path $SecurityScriptsRoot 'Install-SecurityAuditPrerequisites.ps1') -RepoRoot $PWD -FrontendPackageManager auto
+pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-PreBuildSecurityGate.ps1') -RepoRoot $PWD -InstallMissingPrerequisites -FailOnSeverities Critical,High
 ```
 
 ---
@@ -96,7 +97,11 @@ pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-PreBuildSecurityGate.ps1') -R
 
 `security/Invoke-PreBuildSecurityGate.ps1`
 - Inputs: repo root, stack toggles, severity threshold, warning-only mode.
-- Behavior: runs consolidated dependency vulnerability gate via stack-specific scripts.
+- Behavior: runs consolidated dependency vulnerability gate via stack-specific scripts with optional prerequisite installation.
+
+`security/Install-SecurityAuditPrerequisites.ps1`
+- Inputs: repo root, stack toggles, frontend manager mode, system install switch.
+- Behavior: validates and auto-installs missing audit prerequisites before gates.
 
 `security/Invoke-VulnerabilityAudit.ps1`
 - Inputs: solution path, severity threshold.

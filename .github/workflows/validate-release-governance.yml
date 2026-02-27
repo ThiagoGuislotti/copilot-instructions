@@ -11,17 +11,22 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: validate-release-governance-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   release-governance:
     name: Release Governance Validation
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Validate release governance contracts
         shell: pwsh
         run: |
-          pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File ./scripts/validation/validate-release-governance.ps1 `
+          pwsh -NoLogo -NoProfile -File ./scripts/validation/validate-release-governance.ps1 `
             -RepoRoot $PWD

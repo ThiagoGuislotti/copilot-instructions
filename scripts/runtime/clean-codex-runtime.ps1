@@ -64,28 +64,20 @@ if (-not (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf)) {
 if (Test-Path -LiteralPath $script:ConsoleStylePath -PathType Leaf) {
     . $script:ConsoleStylePath
 }
+$script:RuntimePathsPath = Join-Path $PSScriptRoot '..\common\runtime-paths.ps1'
+if (-not (Test-Path -LiteralPath $script:RuntimePathsPath -PathType Leaf)) {
+    $script:RuntimePathsPath = Join-Path $PSScriptRoot '..\..\common\runtime-paths.ps1'
+}
+if (Test-Path -LiteralPath $script:RuntimePathsPath -PathType Leaf) {
+    . $script:RuntimePathsPath
+}
+else {
+    throw "Missing shared runtime path helper: $script:RuntimePathsPath"
+}
 $script:IsDetailedOutputEnabled = [bool] $DetailedOutput
 $script:RemovedEntries = 0
 $script:FailedEntries = 0
 $script:ReclaimedBytes = 0
-
-# Resolves the current user home directory with cross-platform fallbacks.
-function Resolve-UserHome {
-    if (-not [string]::IsNullOrWhiteSpace($env:USERPROFILE)) {
-        return $env:USERPROFILE
-    }
-
-    if (-not [string]::IsNullOrWhiteSpace($HOME)) {
-        return $HOME
-    }
-
-    $profileFolder = [Environment]::GetFolderPath([Environment+SpecialFolder]::UserProfile)
-    if (-not [string]::IsNullOrWhiteSpace($profileFolder)) {
-        return $profileFolder
-    }
-
-    throw 'Could not resolve user home path. Set USERPROFILE or HOME.'
-}
 
 # Writes diagnostics when detailed mode is enabled.
 function Write-DetailedLog {
@@ -265,7 +257,7 @@ function Invoke-EmptyDirectoryRemoval {
 }
 
 if ([string]::IsNullOrWhiteSpace($CodexHome)) {
-    $userHome = Resolve-UserHome
+    $userHome = Resolve-UserHomePath
     $CodexHome = Join-Path $userHome '.codex'
 }
 

@@ -18,6 +18,8 @@
     "validate-routing-coverage",
     "validate-readme-standards",
     "validate-powershell-standards",
+    "validate-shell-hooks",
+    "validate-runtime-script-tests",
     "validate-warning-baseline",
     "validate-dotnet-standards",
     "validate-architecture-boundaries",
@@ -30,6 +32,9 @@
   "requiredEvidenceFiles": [
     "CHANGELOG.md",
     "CODEOWNERS",
+    ".devcontainer/devcontainer.json",
+    ".github/dependabot.yml",
+    ".github/dependency-review-config.yml",
     ".github/governance/release-governance.md",
     ".github/governance/branch-protection.baseline.json",
     ".github/governance/security-baseline.json",
@@ -42,11 +47,19 @@
     "scripts/validation/validate-all.ps1",
     "scripts/validation/validate-release-governance.ps1",
     "scripts/validation/validate-security-baseline.ps1",
+    "scripts/validation/validate-shell-hooks.ps1",
+    "scripts/validation/validate-runtime-script-tests.ps1",
     "scripts/validation/validate-warning-baseline.ps1",
     "scripts/validation/validate-agent-permissions.ps1",
     "scripts/validation/validate-supply-chain.ps1",
     "scripts/validation/validate-release-provenance.ps1",
     "scripts/validation/validate-audit-ledger.ps1",
-    "scripts/validation/export-audit-report.ps1"
+    "scripts/validation/export-enterprise-trends.ps1",
+    "scripts/validation/export-audit-report.ps1",
+    "scripts/tests/pester/runtime-scripts.Tests.ps1",
+    ".github/workflows/dependency-risk-observability.yml",
+    ".github/workflows/enterprise-trends-dashboard.yml",
+    ".github/workflows/sbom-attestation-observability.yml",
+    ".github/workflows/security-static-observability.yml"
   ]
 }

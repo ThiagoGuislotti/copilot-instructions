@@ -2,6 +2,13 @@
 
 Language: pt-BR for chat; EN for code/commits/docs/UI/database; pt-BR i18n output.
 
+# Enterprise-First Default
+- Default quality bar is real-world enterprise standard for all tasks.
+- Target the highest feasible quality level by default in planning, implementation, validation, and documentation.
+- Plan and execute with high rigor in security, reliability, observability, testing, documentation, and maintainability.
+- Only downgrade to lightweight/prototype mode when the user explicitly labels the request as `POC`, `spike`, or `informal test`.
+- Even in POC/informal mode, keep baseline safety controls (no secrets exposure, no unsafe destructive actions).
+
 # Language Policy
 - Chat/Conversation: pt-BR (Portuguese) - all responses to user in chat
 - Code/Commits/Docs: EN (English) - all technical content

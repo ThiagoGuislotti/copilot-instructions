@@ -1,0 +1,98 @@
+name: Dependency Risk Observability
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+  schedule:
+    - cron: "0 11 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: dependency-risk-observability-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-review:
+    name: Dependency Review (PR)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dependency review severity policy (high+)
+        id: dependency_review
+        continue-on-error: true
+        uses: actions/dependency-review-action@v4
+        with:
+          config-file: .github/dependency-review-config.yml
+          fail-on-severity: high
+
+      - name: Emit warning when policy threshold is exceeded
+        if: steps.dependency_review.outcome != 'success'
+        run: |
+          echo "::warning::Dependency review detected vulnerabilities at or above HIGH severity (warning-only policy)."
+
+  vulnerability-snapshot:
+    name: Vulnerability Snapshot
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run warning-only pre-build security gate
+        shell: pwsh
+        run: |
+          $hasDotnet = @(
+            Get-ChildItem -Path $PWD -Recurse -File -Include *.sln,*.slnf -ErrorAction SilentlyContinue
+          ).Count -gt 0
+          $hasFrontend = @(
+            Get-ChildItem -Path $PWD -Recurse -File -Filter package.json -ErrorAction SilentlyContinue
+          ).Count -gt 0
+          $hasRust = @(
+            Get-ChildItem -Path $PWD -Recurse -File -Filter Cargo.toml -ErrorAction SilentlyContinue
+          ).Count -gt 0
+
+          $gateArgs = @(
+            '-NoLogo',
+            '-NoProfile',
+            '-File', './scripts/security/Invoke-PreBuildSecurityGate.ps1',
+            '-RepoRoot', $PWD,
+            '-WarningOnly:$true',
+            '-AllowMissingCargoAudit'
+          )
+
+          if (-not $hasDotnet) {
+            $gateArgs += '-SkipDotnet'
+          }
+
+          if (-not $hasFrontend) {
+            $gateArgs += '-SkipFrontend'
+          }
+
+          if (-not $hasRust) {
+            $gateArgs += '-SkipRust'
+          }
+
+          pwsh @gateArgs
+
+      - name: Upload vulnerability snapshot artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vulnerability-snapshot-${{ github.run_id }}
+          path: |
+            .temp/vulnerability-audit/
+          if-no-files-found: warn
+          retention-days: 14

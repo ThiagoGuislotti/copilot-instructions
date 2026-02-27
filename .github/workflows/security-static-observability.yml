@@ -1,0 +1,96 @@
+name: Security Static Observability
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+  schedule:
+    - cron: "45 8 * * 3"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  security-events: write
+
+concurrency:
+  group: security-static-observability-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  codeql:
+    name: CodeQL (actions)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        id: codeql_init
+        continue-on-error: true
+        uses: github/codeql-action/init@v3
+        with:
+          languages: actions
+
+      - name: Run CodeQL analysis
+        id: codeql_analyze
+        continue-on-error: true
+        uses: github/codeql-action/analyze@v3
+
+      - name: Emit warning for CodeQL issues
+        if: steps.codeql_init.outcome != 'success' || steps.codeql_analyze.outcome != 'success'
+        run: |
+          echo "::warning::CodeQL encountered issues in observability mode."
+
+  scorecard:
+    name: OpenSSF Scorecard
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Prepare output directory
+        shell: bash
+        run: |
+          mkdir -p .temp/audit
+
+      - name: Run OpenSSF Scorecard
+        id: scorecard
+        continue-on-error: true
+        uses: ossf/scorecard-action@v2.3.3
+        with:
+          results_file: .temp/audit/scorecard.sarif
+          results_format: sarif
+          publish_results: false
+
+      - name: Emit warning for Scorecard issues
+        if: steps.scorecard.outcome != 'success'
+        run: |
+          echo "::warning::Scorecard encountered issues in observability mode."
+
+      - name: Upload Scorecard SARIF
+        if: always() && hashFiles('.temp/audit/scorecard.sarif') != ''
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: .temp/audit/scorecard.sarif
+
+      - name: Upload Scorecard artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scorecard-${{ github.run_id }}
+          path: .temp/audit/scorecard.sarif
+          if-no-files-found: warn
+          retention-days: 30

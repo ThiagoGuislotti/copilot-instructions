@@ -1,0 +1,35 @@
+{
+  "name": "copilot-instructions-enterprise",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "remoteUser": "vscode",
+  "updateRemoteUserUID": true,
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/powershell:1": {},
+    "ghcr.io/devcontainers/features/dotnet:2": {
+      "version": "8.0"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    },
+    "ghcr.io/devcontainers/features/rust:1": {}
+  },
+  "postCreateCommand": "pwsh -NoLogo -NoProfile -File ./scripts/runtime/bootstrap.ps1 -RepoRoot ${containerWorkspaceFolder}; pwsh -NoLogo -NoProfile -File ./scripts/validation/validate-instructions.ps1 -RepoRoot ${containerWorkspaceFolder} -WarningOnly",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.powershell",
+        "ms-dotnettools.csharp",
+        "rust-lang.rust-analyzer",
+        "github.vscode-github-actions",
+        "github.copilot",
+        "github.copilot-chat"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "files.eol": "\n",
+        "editor.formatOnSave": true
+      }
+    }
+  }
+}
