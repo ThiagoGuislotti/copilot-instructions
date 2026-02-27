@@ -121,7 +121,7 @@ function Invoke-ValidationScript {
     $errorMessage = $null
 
     try {
-        & $ScriptPath -RepoRoot $Root
+        & $ScriptPath -RepoRoot $Root | Out-Host
         $exitCode = if ($null -eq $LASTEXITCODE) { 0 } else { [int] $LASTEXITCODE }
         if ($exitCode -eq 0) {
             $status = 'passed'
@@ -134,7 +134,7 @@ function Invoke-ValidationScript {
 
     $finishedAt = Get-Date
 
-    return [ordered]@{
+    return [pscustomobject]@{
         name = $Name
         script = (Convert-ToRelativeRepoPath -Root $Root -Path $ScriptPath)
         status = $status
@@ -165,7 +165,7 @@ $validationScripts = @(
 $results = New-Object System.Collections.Generic.List[object]
 foreach ($scriptEntry in $validationScripts) {
     if (-not (Test-Path -LiteralPath $scriptEntry.Path -PathType Leaf)) {
-        $results.Add([ordered]@{
+        $results.Add([pscustomobject]@{
             name = $scriptEntry.Name
             script = (Convert-ToRelativeRepoPath -Root $resolvedRepoRoot -Path $scriptEntry.Path)
             status = 'failed'

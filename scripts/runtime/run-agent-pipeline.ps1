@@ -168,6 +168,26 @@ function Read-JsonFile {
     return (Get-Content -Raw -LiteralPath $Path | ConvertFrom-Json -Depth 200)
 }
 
+# Returns optional object property value with fallback default.
+function Get-OptionalPropertyValue {
+    param(
+        [object] $Object,
+        [string] $PropertyName,
+        [object] $DefaultValue = $null
+    )
+
+    if ($null -eq $Object -or [string]::IsNullOrWhiteSpace($PropertyName)) {
+        return $DefaultValue
+    }
+
+    $property = $Object.PSObject.Properties[$PropertyName]
+    if ($null -eq $property) {
+        return $DefaultValue
+    }
+
+    return $property.Value
+}
+
 # Converts path to repository-relative format using forward slashes.
 function Convert-ToRepoRelativePath {
     param(
@@ -376,13 +396,20 @@ $resolvedRunRoot = Resolve-RepoPath -Root $resolvedRepoRoot -Path $RunRoot
 $agentsManifest = Read-JsonFile -Path $resolvedAgentsManifestPath
 $pipeline = Read-JsonFile -Path $resolvedPipelinePath
 
-$defaultTimeoutMinutes = if ($null -eq $agentsManifest.defaults.timeoutMinutes) { 30 } else { [int] $agentsManifest.defaults.timeoutMinutes }
-$runtimeConfig = $pipeline.runtime
+$defaultsConfig = Get-OptionalPropertyValue -Object $agentsManifest -PropertyName 'defaults'
+$defaultTimeoutValue = Get-OptionalPropertyValue -Object $defaultsConfig -PropertyName 'timeoutMinutes' -DefaultValue 30
+$defaultTimeoutMinutes = [int] $defaultTimeoutValue
+
+$runtimeConfig = Get-OptionalPropertyValue -Object $pipeline -PropertyName 'runtime'
+$runtimeRetryDelayValue = Get-OptionalPropertyValue -Object $runtimeConfig -PropertyName 'defaultRetryDelaySeconds'
+$runtimeMaxDurationValue = Get-OptionalPropertyValue -Object $runtimeConfig -PropertyName 'maxPipelineDurationSeconds'
+$runtimeContinueOnFailureValue = Get-OptionalPropertyValue -Object $runtimeConfig -PropertyName 'continueOnStageFailure'
+
 $effectiveRetryDelaySeconds = if ($RetryDelaySeconds -gt 0) {
     $RetryDelaySeconds
 }
-elseif ($null -ne $runtimeConfig -and $null -ne $runtimeConfig.defaultRetryDelaySeconds) {
-    [int] $runtimeConfig.defaultRetryDelaySeconds
+elseif ($null -ne $runtimeRetryDelayValue) {
+    [int] $runtimeRetryDelayValue
 }
 else {
     2
@@ -391,15 +418,15 @@ else {
 $effectiveMaxPipelineDurationSeconds = if ($MaxPipelineDurationSeconds -gt 0) {
     $MaxPipelineDurationSeconds
 }
-elseif ($null -ne $runtimeConfig -and $null -ne $runtimeConfig.maxPipelineDurationSeconds -and [int] $runtimeConfig.maxPipelineDurationSeconds -gt 0) {
-    [int] $runtimeConfig.maxPipelineDurationSeconds
+elseif ($null -ne $runtimeMaxDurationValue -and [int] $runtimeMaxDurationValue -gt 0) {
+    [int] $runtimeMaxDurationValue
 }
 else {
     $defaultTimeoutMinutes * 60
 }
 
-$effectiveContinueOnStageFailure = if ($null -ne $runtimeConfig -and $null -ne $runtimeConfig.continueOnStageFailure) {
-    [bool] $runtimeConfig.continueOnStageFailure
+$effectiveContinueOnStageFailure = if ($null -ne $runtimeContinueOnFailureValue) {
+    [bool] $runtimeContinueOnFailureValue
 }
 else {
     [bool] $ContinueOnStageFailure
@@ -456,9 +483,11 @@ foreach ($stage in @($pipeline.stages)) {
     $stageId = [string] $stage.id
     $agentId = [string] $stage.agentId
     $stageMode = [string] $stage.mode
-    $onFailure = [string] $stage.onFailure
-    $configuredRetries = if ($null -ne $stage.execution -and $null -ne $stage.execution.retryCount) {
-        [Math]::Max(0, [int] $stage.execution.retryCount)
+    $onFailure = [string] (Get-OptionalPropertyValue -Object $stage -PropertyName 'onFailure' -DefaultValue 'stop')
+    $execution = Get-OptionalPropertyValue -Object $stage -PropertyName 'execution'
+    $retryCountValue = Get-OptionalPropertyValue -Object $execution -PropertyName 'retryCount'
+    $configuredRetries = if ($null -ne $retryCountValue) {
+        [Math]::Max(0, [int] $retryCountValue)
     }
     elseif ($onFailure -eq 'retry-once') {
         1
@@ -537,7 +566,16 @@ foreach ($stage in @($pipeline.stages)) {
             }
         }
 
-        $execution = $stage.execution
+        $execution = Get-OptionalPropertyValue -Object $stage -PropertyName 'execution'
+        if ($null -eq $execution) {
+            $lastFailureMessage = ("Stage {0} is missing execution configuration." -f $stageId)
+            Write-StyledOutput ("[ERROR] {0}" -f $lastFailureMessage)
+            if ($attempt -lt $maxAttempts -and $effectiveRetryDelaySeconds -gt 0) {
+                Start-Sleep -Seconds $effectiveRetryDelaySeconds
+            }
+            continue
+        }
+
         $scriptPath = Resolve-RepoPath -Root $resolvedRepoRoot -Path ([string] $execution.scriptPath)
         $scriptPathRelative = Convert-ToRepoRelativePath -Root $resolvedRepoRoot -Path $scriptPath
 
@@ -551,7 +589,8 @@ foreach ($stage in @($pipeline.stages)) {
         }
 
         $syntheticCommand = "pwsh -File $scriptPathRelative"
-        if (-not $SkipGuardrails -and (Test-IsBlockedCommand -CommandText $syntheticCommand -BlockedCommands @($agent.blockedCommands))) {
+        $blockedCommands = @((Get-OptionalPropertyValue -Object $agent -PropertyName 'blockedCommands' -DefaultValue @()))
+        if (-not $SkipGuardrails -and (Test-IsBlockedCommand -CommandText $syntheticCommand -BlockedCommands $blockedCommands)) {
             $lastFailureMessage = ("Blocked command for agent {0}: {1}" -f $agentId, $syntheticCommand)
             Write-StyledOutput ("[ERROR] {0}" -f $lastFailureMessage)
             if ($attempt -lt $maxAttempts -and $effectiveRetryDelaySeconds -gt 0) {
@@ -596,7 +635,8 @@ foreach ($stage in @($pipeline.stages)) {
         $stageFinishedAt = Get-Date
         $stageDurationMs = [int] ($stageFinishedAt - $stageStartedAt).TotalMilliseconds
 
-        $timeoutSeconds = if ($null -eq $execution.timeoutSeconds) { 1800 } else { [int] $execution.timeoutSeconds }
+        $timeoutSecondsValue = Get-OptionalPropertyValue -Object $execution -PropertyName 'timeoutSeconds' -DefaultValue 1800
+        $timeoutSeconds = [int] $timeoutSecondsValue
         if ($stageDurationMs -gt ($timeoutSeconds * 1000)) {
             $lastFailureMessage = ("Stage {0} exceeded timeoutSeconds ({1}). Duration={2}ms." -f $stageId, $timeoutSeconds, $stageDurationMs)
             Write-StyledOutput ("[ERROR] {0}" -f $lastFailureMessage)
@@ -665,8 +705,9 @@ foreach ($stage in @($pipeline.stages)) {
             }
 
             $disallowed = @()
+            $allowedPaths = @((Get-OptionalPropertyValue -Object $agent -PropertyName 'allowedPaths' -DefaultValue @()))
             foreach ($relativeChangedPath in $changedDelta) {
-                if (-not (Test-IsPathAllowed -RelativePath $relativeChangedPath -AllowedPatterns @($agent.allowedPaths))) {
+                if (-not (Test-IsPathAllowed -RelativePath $relativeChangedPath -AllowedPatterns $allowedPaths)) {
                     $disallowed += $relativeChangedPath
                 }
             }
@@ -733,7 +774,7 @@ foreach ($stage in @($pipeline.stages)) {
 
     if (-not $stageSucceeded) {
         $runFailures.Add($lastFailureMessage) | Out-Null
-        $fallbackAgentId = [string] $agent.fallbackAgentId
+        $fallbackAgentId = [string] (Get-OptionalPropertyValue -Object $agent -PropertyName 'fallbackAgentId' -DefaultValue '')
         if (-not [string]::IsNullOrWhiteSpace($fallbackAgentId)) {
             $runWarnings.Add(("Stage {0} failed for agent '{1}'. Fallback agent available: '{2}'." -f $stageId, $agentId, $fallbackAgentId)) | Out-Null
         }
