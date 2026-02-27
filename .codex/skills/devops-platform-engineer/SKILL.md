@@ -40,10 +40,11 @@ description: Build and maintain CI/CD pipelines, containerization, Kubernetes ma
 ## Validation examples
 
 ```powershell
-pwsh -File scripts/security/Invoke-PreBuildSecurityGate.ps1 -FailOnSeverities Critical,High
-pwsh -File scripts/security/Invoke-VulnerabilityAudit.ps1 -SolutionPath NetToolsKit.sln -FailOnSeverities Critical,High
-pwsh -File scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1 -ProjectPath src/WebApp -FailOnSeverities Critical,High
-pwsh -File scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1 -ProjectPath . -FailOnSeverities Critical,High
+$SecurityScriptsRoot = Join-Path $env:USERPROFILE '.codex\shared-scripts\security'
+pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-PreBuildSecurityGate.ps1') -RepoRoot $PWD -FailOnSeverities Critical,High
+pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-VulnerabilityAudit.ps1') -RepoRoot $PWD -SolutionPath NetToolsKit.sln -FailOnSeverities Critical,High
+pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-FrontendPackageVulnerabilityAudit.ps1') -RepoRoot $PWD -ProjectPath src/WebApp -FailOnSeverities Critical,High
+pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-RustPackageVulnerabilityAudit.ps1') -RepoRoot $PWD -ProjectPath . -FailOnSeverities Critical,High
 docker build -f Dockerfile .
 kubectl apply --dry-run=client -f k8s/
 ```

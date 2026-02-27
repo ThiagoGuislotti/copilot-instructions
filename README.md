@@ -25,6 +25,7 @@ Structured AI agent guidelines for software development projects. Focuses on rep
 ## Table of Contents
 
 - [Installation](#installation)
+- [Parameterization & Privacy](#parameterization--privacy)
 - [Git Hooks](#git-hooks)
 - [Quick Start](#quick-start)
 - [Usage Examples](#usage-examples)
@@ -92,6 +93,45 @@ To apply active VS Code workspace files from templates:
 
 ```powershell
 pwsh -File .\scripts\runtime\apply-vscode-templates.ps1 -Force
+```
+
+---
+
+## Parameterization & Privacy
+
+To avoid exposing machine-specific information (for example `C:\Users\<name>\...`) in docs, logs, screenshots, or commits, prefer parameterized paths and environment variables.
+
+### Rules
+
+- Use relative repo paths in documentation and examples (`.\scripts\...`) whenever possible.
+- Use environment variables for runtime locations: `$env:USERPROFILE`, `$HOME`, `$env:REPO_ROOT`.
+- Use placeholders in shared docs: `<REPO_ROOT>`, `<GITHUB_RUNTIME_PATH>`, `<CODEX_RUNTIME_PATH>`.
+- Do not hardcode personal absolute paths in tracked files, prompts, or snippets.
+
+### PowerShell Example (Safe Defaults)
+
+```powershell
+$RepoRoot = $env:REPO_ROOT
+if ([string]::IsNullOrWhiteSpace($RepoRoot)) {
+    $RepoRoot = (Get-Location).Path
+}
+
+$GithubRuntimePath = Join-Path $env:USERPROFILE '.github'
+$CodexRuntimePath = Join-Path $env:USERPROFILE '.codex'
+
+pwsh -File (Join-Path $RepoRoot 'scripts/runtime/bootstrap.ps1') `
+    -RepoRoot $RepoRoot `
+    -TargetGithubPath $GithubRuntimePath `
+    -TargetCodexPath $CodexRuntimePath `
+    -Mirror
+```
+
+### Optional Local Override (Not Committed)
+
+Set local environment variables in your shell profile and keep them out of versioned files:
+
+```powershell
+$env:REPO_ROOT = (Get-Location).Path
 ```
 
 ---

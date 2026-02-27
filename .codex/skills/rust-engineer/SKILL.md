@@ -32,7 +32,8 @@ description: Implement, organize, and test Rust modules in this repository follo
 ## Validation examples
 
 ```powershell
-pwsh -File scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1 -ProjectPath . -FailOnSeverities Critical,High
+$SecurityScriptsRoot = Join-Path $env:USERPROFILE '.codex\shared-scripts\security'
+pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-RustPackageVulnerabilityAudit.ps1') -RepoRoot $PWD -ProjectPath . -FailOnSeverities Critical,High
 cargo fmt --check
 cargo build
 cargo test

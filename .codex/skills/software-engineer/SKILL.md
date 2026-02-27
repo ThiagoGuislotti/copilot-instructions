@@ -51,12 +51,13 @@ description: Implement and refactor application code in this repository across .
 ## Validation examples
 
 ```powershell
-pwsh -File scripts/security/Invoke-PreBuildSecurityGate.ps1 -FailOnSeverities Critical,High
+$SecurityScriptsRoot = Join-Path $env:USERPROFILE '.codex\shared-scripts\security'
+pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-PreBuildSecurityGate.ps1') -RepoRoot $PWD -FailOnSeverities Critical,High
 dotnet build
 dotnet test --filter "Category=Unit"
-pwsh -File scripts/security/Invoke-VulnerabilityAudit.ps1 -FailOnSeverities Critical,High
+pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-VulnerabilityAudit.ps1') -RepoRoot $PWD -FailOnSeverities Critical,High
 npm run build
-pwsh -File scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1 -ProjectPath src/WebApp -FailOnSeverities Critical,High
+pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-FrontendPackageVulnerabilityAudit.ps1') -RepoRoot $PWD -ProjectPath src/WebApp -FailOnSeverities Critical,High
 cargo test
-pwsh -File scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1 -ProjectPath . -FailOnSeverities Critical,High
+pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-RustPackageVulnerabilityAudit.ps1') -RepoRoot $PWD -ProjectPath . -FailOnSeverities Critical,High
 ```

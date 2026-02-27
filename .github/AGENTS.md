@@ -133,7 +133,7 @@ Monorepo of libraries, modules, and samples for robust .NET services using Clean
 - `dotnet build NetToolsKit.sln`; targeted: `dotnet build -f net8.0|net9.0`.
 - Tests: `dotnet test --filter "Category=Unit"`; module integration: `dotnet test modules/Authentication --filter "Category=Integration"`.
 - Run sample API: `dotnet run --project samples/src/Rent.Service.Api`.
-- Pack/format/security: `dotnet pack -c Release`; `dotnet format`; `dotnet list package --vulnerable`; `pwsh -File scripts/security/Invoke-PreBuildSecurityGate.ps1 -FailOnSeverities Critical,High`; `pwsh -File scripts/security/Invoke-VulnerabilityAudit.ps1 -FailOnSeverities Critical,High`; `pwsh -File scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1 -ProjectPath src/WebApp -FailOnSeverities Critical,High`; `pwsh -File scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1 -ProjectPath . -FailOnSeverities Critical,High`.
+- Pack/format/security: `dotnet pack -c Release`; `dotnet format`; `dotnet list package --vulnerable`; shared gate scripts from `~/.codex/shared-scripts/security` (prefer `Invoke-PreBuildSecurityGate.ps1`).
 
 ## Style
 - Namespaces mirror folders (`src/NetToolsKit.DynamicQuery/*` -> `NetToolsKit.DynamicQuery`). C#: PascalCase types, camelCase locals/params, UPPER_SNAKE_CASE constants.

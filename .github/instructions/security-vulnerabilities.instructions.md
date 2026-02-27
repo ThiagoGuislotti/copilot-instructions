@@ -74,21 +74,25 @@ priority: high
 
 # Dependency Vulnerability Automation
 - Run dependency vulnerability audit before build/package for each impacted stack.
+- Shared runtime scripts root:
+```powershell
+$SecurityScriptsRoot = Join-Path $env:USERPROFILE '.codex\shared-scripts\security'
+```
 - Preferred unified gate command:
 ```powershell
-pwsh -File scripts/security/Invoke-PreBuildSecurityGate.ps1 -FailOnSeverities Critical,High
+pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-PreBuildSecurityGate.ps1') -RepoRoot $PWD -FailOnSeverities Critical,High
 ```
 - Backend .NET audit command:
 ```powershell
-pwsh -File scripts/security/Invoke-VulnerabilityAudit.ps1 -FailOnSeverities Critical,High
+pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-VulnerabilityAudit.ps1') -RepoRoot $PWD -FailOnSeverities Critical,High
 ```
 - Frontend audit command (npm/pnpm/yarn auto-detection):
 ```powershell
-pwsh -File scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1 -ProjectPath src/WebApp -FailOnSeverities Critical,High
+pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-FrontendPackageVulnerabilityAudit.ps1') -RepoRoot $PWD -ProjectPath src/WebApp -FailOnSeverities Critical,High
 ```
 - Rust audit command:
 ```powershell
-pwsh -File scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1 -ProjectPath . -FailOnSeverities Critical,High
+pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-RustPackageVulnerabilityAudit.ps1') -RepoRoot $PWD -ProjectPath . -FailOnSeverities Critical,High
 ```
 - Persist generated artifacts under `.temp/vulnerability-audit/*` as local evidence.
 - Treat Critical and High as default blocking severities for release-oriented workflows.

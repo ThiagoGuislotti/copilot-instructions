@@ -38,7 +38,8 @@ description: Implement, refactor, and troubleshoot .NET/C# backend APIs in this 
 ## Validation examples
 
 ```powershell
-pwsh -File scripts/security/Invoke-VulnerabilityAudit.ps1 -SolutionPath NetToolsKit.sln -FailOnSeverities Critical,High
+$SecurityScriptsRoot = Join-Path $env:USERPROFILE '.codex\shared-scripts\security'
+pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-VulnerabilityAudit.ps1') -RepoRoot $PWD -SolutionPath NetToolsKit.sln -FailOnSeverities Critical,High
 dotnet build
 dotnet test --filter "Category=Unit"
 dotnet test --filter "Category=Integration"

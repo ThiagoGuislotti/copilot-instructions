@@ -7,6 +7,12 @@
   - `scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1`
 - Added Rust dependency vulnerability audit script:
   - `scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1`
+- Added runtime-shared security scripts distribution:
+  - `.codex/scripts/common/console-style.ps1`
+  - `.codex/scripts/security/Invoke-PreBuildSecurityGate.ps1`
+  - `.codex/scripts/security/Invoke-VulnerabilityAudit.ps1`
+  - `.codex/scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1`
+  - `.codex/scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1`
 - Added dedicated security skill:
   - `.codex/skills/security-vulnerability-engineer/SKILL.md`
   - `.codex/skills/security-vulnerability-engineer/agents/openai.yaml`
@@ -27,6 +33,7 @@
   - `.github/instruction-routing.catalog.yml`
 - Updated documentation references:
   - `scripts/README.md`
+  - `.codex/scripts/README.md`
   - `.codex/skills/README.md`
   - `.github/AGENTS.md`
   - `.github/copilot-instructions.md`

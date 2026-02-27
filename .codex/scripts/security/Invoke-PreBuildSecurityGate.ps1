@@ -7,9 +7,9 @@
     single quality gate flow before build/package operations.
 
     Managed audits:
-    - .NET backend: scripts/security/Invoke-VulnerabilityAudit.ps1
-    - Frontend: scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1
-    - Rust: scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1
+    - .NET backend: ~/.codex/shared-scripts/security/Invoke-VulnerabilityAudit.ps1
+    - Frontend: ~/.codex/shared-scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1
+    - Rust: ~/.codex/shared-scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1
 
     Exit code:
     - 0 when all enabled audits pass (or WarningOnly is true)
@@ -66,10 +66,12 @@
     Enables verbose diagnostic logs.
 
 .EXAMPLE
-    pwsh -File scripts/security/Invoke-PreBuildSecurityGate.ps1
+    $SecurityScriptsRoot = Join-Path $env:USERPROFILE '.codex\shared-scripts\security'
+    pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-PreBuildSecurityGate.ps1') -RepoRoot $PWD
 
 .EXAMPLE
-    pwsh -File scripts/security/Invoke-PreBuildSecurityGate.ps1 `
+    $SecurityScriptsRoot = Join-Path $env:USERPROFILE '.codex\shared-scripts\security'
+    pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-PreBuildSecurityGate.ps1') -RepoRoot $PWD `
       -FrontendProjectPaths src/WebApp,apps/Portal `
       -RustProjectPaths crates/core `
       -FailOnSeverities Critical,High

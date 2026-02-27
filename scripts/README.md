@@ -286,6 +286,10 @@ pwsh -File .\scripts\security\Invoke-RustPackageVulnerabilityAudit.ps1 -ProjectP
 # run single pre-build security gate for all stacks
 pwsh -File .\scripts\security\Invoke-PreBuildSecurityGate.ps1 -FailOnSeverities Critical,High
 
+# run same gate from shared runtime in any repository
+$SecurityScriptsRoot = Join-Path $env:USERPROFILE '.codex\shared-scripts\security'
+pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-PreBuildSecurityGate.ps1') -RepoRoot $PWD -FailOnSeverities Critical,High
+
 # install local Git hooks (validation + sync)
 pwsh -File .\scripts\git-hooks\setup-git-hooks.ps1
 

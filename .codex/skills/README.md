@@ -72,10 +72,10 @@ Use skills: `dotnet-backend-engineer`, `frontend-vue-quasar-engineer`, `rust-eng
 ### Example 5: Security Gate Before Build
 
 Use skills: `software-engineer`, `devops-platform-engineer`, `test-engineer` with:
-- `scripts/security/Invoke-PreBuildSecurityGate.ps1`
-- `scripts/security/Invoke-VulnerabilityAudit.ps1`
-- `scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1`
-- `scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1`
+- `~/.codex/shared-scripts/security/Invoke-PreBuildSecurityGate.ps1`
+- `~/.codex/shared-scripts/security/Invoke-VulnerabilityAudit.ps1`
+- `~/.codex/shared-scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1`
+- `~/.codex/shared-scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1`
 
 ---
 

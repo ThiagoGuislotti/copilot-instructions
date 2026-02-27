@@ -1,12 +1,12 @@
 # Codex Scripts
 
-> Scripts to render and apply shared MCP configuration in local environments.
+> Shared runtime scripts synced to `~/.codex/shared-scripts` for cross-repository usage.
 
 ---
 
 ## Introduction
 
-These scripts consume `.codex/mcp/servers.manifest.json` and generate/apply target configuration files for Codex and VS Code.
+These scripts are synchronized by `scripts/runtime/bootstrap.ps1` into local runtime so agents can execute them in any project without copying scripts into each repository.
 
 ---
 
@@ -15,6 +15,7 @@ These scripts consume `.codex/mcp/servers.manifest.json` and generate/apply targ
 - ✅ Render VS Code MCP template (`mcp.tamplate.jsonc`) from manifest
 - ✅ Apply MCP servers into local `~/.codex/config.toml`
 - ✅ Preserve non-MCP sections in local Codex config
+- ✅ Shared security vulnerability gates for .NET, frontend, and Rust
 
 ---
 
@@ -44,6 +45,7 @@ No additional installation is required beyond PowerShell.
 ```powershell
 pwsh -File .\.codex\scripts\sync-mcp-to-codex-config.ps1 -CreateBackup
 pwsh -File .\.codex\scripts\render-vscode-mcp.ps1 -OutputPath .\.vscode\mcp.tamplate.jsonc
+pwsh -File .\scripts\runtime\bootstrap.ps1
 ```
 
 ---
@@ -71,6 +73,13 @@ pwsh -File .\.codex\scripts\render-vscode-mcp.ps1 `
   -OutputPath .\.vscode\mcp.tamplate.jsonc
 ```
 
+### Example 4: Use Shared Security Gate In Any Repo
+
+```powershell
+$SecurityScriptsRoot = Join-Path $env:USERPROFILE '.codex\shared-scripts\security'
+pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-PreBuildSecurityGate.ps1') -RepoRoot $PWD -FailOnSeverities Critical,High
+```
+
 ---
 
 ## API Reference
@@ -84,6 +93,22 @@ pwsh -File .\.codex\scripts\render-vscode-mcp.ps1 `
 `render-vscode-mcp.ps1`
 - Inputs: manifest path, output path.
 - Behavior: generates `{"servers": {...}}` JSON for VS Code MCP.
+
+`security/Invoke-PreBuildSecurityGate.ps1`
+- Inputs: repo root, stack toggles, severity threshold, warning-only mode.
+- Behavior: runs consolidated dependency vulnerability gate via stack-specific scripts.
+
+`security/Invoke-VulnerabilityAudit.ps1`
+- Inputs: solution path, severity threshold.
+- Behavior: runs .NET package vulnerability audit.
+
+`security/Invoke-FrontendPackageVulnerabilityAudit.ps1`
+- Inputs: frontend project path, package manager mode, severity threshold.
+- Behavior: runs npm/pnpm/yarn dependency vulnerability audit.
+
+`security/Invoke-RustPackageVulnerabilityAudit.ps1`
+- Inputs: Rust project path, severity threshold.
+- Behavior: runs cargo-audit vulnerability check.
 
 ---
 
