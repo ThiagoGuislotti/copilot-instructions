@@ -107,6 +107,7 @@ Use the **Mandatory Context Files** list above.
 
 ## Execution Flow for Development Tasks
 1. Super Agent intake: normalize the request, identify constraints and risk, and decide whether the work is change-bearing
+   - if ambiguity would materially change planning scope, architecture, runtime behavior, validation, or safety, ask up to 3 concise clarification questions and stop before planning
 2. Spec Registration: create or update a versioned spec under `planning/specs/active/` when the workspace owns a spec surface; otherwise use `.build/super-agent/specs/active/` when non-trivial change-bearing work needs design direction before planning
 3. Planning Registration: create or update the active plan for any change-bearing task under `planning/active/` when the workspace owns a planning surface, otherwise under `.build/super-agent/planning/active/`; consume the active spec before planning whenever one exists
 4. Specialist Routing: identify the smallest correct specialist set and whether safe delegation is possible

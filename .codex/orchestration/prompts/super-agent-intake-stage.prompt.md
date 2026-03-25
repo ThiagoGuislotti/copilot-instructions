@@ -23,6 +23,15 @@ Rules:
 - Use repository context first.
 - Do not implement changes in this stage.
 - Keep normalization factual, concise, and faithful to the user request.
+- Ask concise clarification questions only when ambiguity would materially change:
+  - planning scope or sequencing
+  - architecture or design direction
+  - runtime/configuration behavior
+  - validation obligations
+  - operational safety or risk handling
+- Keep clarification to at most 3 short questions.
+- If clarification is required, set `clarificationRequired=true`, `canProceedSafely=false`, populate `clarificationReason` plus `clarificationQuestions`, and keep downstream work items high-level only.
+- If clarification is not required, set `clarificationRequired=false`, `canProceedSafely=true`, `clarificationReason=null`, and `clarificationQuestions=[]`.
 - Return JSON only, matching the provided schema.
 
 Request:
@@ -36,8 +45,12 @@ Return fields:
 - normalizedRequest
 - changeBearing
 - planningRequired
+- clarificationRequired
+- canProceedSafely
 - workstreamSlug
 - explicitWorkItems
+- clarificationQuestions
+- clarificationReason
 - constraints
 - risks
 - notes

@@ -1,6 +1,7 @@
 <#
 .SYNOPSIS
-    Runtime regression tests for mixed MCP manifest rendering.
+    Runtime regression tests for mixed MCP manifest rendering and canonical
+    catalog-driven Codex projections.
 
 .DESCRIPTION
     Verifies that `.codex/scripts/sync-mcp-to-codex-config.ps1` can render a
@@ -66,6 +67,7 @@ $resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
 $scriptPath = Join-Path $resolvedRepoRoot '.codex/scripts/sync-mcp-to-codex-config.ps1'
 $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ([System.Guid]::NewGuid().ToString('N'))
 $manifestPath = Join-Path $tempRoot 'servers.manifest.json'
+$catalogPath = Join-Path $tempRoot 'mcp-runtime.catalog.json'
 $configPath = Join-Path $tempRoot 'config.toml'
 
 try {
@@ -110,6 +112,68 @@ search = true
 
     $backupFiles = @(Get-ChildItem -LiteralPath $tempRoot -Filter 'config.toml.bak.*' -File)
     Assert-True -Condition ($backupFiles.Count -eq 1) -Message 'sync-mcp-to-codex-config should create one backup when -CreateBackup is specified.'
+
+    @'
+{
+  "version": 1,
+  "inputs": [],
+  "servers": [
+    {
+      "id": "microsoftdocs/mcp",
+      "codexName": "microsoftdocs",
+      "targets": {
+        "vscode": { "include": true, "enabledByDefault": true },
+        "codex": { "include": true }
+      },
+      "definition": {
+        "type": "http",
+        "url": "https://learn.microsoft.com/api/mcp",
+        "gallery": "https://example.invalid/gallery",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "microsoft/playwright-mcp",
+      "codexName": "playwright",
+      "targets": {
+        "codex": { "include": true }
+      },
+      "definition": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["@playwright/mcp@latest"]
+      }
+    },
+    {
+      "id": "vscode-only/example",
+      "targets": {
+        "vscode": { "include": true, "enabledByDefault": false }
+      },
+      "definition": {
+        "type": "http",
+        "url": "https://example.invalid/vscode-only"
+      }
+    }
+  ]
+}
+'@ | Set-Content -LiteralPath $catalogPath
+
+    @'
+model = "gpt-5"
+
+[tools]
+search = true
+'@ | Set-Content -LiteralPath $configPath
+
+    & $scriptPath -RepoRoot $resolvedRepoRoot -CatalogPath $catalogPath -TargetConfigPath $configPath | Out-Null
+    $lastExitCodeVariable = Get-Variable -Name LASTEXITCODE -ErrorAction SilentlyContinue
+    $exitCode = if ($null -eq $lastExitCodeVariable) { 0 } else { [int] $lastExitCodeVariable.Value }
+    Assert-True -Condition ($exitCode -eq 0) -Message 'sync-mcp-to-codex-config should succeed for canonical catalog input.'
+
+    $content = Get-Content -LiteralPath $configPath -Raw
+    Assert-ContainsText -Content $content -ExpectedText '[mcp_servers.microsoftdocs]' -Message 'Catalog-driven sync must include the codex-enabled http server block.'
+    Assert-ContainsText -Content $content -ExpectedText '[mcp_servers.playwright]' -Message 'Catalog-driven sync must include the codex-enabled stdio server block.'
+    Assert-True -Condition (-not $content.Contains('vscode-only')) -Message 'Catalog-driven sync must exclude VS Code-only servers from Codex config.'
 
     Write-Host '[OK] MCP config sync tests passed.'
     exit 0

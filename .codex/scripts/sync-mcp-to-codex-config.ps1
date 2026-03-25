@@ -1,9 +1,11 @@
 [CmdletBinding()]
 param(
-    [string]$ManifestPath = (Join-Path $PSScriptRoot '../mcp/servers.manifest.json'),
-    [string]$TargetConfigPath,
-    [switch]$CreateBackup,
-    [switch]$DryRun
+    [string] $RepoRoot,
+    [string] $CatalogPath,
+    [string] $ManifestPath,
+    [string] $TargetConfigPath,
+    [switch] $CreateBackup,
+    [switch] $DryRun
 )
 
 $ErrorActionPreference = "Stop"
@@ -15,7 +17,7 @@ if (-not (Test-Path -LiteralPath $script:CommonBootstrapPath -PathType Leaf)) {
 if (-not (Test-Path -LiteralPath $script:CommonBootstrapPath -PathType Leaf)) {
     throw "Missing shared common bootstrap helper: $script:CommonBootstrapPath"
 }
-. $script:CommonBootstrapPath -CallerScriptRoot $PSScriptRoot -Helpers @('runtime-paths')
+. $script:CommonBootstrapPath -CallerScriptRoot $PSScriptRoot -Helpers @('runtime-paths', 'repository-paths', 'mcp-runtime-catalog')
 
 function Escape-TomlString {
     param([Parameter(Mandatory = $true)][string]$Value)
@@ -38,12 +40,39 @@ function Get-OptionalPropertyValue {
         return $null
     }
 
+    if ($Object -is [System.Collections.IDictionary]) {
+        if ($Object.Contains($PropertyName)) {
+            return $Object[$PropertyName]
+        }
+
+        return $null
+    }
+
     $property = $Object.PSObject.Properties[$PropertyName]
     if ($null -eq $property) {
         return $null
     }
 
     return $property.Value
+}
+
+function Read-McpManifestFile {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Path
+    )
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
+        throw "Manifest not found: $Path"
+    }
+
+    $manifest = Get-Content -Raw -LiteralPath $Path | ConvertFrom-Json -Depth 100
+    $servers = @($manifest.servers)
+    if ($servers.Count -eq 0) {
+        throw "Manifest has no servers: $Path"
+    }
+
+    return $servers
 }
 
 function Remove-McpSections {
@@ -153,18 +182,23 @@ if ([string]::IsNullOrWhiteSpace($TargetConfigPath)) {
     $TargetConfigPath = Join-Path (Resolve-CodexRuntimePath) 'config.toml'
 }
 
-if (!(Test-Path $ManifestPath)) {
-    throw "Manifest not found: $ManifestPath"
-}
-
 if (!(Test-Path $TargetConfigPath)) {
     throw "Target config not found: $TargetConfigPath"
 }
 
-$manifest = Get-Content -Raw $ManifestPath | ConvertFrom-Json -Depth 100
-$servers = @($manifest.servers)
-if ($servers.Count -eq 0) {
-    throw "Manifest has no servers: $ManifestPath"
+$resolvedRepoRoot = Resolve-RepositoryRoot -RequestedRoot $RepoRoot
+$servers = if (-not [string]::IsNullOrWhiteSpace($ManifestPath)) {
+    $resolvedManifestPath = if ([System.IO.Path]::IsPathRooted($ManifestPath)) {
+        [System.IO.Path]::GetFullPath($ManifestPath)
+    }
+    else {
+        [System.IO.Path]::GetFullPath((Join-Path $resolvedRepoRoot $ManifestPath))
+    }
+    Read-McpManifestFile -Path $resolvedManifestPath
+}
+else {
+    $catalogInfo = Read-McpRuntimeCatalog -RepoRoot $resolvedRepoRoot -CatalogPath $CatalogPath
+    @((Convert-McpRuntimeCatalogToCodexManifest -Catalog $catalogInfo.Catalog).servers)
 }
 
 $originalLines = Get-Content $TargetConfigPath

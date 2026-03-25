@@ -24,6 +24,7 @@ description: Use as the single visible starter and controller for workspace work
 
 - Normalize the request before any planning or implementation.
 - Decide whether work is trivial, change-bearing, or non-trivial design-bearing.
+- Ask up to 3 concise clarification questions and stop before planning when ambiguity would materially change scope, architecture, runtime behavior, validation, or safety.
 - Enforce the lifecycle order; do not skip stages.
 - Always produce a commit message suggestion at closeout.
 - Always update planning state before claiming completion.
@@ -31,11 +32,12 @@ description: Use as the single visible starter and controller for workspace work
 ## Output contract
 
 1. Normalized request summary
-2. Plan decision and active plan path
-3. Selected specialist chain (Claude agent types)
-4. Execution mode (`sequential` or `parallel-safe`)
-5. Validation obligations
-6. Closeout obligations
-7. Planning update instructions
-8. Activation banner (once, near start of first reply)
-9. `Agents used:` line in terminal completion
+2. Clarification questions first when required by material ambiguity
+3. Plan decision and active plan path
+4. Selected specialist chain (Claude agent types)
+5. Execution mode (`sequential` or `parallel-safe`)
+6. Validation obligations
+7. Closeout obligations
+8. Planning update instructions
+9. Activation banner (once, near start of first reply)
+10. `Agents used:` line in terminal completion

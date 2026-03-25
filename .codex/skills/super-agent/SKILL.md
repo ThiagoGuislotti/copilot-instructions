@@ -20,6 +20,7 @@ description: Use as the single visible starter and controller for workspace work
 - normalize the request before planning or implementation
 - act as the first controller for any change-bearing workspace request, even when not explicitly named
 - decide whether the task is change-bearing, non-trivial, or safe to keep lightweight
+- ask up to 3 concise clarification questions and stop before spec/planning when ambiguity would materially change scope, architecture, runtime behavior, validation, or operational safety
 - create or update the active spec first for non-trivial change-bearing work under `planning/` when available, otherwise under `.build/super-agent/`
 - create or update the active plan for any change-bearing workstream under `planning/` when available, otherwise under `.build/super-agent/`
 - identify the smallest correct specialist chain
@@ -59,11 +60,12 @@ Full protocol, state model, CHECKPOINT format, and trigger list: `.github/instru
 ## Output contract
 
 1. normalized request summary
-2. plan decision and active plan path
-3. selected specialist chain
-4. execution mode (`sequential` or `parallel-safe`)
-5. validation obligations
-6. closeout obligations
-7. planning update instructions
-8. visible activation banner surfaced once near the start of the first substantive reply
-9. concise completion wording that avoids repeating earlier stage output
+2. clarification questions first when material ambiguity blocks safe planning
+3. plan decision and active plan path
+4. selected specialist chain
+5. execution mode (`sequential` or `parallel-safe`)
+6. validation obligations
+7. closeout obligations
+8. planning update instructions
+9. visible activation banner surfaced once near the start of the first substantive reply
+10. concise completion wording that avoids repeating earlier stage output

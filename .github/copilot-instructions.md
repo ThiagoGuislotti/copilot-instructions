@@ -92,6 +92,7 @@ Follow this order of operations on every task:
 - Treat `instructions/super-agent.instructions.md` as the mandatory controller contract for change-bearing work.
 - Default lifecycle:
   1. Super Agent intake
+     - ask up to 3 concise clarification questions and stop before spec/planning when ambiguity would materially change scope, architecture, runtime behavior, validation, or safety
   2. spec registration for non-trivial change-bearing work
   3. planning registration
   4. specialist identification

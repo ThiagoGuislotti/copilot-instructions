@@ -3,8 +3,9 @@
     Renders the repository-managed VS Code MCP template into the global user profile.
 
 .DESCRIPTION
-    Uses `.vscode/mcp.tamplate.jsonc` as the source of truth for the global
-    VS Code `mcp.json` file.
+    Uses `.github/governance/mcp-runtime.catalog.json` as the source of truth
+    for the global VS Code `mcp.json` file and the tracked
+    `.vscode/mcp.tamplate.jsonc` projection.
 
     Behavior:
     - reads the versioned template from the repository
@@ -30,6 +31,9 @@
 .PARAMETER WorkspaceHelperPath
     Optional path for the machine-local helper mirror. Defaults to
     `<WorkspaceVscodePath>/mcp-vscode-global.json`.
+
+.PARAMETER CatalogPath
+    Optional override path to the canonical MCP runtime catalog.
 
 .PARAMETER ProfilePath
     Optional path to one `.vscode/profiles/profile-*.json` file. When supplied,
@@ -65,6 +69,7 @@ param(
     [string] $WorkspaceVscodePath,
     [string] $GlobalVscodeUserPath,
     [string] $WorkspaceHelperPath,
+    [string] $CatalogPath,
     [string] $ProfilePath,
     [bool] $SyncWorkspaceHelper = $true,
     [switch] $CreateBackup,
@@ -83,7 +88,7 @@ if (-not (Test-Path -LiteralPath $script:CommonBootstrapPath -PathType Leaf)) {
 if (-not (Test-Path -LiteralPath $script:CommonBootstrapPath -PathType Leaf)) {
     throw "Missing shared common bootstrap helper: $script:CommonBootstrapPath"
 }
-. $script:CommonBootstrapPath -CallerScriptRoot $PSScriptRoot -Helpers @('console-style', 'repository-paths', 'vscode-runtime-hygiene')
+. $script:CommonBootstrapPath -CallerScriptRoot $PSScriptRoot -Helpers @('console-style', 'repository-paths', 'vscode-runtime-hygiene', 'mcp-runtime-catalog')
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:IsVerboseEnabled = [bool] $Verbose
 
@@ -158,88 +163,15 @@ function Resolve-ProfilePath {
     return [System.IO.Path]::GetFullPath((Join-Path $ResolvedWorkspaceVscodePath $RequestedPath))
 }
 
-# Reads one JSON file.
-function Read-JsonFile {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string] $Path
-    )
-
-    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
-        throw "JSON file not found: $Path"
-    }
-
-    try {
-        return Get-Content -Raw -LiteralPath $Path | ConvertFrom-Json -Depth 100
-    }
-    catch {
-        throw ("Invalid JSON file '{0}': {1}" -f $Path, $_.Exception.Message)
-    }
-}
-
-# Applies profile-level server enablement over the MCP template.
-function Merge-McpProfileSelection {
-    param(
-        [Parameter(Mandatory = $true)]
-        [object] $TemplateDocument,
-        [string] $ResolvedProfilePath
-    )
-
-    if ([string]::IsNullOrWhiteSpace($ResolvedProfilePath)) {
-        return $TemplateDocument
-    }
-
-    $profileDocument = Read-JsonFile -Path $ResolvedProfilePath
-    $serverSelection = $profileDocument.mcp.servers
-    if ($null -eq $serverSelection) {
-        return $TemplateDocument
-    }
-
-    foreach ($selectionProperty in $serverSelection.PSObject.Properties) {
-        $serverName = [string] $selectionProperty.Name
-        $selectionValue = $selectionProperty.Value
-        if ($null -eq $selectionValue -or -not ($selectionValue.PSObject.Properties.Name -contains 'enabled')) {
-            continue
-        }
-
-        $targetServer = $TemplateDocument.servers.PSObject.Properties[$serverName]
-        if ($null -eq $targetServer) {
-            continue
-        }
-
-        $enabled = [bool] $selectionValue.enabled
-        $serverObject = $targetServer.Value
-        $disabledProperty = $serverObject.PSObject.Properties['disabled']
-        if ($enabled) {
-            if ($null -ne $disabledProperty) {
-                $serverObject.PSObject.Properties.Remove('disabled')
-            }
-        }
-        else {
-            if ($null -eq $disabledProperty) {
-                $serverObject | Add-Member -NotePropertyName 'disabled' -NotePropertyValue $true
-            }
-            else {
-                $disabledProperty.Value = $true
-            }
-        }
-    }
-
-    return $TemplateDocument
-}
-
-# Renders template placeholders into runtime-safe text.
+# Renders catalog placeholders into runtime-safe text.
 function Get-RenderedMcpTemplate {
     param(
-        [string] $TemplatePath,
+        [Parameter(Mandatory = $true)]
+        [object] $Catalog,
         [string] $ResolvedProfilePath
     )
 
-    if (-not (Test-Path -LiteralPath $TemplatePath -PathType Leaf)) {
-        throw "MCP template not found: $TemplatePath"
-    }
-
-    $templateDocument = Read-JsonFile -Path $TemplatePath
+    $templateDocument = Convert-McpRuntimeCatalogToVscodeDocument -Catalog $Catalog
     $effectiveDocument = Merge-McpProfileSelection -TemplateDocument $templateDocument -ResolvedProfilePath $ResolvedProfilePath
     $templateContent = $effectiveDocument | ConvertTo-Json -Depth 100
     $userHome = Resolve-VscodeRuntimeHomePath
@@ -305,12 +237,13 @@ $resolvedWorkspaceVscodePath = Resolve-WorkspaceVscodePath -ResolvedRepoRoot $re
 $resolvedGlobalVscodeUserPath = Resolve-GlobalVscodeUserPath -RequestedPath $GlobalVscodeUserPath
 $resolvedWorkspaceHelperPath = Resolve-WorkspaceHelperPath -ResolvedWorkspaceVscodePath $resolvedWorkspaceVscodePath -RequestedPath $WorkspaceHelperPath
 $resolvedProfilePath = Resolve-ProfilePath -ResolvedWorkspaceVscodePath $resolvedWorkspaceVscodePath -RequestedPath $ProfilePath
+$catalogInfo = Read-McpRuntimeCatalog -RepoRoot $resolvedRepoRoot -CatalogPath $CatalogPath
 $sourceTemplatePath = Join-Path $resolvedWorkspaceVscodePath 'mcp.tamplate.jsonc'
 $targetMcpPath = Join-Path $resolvedGlobalVscodeUserPath 'mcp.json'
 
 New-Item -ItemType Directory -Path $resolvedGlobalVscodeUserPath -Force | Out-Null
 
-$renderedContent = Get-RenderedMcpTemplate -TemplatePath $sourceTemplatePath -ResolvedProfilePath $resolvedProfilePath
+$renderedContent = Get-RenderedMcpTemplate -Catalog $catalogInfo.Catalog -ResolvedProfilePath $resolvedProfilePath
 $globalResult = Sync-RenderedFile -TargetPath $targetMcpPath -RenderedContent $renderedContent -CreateBackup:$CreateBackup
 $helperResult = $null
 
@@ -337,7 +270,8 @@ if ($SyncWorkspaceHelper) {
 Write-StyledOutput ''
 Write-StyledOutput 'VS Code global MCP sync summary'
 Write-StyledOutput ("  Repo root: {0}" -f $resolvedRepoRoot)
-Write-StyledOutput ("  Source template: {0}" -f $sourceTemplatePath)
+Write-StyledOutput ("  Source catalog: {0}" -f $catalogInfo.Path)
+Write-StyledOutput ("  Tracked template: {0}" -f $sourceTemplatePath)
 Write-StyledOutput ("  Profile override: {0}" -f $(if ($null -ne $resolvedProfilePath) { $resolvedProfilePath } else { 'none' }))
 Write-StyledOutput ("  Target MCP: {0}" -f $targetMcpPath)
 Write-StyledOutput ("  Sync workspace helper: {0}" -f $SyncWorkspaceHelper)

@@ -30,6 +30,7 @@ priority: high
    - normalize the request
    - identify goals, constraints, risks, and whether the task is trivial or change-bearing
    - break the request into explicit work items when needed
+   - ask up to 3 concise clarification questions and stop after intake when ambiguity would materially change planning scope, architecture/design, runtime behavior, validation obligations, or operational safety
 2. spec registration for non-trivial change-bearing work
    - create or update the active spec under `planning/specs/active/` when the workspace provides `planning/specs/README.md`
    - otherwise create or update the transient spec under `.build/super-agent/specs/active/`
@@ -76,6 +77,17 @@ priority: high
 - Keep planner, reviewer, and closeout summaries delta-focused; do not echo the original request or prior stage outputs when the structured fields already carry them.
 - Use detailed breakdowns only on explicit user request, for blocked/failing states, or when the changed area is complex enough that a short summary would be ambiguous.
 - Token economy must prioritize output brevity and duplication removal first; do not trade away execution quality by shrinking required context unless later evidence proves that safe.
+
+## Clarification Gate
+- Do not silently assume missing scope when the ambiguity would change the actual plan.
+- The intake/controller layer must stop before spec or planning when it cannot proceed safely.
+- Clarification questions must be concise, bounded, and only cover the unknowns that materially change:
+  - planning scope or execution order
+  - architecture or design direction
+  - runtime/configuration behavior
+  - validation criteria
+  - operational safety or approval requirements
+- Trivial ambiguity that does not change those factors should not trigger a clarification stop.
 
 ## Parallelization Rules
 - Parallel subagents are allowed only when:

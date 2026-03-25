@@ -9,6 +9,12 @@
   - **Planning artifact**: `planning/active/plan-context-economy-checkpoint-protocol.md` created to track the workstream.
 - Context economy rules deduplicated: canonical detail lives only in `context-economy-checkpoint.instructions.md`; all other files carry a one-paragraph summary plus a reference to the canonical file.
 
+### Changed
+- Canonicalized MCP runtime ownership around `.github/governance/mcp-runtime.catalog.json`, added a tracked renderer pipeline for `.vscode/mcp.tamplate.jsonc` and `.codex/mcp/servers.manifest.json`, updated bootstrap/post-commit/install-facing documentation to treat the Codex manifest as a generated subset instead of the primary source of truth, and extended validation/runtime tests to enforce renderer parity.
+- Added the first deterministic local RAG/CAG slice through `.github/governance/local-context-index.catalog.json`, `scripts/common/local-context-index.ps1`, `scripts/runtime/update-local-context-index.ps1`, `scripts/runtime/query-local-context-index.ps1`, and housekeeping refresh integration so local repository continuity can be reused from `.temp/context-index/` without replaying large chat transcripts.
+- Added an explicit Super Agent clarification gate across intake runtime/schema/instruction surfaces so ambiguous requests now stop cleanly after intake with concise clarification questions only when the ambiguity would materially change planning scope, architecture, runtime behavior, validation, or operational safety.
+- Documented `.vscode/profiles/` as the versioned MCP/profile baseline selector surface, documented `infra/github/main.json` as GitHub ruleset/governance infrastructure, and aligned Claude/Codex runtime-sync skills with the same canonical MCP catalog and clarification contract.
+
 ## [9.9.9] - 2026-03-20
 
 ### Changed

@@ -11,10 +11,11 @@ Use the repository-owned Super Agent lifecycle before implementation starts.
 
 1. Load `.github/AGENTS.md` first, then `.github/copilot-instructions.md`.
 2. Normalize the request and decide whether the task is change-bearing.
-3. For non-trivial change-bearing work, create or update a spec before planning.
-4. Create or update the active plan only after the spec is planning-ready when a spec is required.
-5. Select the smallest correct specialist chain.
-6. Require validation, review, closeout, and planning updates before claiming completion.
+3. Ask concise clarification questions first when ambiguity would materially change scope, architecture, runtime behavior, validation, or risk.
+4. For non-trivial change-bearing work, create or update a spec before planning.
+5. Create or update the active plan only after the spec is planning-ready when a spec is required.
+6. Select the smallest correct specialist chain.
+7. Require validation, review, closeout, and planning updates before claiming completion.
 
 ## Workspace mode
 

@@ -240,25 +240,25 @@ run_vscode_user_runtime_cleanup() {
   return 0
 }
 
-# Optionally apply MCP config when manifest changed in last commit.
+# Optionally apply MCP config when the canonical catalog or generated manifest changed in last commit.
 # Controlled by:
 # - CODEX_APPLY_MCP_ON_POST_COMMIT=1
 # - CODEX_BACKUP_MCP_CONFIG=1|0 (default 1)
 run_optional_mcp_apply() {
   cmd="$1"
   changed_files="$(git diff-tree --no-commit-id --name-only -r HEAD 2>/dev/null || true)"
-  manifest_changed=0
+  mcp_surface_changed=0
 
-  if printf '%s\n' "$changed_files" | grep -Eq '^\.codex/mcp/servers\.manifest\.json$'; then
-    manifest_changed=1
+  if printf '%s\n' "$changed_files" | grep -Eq '^(\.github/governance/mcp-runtime\.catalog\.json|\.codex/mcp/servers\.manifest\.json|\.vscode/mcp\.tamplate\.jsonc)$'; then
+    mcp_surface_changed=1
   fi
 
-  if [ "$manifest_changed" -ne 1 ]; then
+  if [ "$mcp_surface_changed" -ne 1 ]; then
     return 0
   fi
 
   if [ "${CODEX_APPLY_MCP_ON_POST_COMMIT:-0}" != "1" ]; then
-    echo "[post-commit] MCP manifest changed; apply is disabled (set CODEX_APPLY_MCP_ON_POST_COMMIT=1)."
+    echo "[post-commit] MCP runtime surface changed; apply is disabled (set CODEX_APPLY_MCP_ON_POST_COMMIT=1)."
     return 0
   fi
 
@@ -269,15 +269,15 @@ run_optional_mcp_apply() {
   fi
 
   target_config="$codex_runtime_root/config.toml"
-  echo "[post-commit] MCP manifest changed. Applying mcp_servers to $target_config ..."
+  echo "[post-commit] MCP runtime surface changed. Applying mcp_servers to $target_config ..."
 
   if [ "${CODEX_BACKUP_MCP_CONFIG:-1}" = "1" ]; then
-    if ! run_ps_file "$cmd" ./.codex/scripts/sync-mcp-to-codex-config.ps1 -ManifestPath ./.codex/mcp/servers.manifest.json -TargetConfigPath "$target_config" -CreateBackup; then
+    if ! run_ps_file "$cmd" ./.codex/scripts/sync-mcp-to-codex-config.ps1 -CatalogPath ./.github/governance/mcp-runtime.catalog.json -TargetConfigPath "$target_config" -CreateBackup; then
       echo "[post-commit] Warning: MCP apply failed." >&2
       return 0
     fi
   else
-    if ! run_ps_file "$cmd" ./.codex/scripts/sync-mcp-to-codex-config.ps1 -ManifestPath ./.codex/mcp/servers.manifest.json -TargetConfigPath "$target_config"; then
+    if ! run_ps_file "$cmd" ./.codex/scripts/sync-mcp-to-codex-config.ps1 -CatalogPath ./.github/governance/mcp-runtime.catalog.json -TargetConfigPath "$target_config"; then
       echo "[post-commit] Warning: MCP apply failed." >&2
       return 0
     fi

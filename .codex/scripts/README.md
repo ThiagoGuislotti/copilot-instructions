@@ -17,7 +17,7 @@ This folder contains MCP utility scripts.
 
 ## Features
 
-- ✅ Render VS Code MCP template (`mcp.tamplate.jsonc`) from manifest
+- ✅ Render VS Code MCP template (`mcp.tamplate.jsonc`) from the canonical runtime catalog
 - ✅ Apply MCP servers into local `~/.codex/config.toml`
 - ✅ Preserve non-MCP sections in local Codex config
 - ✅ Shared security vulnerability gates synced from `scripts/security/`
@@ -93,12 +93,12 @@ pwsh -File (Join-Path $SecurityScriptsRoot 'Invoke-PreBuildSecurityGate.ps1') -R
 ### Scripts
 
 `sync-mcp-to-codex-config.ps1`
-- Inputs: manifest path, target config path, backup/dry-run flags.
+- Inputs: catalog path or manifest path, target config path, backup/dry-run flags.
 - Behavior: rewrites only `[mcp_servers.*]` sections in TOML.
 
 `render-vscode-mcp.ps1`
-- Inputs: manifest path, output path.
-- Behavior: generates `{"servers": {...}}` JSON for VS Code MCP.
+- Inputs: catalog path, output path.
+- Behavior: generates the VS Code MCP projection from the canonical runtime catalog.
 
 `scripts/security/Invoke-PreBuildSecurityGate.ps1`
 - Inputs: repo root, stack toggles, severity threshold, warning-only mode.
@@ -151,5 +151,6 @@ pwsh -File .\.codex\scripts\sync-mcp-to-codex-config.ps1 -DryRun
 
 ## References
 
+- `.github/governance/mcp-runtime.catalog.json`
 - `.codex/mcp/servers.manifest.json`
 - `.codex/mcp/README.md`

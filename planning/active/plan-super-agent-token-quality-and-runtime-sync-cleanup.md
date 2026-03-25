@@ -1,19 +1,20 @@
 # Super Agent Token Quality And Runtime Sync Cleanup Plan
 
 Generated: 2026-03-22 00:00
-LastUpdated: 2026-03-25 00:00
+LastUpdated: 2026-03-25 18:30
 
 ## Status
 
 - State: active
 - Spec: `planning/specs/active/spec-super-agent-token-quality-and-runtime-sync-cleanup.md`
 - Current safe slice implemented: instruction/prompt-level output economy, quality-first routing guidance, session-start continuity summaries, throttled housekeeping with planning export, runtime overflow fixes, context boundary monitoring, dating policy, progress logging, Stop hook for planning export, hardcoded-path removal, `.vscode` profile-base promotion, and Copilot `super-agent` deduplication across canonical skill plus secondary agent alias surfaces
-- Current urgent slice completed: tasks 1a–1g below
-- Active next scope: local incremental RAG/CAG index, Claude surface audit, and clarifying-question behavior (tasks 3–6)
+- Current urgent slice completed: tasks 1a–1h below
+- Current implementation slice completed: canonical MCP runtime catalog/renderers, initial local incremental RAG/CAG index, and explicit intake clarification gate are now in place
+- Active next scope: Claude parity cleanup, remaining README/instruction alignment, and follow-on local RAG/CAG retrieval improvements (tasks 3–6)
 
 ## Objective And Scope
 
-Prepare the deferred follow-up that will keep quality-first behavior, avoid risky input/context trimming, and instead target safer output-side token economy plus an audit of the mirrored `.github` runtime-sync flow for duplicate or garbage command surfaces in VS Code. In the immediate slice, stop Codex local-session disk and token blowups and prune VS Code Copilot workspace trash by applying safer runtime defaults and stale-session cleanup that preserves active context.
+Prepare the deferred follow-up that will keep quality-first behavior, avoid risky input/context trimming, and instead target safer output-side token economy plus an audit of the mirrored `.github` runtime-sync flow for duplicate or garbage command surfaces in VS Code. In the immediate slice, stop Codex local-session disk and token blowups and prune VS Code Copilot workspace trash by applying safer runtime defaults and stale-session cleanup that preserves active context. The resumed slice must also close the current MCP source-of-truth gap between `.vscode/mcp.tamplate.jsonc` and `.codex/mcp/servers.manifest.json` by planning one canonical runtime catalog with per-runtime renderers instead of continuing manual divergence.
 
 Use `mksglu/context-mode` as the external reference baseline for the future local RAG/CAG implementation. Reuse its strong ideas where they fit this repository-owned runtime model: source-side context reduction instead of output post-processing, local-first persistence, searchable session continuity, and retrieval of only relevant continuity fragments after compaction or restart. Do not copy its platform/plugin architecture blindly; adapt only the durable patterns that fit this repository and its runtime contracts.
 
@@ -27,6 +28,8 @@ Fresh observations for the resumed slice on 2026-03-25:
 - Copilot currently exposes multiple visible `super-agent` slash surfaces, so the duplication audit must now treat both workspace-local and mirrored/global runtime registration as concrete suspects instead of a hypothetical defect.
 - Claude Code already has a `super-agent` skill and custom hooks under `.claude/settings.json`; this surface needs parity review so it does not drift from Copilot/Codex.
 - The current routing prompt already allows clarifying questions, but the Super Agent intake/controller layer does not yet have a strong explicit rule to ask concise clarification questions when ambiguity materially changes planning or execution.
+- `.codex/mcp/servers.manifest.json` is still a reduced subset that cannot safely replace `.vscode/mcp.tamplate.jsonc` because the current renderer drops `disabled`, `gallery`, `version`, `env`, and richer auth/input fields; the resumed planning slice now needs a canonical MCP catalog plus derived renderers.
+- `infra/github/main.json` is now present and should be documented later as a GitHub ruleset artifact so it is not mistaken for runtime or MCP source-of-truth.
 
 ## Ordered Tasks
 
@@ -69,15 +72,22 @@ Fresh observations for the resumed slice on 2026-03-25:
      - Super Agent asks concise clarification questions when ambiguity changes plan, architecture, runtime behavior, or validation
      - Claude skill contract stays aligned with the same clarification behavior
 
-4. Design a local incremental index for RAG/CAG and audit the new `.vscode` profile/MCP surfaces
+4. Design a local incremental index for RAG/CAG and canonicalize MCP runtime source-of-truth
    - [2026-03-25 00:00] 4a. Promoted `.vscode/profiles/` to a versioned profile-baseline surface, removed its `.gitignore` exclusion, replaced the hardcoded setup script with JSON discovery + explicit profile selection, and removed stale `profile-vision-engine.json` references; `.vscode/mcp-vscode-global.json` remains a local helper surface for now ✓ [2026-03-25 00:00]
    - [2026-03-25 00:00] 4b. Treat `https://github.com/mksglu/context-mode` as the reference baseline for the local RAG/CAG slice: source-side context savings, local persistence, searchable continuity state, and retrieval of only relevant continuity on resume/compaction must be evaluated first before inventing a parallel design ✓ [2026-03-25 00:00]
+   - [2026-03-25 18:30] 4c. Implemented the canonical MCP runtime catalog at `.github/governance/mcp-runtime.catalog.json` plus shared renderers/helpers for VS Code and Codex projections ✓ [2026-03-25 18:30]
+   - [2026-03-25 18:30] 4d. Added renderer-parity validation so `.vscode/mcp.tamplate.jsonc` and `.codex/mcp/servers.manifest.json` are both treated as generated outputs from the canonical catalog instead of hand-maintained primaries ✓ [2026-03-25 18:30]
+   - [2026-03-25 18:30] 4e. Implemented the initial local incremental context index (`update-local-context-index.ps1`, `query-local-context-index.ps1`) and wired housekeeping to refresh it before cleanup ✓ [2026-03-25 18:30]
    - Target paths:
+     - `.github/governance/**`
      - `.vscode/profiles/**`
+     - `.vscode/mcp.tamplate.jsonc`
      - `.vscode/mcp-vscode-global.json`
+     - `.codex/mcp/servers.manifest.json`
+     - `.codex/scripts/render-vscode-mcp.ps1`
+     - `.claude/**`
      - `scripts/runtime/**`
      - `scripts/common/**`
-     - `.github/governance/**`
      - `.temp/` or future runtime cache/index location
    - Commands:
      - `pwsh -NoLogo -NoProfile -File scripts/runtime/doctor.ps1 -RepoRoot . -RuntimeProfile all -DetailedOutput`
@@ -88,9 +98,13 @@ Fresh observations for the resumed slice on 2026-03-25:
      - index design covers add/update/delete invalidation
      - retrieval can reuse local code/instruction/planning summaries without rereading everything
      - one canonical local cache/index location is defined
+     - one canonical MCP runtime catalog is defined with explicit VS Code full-fidelity fields and Codex/Claude projection rules
+     - the Codex MCP manifest is treated as a generated subset instead of the primary source of truth
+     - future README work documents `infra/github/main.json` as GitHub governance/ruleset configuration, not MCP/runtime config
 
 5. Audit mirrored `.github` runtime-sync duplication plus Claude parity
    - [2026-03-25 00:00] 5a. Isolated duplicated Copilot `super-agent` visibility to overlapping legacy starter surfaces and switched bootstrap from projecting `.github/skills` into `copilotSkillsRoot` to removing legacy `super-agent` / `using-super-agent` entries from both `githubRuntimeRoot/skills` and `copilotSkillsRoot`, leaving the shared `%USERPROFILE%\\.agents\\skills` surface canonical ✓ [2026-03-25 00:00]
+   - [2026-03-25 18:30] 5b. Claude runtime docs/skills now point to the same canonical MCP catalog and explicit clarification behavior; keep a follow-up parity audit open for any future Claude-specific MCP projection needs.
    - Target paths:
      - `scripts/runtime/bootstrap.ps1`
      - `scripts/runtime/install.ps1`
@@ -117,7 +131,10 @@ Fresh observations for the resumed slice on 2026-03-25:
    - Target paths:
      - `README.md`
      - `scripts/README.md`
+     - `.vscode/README.md`
+     - `.vscode/profiles/README.md`
      - `CHANGELOG.md`
+     - `infra/github/main.json`
      - `scripts/tests/runtime/**`
      - `scripts/validation/**`
    - Commands:
@@ -127,8 +144,9 @@ Fresh observations for the resumed slice on 2026-03-25:
    - Checkpoints:
      - future cleanup has runtime tests covering command-surface duplication
      - future cleanup has runtime tests covering `.vscode` profile/MCP source-of-truth decisions
-     - future cleanup has runtime tests covering clarification-question behavior in Super Agent intake surfaces
+     - future cleanup has runtime tests covering clarification-question behavior in Super Agent intake surfaces ✓ [2026-03-25 18:30]
      - docs explain the canonical sync authority clearly
+     - docs explain `infra/github/main.json` as a repository governance artifact
      - install/runtime sync remains green after cleanup
 
 ## Validation Checklist

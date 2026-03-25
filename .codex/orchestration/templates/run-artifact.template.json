@@ -24,7 +24,11 @@
         "dispatchCount": 1,
         "workItemCount": 1,
         "changedFileCount": 0,
-        "stageStatePath": ".temp/runs/run-20260226-0001/stages/intake-state.json"
+        "stageStatePath": ".temp/runs/run-20260226-0001/stages/intake-state.json",
+        "clarificationRequired": false,
+        "canProceedSafely": true,
+        "clarificationReason": null,
+        "clarificationQuestions": []
       }
     },
     {

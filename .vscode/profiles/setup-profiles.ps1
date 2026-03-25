@@ -7,7 +7,8 @@
     the selected VS Code profiles through the local `code` command.
 
     When one profile is selected, the script can also apply the profile MCP
-    enable/disable map on top of `.vscode/mcp.tamplate.jsonc` by delegating to
+    enable/disable map on top of the canonical
+    `.github/governance/mcp-runtime.catalog.json` renderer by delegating to
     `scripts/runtime/sync-vscode-global-mcp.ps1`.
 
 .PARAMETER DryRun

@@ -1,18 +1,18 @@
 # MCP Shared Config
 
-> Shared MCP configuration source for Codex and VS Code.
+> Generated Codex MCP subset and documentation for the shared canonical MCP runtime catalog.
 
 ---
 
 ## Introduction
 
-This folder defines MCP servers in a single manifest and uses scripts to render/apply target-specific configuration files. It prevents drift between Codex and VS Code MCP setups.
+This folder contains the generated Codex MCP subset and helper templates derived from the canonical runtime catalog under `.github/governance/mcp-runtime.catalog.json`. The render/apply scripts keep Codex and VS Code MCP setups aligned without making the Codex subset the primary source of truth.
 
 ---
 
 ## Features
 
-- ✅ Single source of truth (`servers.manifest.json`)
+- ✅ Canonical source of truth (`.github/governance/mcp-runtime.catalog.json`)
 - ✅ Automated output for Codex TOML sections
 - ✅ Automated output for VS Code MCP template (`mcp.tamplate.jsonc`)
 
@@ -36,7 +36,7 @@ This folder defines MCP servers in a single manifest and uses scripts to render/
 
 ## Installation
 
-No package installation is required. Edit the manifest and run scripts from `.codex/scripts/`.
+No package installation is required. Edit the canonical catalog and run scripts from `.codex/scripts/` or `scripts/runtime/`.
 
 ---
 
@@ -72,7 +72,8 @@ pwsh -File .\.codex\scripts\sync-mcp-to-codex-config.ps1 `
 
 ### Main Files
 
-- `servers.manifest.json`: source of truth for server definitions.
+- `.github/governance/mcp-runtime.catalog.json`: source of truth for runtime server definitions.
+- `servers.manifest.json`: generated Codex subset used for Codex TOML sync.
 - `codex.config.template.toml`: reference template for local Codex config.
 - `vscode.mcp.template.json`: reference template for VS Code MCP config.
 
@@ -108,9 +109,10 @@ pwsh -File .\.codex\scripts\sync-mcp-to-codex-config.ps1 -DryRun
 
 ## Contributing
 
-- Add servers only in `servers.manifest.json`.
+- Add or update servers only in `.github/governance/mcp-runtime.catalog.json`.
 - Keep backward-compatible field names unless migration is documented.
-- Validate both render/apply scripts after manifest changes.
+- Regenerate both runtime projections after catalog changes with `pwsh -File scripts/runtime/render-mcp-runtime-artifacts.ps1`.
+- Validate both render/apply scripts after catalog changes.
 
 ---
 
@@ -132,5 +134,5 @@ pwsh -File .\.codex\scripts\sync-mcp-to-codex-config.ps1 -DryRun
 
 ## Security
 
-- Keep secrets out of `servers.manifest.json`.
+- Keep secrets out of `.github/governance/mcp-runtime.catalog.json`.
 - For authenticated providers, prefer environment variables or runtime prompts.

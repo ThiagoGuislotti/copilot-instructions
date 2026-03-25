@@ -1,6 +1,6 @@
 ---
 name: core-runtime-sync
-description: Sync shared repo assets into local ~/.github, ~/.codex, and ~/.claude, and apply MCP settings from the shared manifest. Use when runtime assets are stale or after onboarding a new machine.
+description: Sync shared repo assets into local ~/.github, ~/.codex, and ~/.claude, and apply MCP settings from the shared canonical runtime catalog. Use when runtime assets are stale or after onboarding a new machine.
 ---
 
 # Runtime Sync
@@ -40,7 +40,7 @@ pwsh -File scripts/runtime/install.ps1 -RuntimeProfile claude
 pwsh -File .codex/scripts/sync-mcp-to-codex-config.ps1 -CreateBackup
 ```
 
-## Render VS Code MCP from same manifest
+## Render VS Code MCP from the canonical runtime catalog
 
 ```powershell
 pwsh -File .codex/scripts/render-vscode-mcp.ps1 -OutputPath .vscode/mcp.tamplate.jsonc
@@ -48,6 +48,7 @@ pwsh -File .codex/scripts/render-vscode-mcp.ps1 -OutputPath .vscode/mcp.tamplate
 
 ## Source of truth
 
-- `.codex/mcp/servers.manifest.json` — MCP server definitions
+- `.github/governance/mcp-runtime.catalog.json` — canonical MCP runtime catalog
+- `.codex/mcp/servers.manifest.json` — generated Codex subset
 - `.github/governance/runtime-location-catalog.json` — runtime path catalog
 - `scripts/common/runtime-paths.ps1` — effective path resolution

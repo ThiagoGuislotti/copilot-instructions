@@ -230,6 +230,25 @@
             "policyBlockCount": {
               "type": "integer",
               "minimum": 0
+            },
+            "clarificationRequired": {
+              "type": "boolean"
+            },
+            "canProceedSafely": {
+              "type": "boolean"
+            },
+            "clarificationReason": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "clarificationQuestions": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
             }
           }
         }

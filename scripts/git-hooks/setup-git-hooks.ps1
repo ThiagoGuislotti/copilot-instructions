@@ -412,7 +412,7 @@ else {
 }
 
 Write-StyledOutput '  skip sync (temporary): set CODEX_SKIP_POST_COMMIT_SYNC=1'
-Write-StyledOutput '  optional MCP apply on manifest change: set CODEX_APPLY_MCP_ON_POST_COMMIT=1'
+Write-StyledOutput '  optional MCP apply on canonical MCP runtime changes: set CODEX_APPLY_MCP_ON_POST_COMMIT=1'
 Write-StyledOutput '  MCP apply backup default: CODEX_BACKUP_MCP_CONFIG=1 (set 0 to disable backup)'
 Complete-ExecutionSession -Name 'setup-git-hooks' -Status 'passed' -Summary ([ordered]@{
         'Scope' = $eofModeSelection.Scope.Name

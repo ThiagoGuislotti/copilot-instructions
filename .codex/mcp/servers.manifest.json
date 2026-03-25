@@ -5,7 +5,9 @@
       "name": "playwright",
       "type": "stdio",
       "command": "npx",
-      "args": ["@playwright/mcp@latest"]
+      "args": [
+        "@playwright/mcp@latest"
+      ]
     },
     {
       "name": "microsoftdocs",
@@ -16,7 +18,9 @@
       "name": "chrome-devtools",
       "type": "stdio",
       "command": "npx",
-      "args": ["chrome-devtools-mcp@0.11.0"]
+      "args": [
+        "chrome-devtools-mcp@0.11.0"
+      ]
     }
   ]
 }

@@ -381,6 +381,55 @@ function Convert-ManifestToArtifactMap {
     return $map
 }
 
+# Returns clarification metadata from the intake-report artifact when present.
+function Get-IntakeClarificationDetails {
+    param(
+        [string] $StageId,
+        [hashtable] $ArtifactMap
+    )
+
+    if ([string] $StageId -ne 'intake') {
+        return [pscustomobject]@{
+            clarificationRequired = $false
+            canProceedSafely = $true
+            clarificationReason = $null
+            clarificationQuestions = @()
+        }
+    }
+
+    if (-not $ArtifactMap.ContainsKey('intake-report')) {
+        return [pscustomobject]@{
+            clarificationRequired = $false
+            canProceedSafely = $true
+            clarificationReason = $null
+            clarificationQuestions = @()
+        }
+    }
+
+    $intakeReportPath = [string] $ArtifactMap['intake-report']
+    if (-not (Test-Path -LiteralPath $intakeReportPath -PathType Leaf)) {
+        return [pscustomobject]@{
+            clarificationRequired = $false
+            canProceedSafely = $true
+            clarificationReason = $null
+            clarificationQuestions = @()
+        }
+    }
+
+    $intakeReport = Read-JsonFile -Path $intakeReportPath
+    $clarificationRequired = [bool] (Get-OptionalPropertyValue -Object $intakeReport -PropertyName 'clarificationRequired' -DefaultValue $false)
+    $canProceedSafely = [bool] (Get-OptionalPropertyValue -Object $intakeReport -PropertyName 'canProceedSafely' -DefaultValue (-not $clarificationRequired))
+    $clarificationReason = [string] (Get-OptionalPropertyValue -Object $intakeReport -PropertyName 'clarificationReason' -DefaultValue '')
+    $clarificationQuestions = @((Get-OptionalPropertyValue -Object $intakeReport -PropertyName 'clarificationQuestions' -DefaultValue @()) | ForEach-Object { [string] $_ } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+
+    return [pscustomobject]@{
+        clarificationRequired = $clarificationRequired
+        canProceedSafely = $canProceedSafely
+        clarificationReason = if ([string]::IsNullOrWhiteSpace($clarificationReason)) { $null } else { $clarificationReason }
+        clarificationQuestions = $clarificationQuestions
+    }
+}
+
 # Writes handoff artifact file for a stage transition.
 function Write-HandoffArtifact {
     param(
@@ -862,6 +911,7 @@ foreach ($stage in @($selectedStages)) {
 
     $attempt = 0
     $stageSucceeded = $false
+    $stageClarificationRequested = $false
     $lastFailureMessage = $null
     $stageStartedAt = Get-Date
     $stageFinishedAt = $stageStartedAt
@@ -886,6 +936,10 @@ foreach ($stage in @($selectedStages)) {
         modelRoutingRuleId = $null
         policyDecisionCount = 0
         policyBlockCount = 0
+        clarificationRequired = $false
+        canProceedSafely = $true
+        clarificationReason = $null
+        clarificationQuestions = @()
     }
 
     $approvalEvaluation = Get-StageApprovalEvaluation `
@@ -1152,6 +1206,28 @@ foreach ($stage in @($selectedStages)) {
         }
         $producedArtifactNames = @($stageArtifactMap.Keys)
 
+        $clarificationDetails = Get-IntakeClarificationDetails -StageId $stageId -ArtifactMap $stageArtifactMap
+        $stageExecutionDetails.clarificationRequired = [bool] $clarificationDetails.clarificationRequired
+        $stageExecutionDetails.canProceedSafely = [bool] $clarificationDetails.canProceedSafely
+        $stageExecutionDetails.clarificationReason = $clarificationDetails.clarificationReason
+        $stageExecutionDetails.clarificationQuestions = @($clarificationDetails.clarificationQuestions)
+        if ([bool] $clarificationDetails.clarificationRequired) {
+            $stageSucceeded = $true
+            $stageClarificationRequested = $true
+            $reasonText = if ([string]::IsNullOrWhiteSpace([string] $clarificationDetails.clarificationReason)) {
+                'The intake stage requires clarification before planning can proceed safely.'
+            }
+            else {
+                [string] $clarificationDetails.clarificationReason
+            }
+
+            $runWarnings.Add(("Clarification required after intake: {0}" -f $reasonText)) | Out-Null
+            foreach ($clarificationQuestion in @($clarificationDetails.clarificationQuestions)) {
+                $runWarnings.Add(("Clarification question: {0}" -f $clarificationQuestion)) | Out-Null
+            }
+            break
+        }
+
         $afterSet = if ($SkipGuardrails) { $null } else { Get-WorkingTreePathSet -Root $resolvedRepoRoot }
         if (-not $SkipGuardrails -and $null -ne $beforeSet -and $null -ne $afterSet) {
             $changedDelta = @()
@@ -1263,7 +1339,7 @@ foreach ($stage in @($selectedStages)) {
         $stageSucceeded = $true
     }
 
-    if (-not $stageSucceeded) {
+    if ((-not $stageSucceeded) -and (-not $stageClarificationRequested)) {
         $runFailures.Add($lastFailureMessage) | Out-Null
         $fallbackAgentId = [string] (Get-OptionalPropertyValue -Object $agent -PropertyName 'fallbackAgentId' -DefaultValue '')
         if (-not [string]::IsNullOrWhiteSpace($fallbackAgentId)) {
@@ -1271,9 +1347,9 @@ foreach ($stage in @($selectedStages)) {
         }
     }
 
-    $stageStatus = if ($stageSucceeded) { 'success' } else { 'failed' }
+    $stageStatus = if ($stageClarificationRequested) { 'partial' } elseif ($stageSucceeded) { 'success' } else { 'failed' }
     $stageOutputArtifacts = if ($stageSucceeded) { @($producedArtifactNames) } else { @() }
-    $stageFailureCount = if ($stageSucceeded) { 0 } else { 1 }
+    $stageFailureCount = if ($stageClarificationRequested -or $stageSucceeded) { 0 } else { 1 }
     $stageResult = [pscustomobject]@{
         stageId = $stageId
         agentId = $agentId
@@ -1316,7 +1392,7 @@ foreach ($stage in @($selectedStages)) {
             -StageIndex $stageCursor `
             -Status $stageStatus `
             -CheckpointEligible ($stageStatus -eq 'success') `
-            -NextStageId $nextPipelineStageId
+            -NextStageId $(if ($stageClarificationRequested) { $stageId } else { $nextPipelineStageId })
         break
     }
 
@@ -1345,7 +1421,7 @@ foreach ($stage in @($selectedStages)) {
             }
             checkpoint = [ordered]@{
                 eligible = ($stageStatus -eq 'success')
-                resumableFromStageId = $nextPipelineStageId
+                resumableFromStageId = $(if ($stageClarificationRequested) { $stageId } else { $nextPipelineStageId })
             }
         })
     Write-HardeningJsonFile -Path $traceRecordPath -Value $traceRecord
@@ -1377,6 +1453,10 @@ foreach ($stage in @($selectedStages)) {
         break
     }
 
+    if ($stageClarificationRequested) {
+        break
+    }
+
     if (-not $stageSucceeded -and $onFailure -eq 'stop' -and $effectiveContinueOnStageFailure) {
         $runWarnings.Add(("Stage {0} configured with stop-on-failure, but execution continued due ContinueOnStageFailure=true." -f $stageId)) | Out-Null
     }
@@ -1400,21 +1480,24 @@ foreach ($stage in @($selectedStages)) {
 
 $pipelineFinishedAt = Get-Date
 $failedStages = @($stageResults | Where-Object { $_.status -ne 'success' }).Count
+$clarificationStages = @($stageResults | Where-Object { [bool] (Get-OptionalPropertyValue -Object $_.execution -PropertyName 'clarificationRequired' -DefaultValue $false) }).Count
 
 $missingCompletionStages = @()
-foreach ($requiredStage in @($completionRequiredStages)) {
-    $requiredStageId = [string] $requiredStage
-    $stageOk = @($stageResults | Where-Object { $_.stageId -eq $requiredStageId -and $_.status -eq 'success' }).Count -gt 0
-    if (-not $stageOk) {
-        $missingCompletionStages += $requiredStageId
-    }
-}
-
 $missingCompletionArtifacts = @()
-foreach ($requiredArtifact in @($completionRequiredArtifacts)) {
-    $requiredName = [string] $requiredArtifact
-    if (-not $artifactMap.ContainsKey($requiredName)) {
-        $missingCompletionArtifacts += $requiredName
+if ($clarificationStages -eq 0) {
+    foreach ($requiredStage in @($completionRequiredStages)) {
+        $requiredStageId = [string] $requiredStage
+        $stageOk = @($stageResults | Where-Object { $_.stageId -eq $requiredStageId -and $_.status -eq 'success' }).Count -gt 0
+        if (-not $stageOk) {
+            $missingCompletionStages += $requiredStageId
+        }
+    }
+
+    foreach ($requiredArtifact in @($completionRequiredArtifacts)) {
+        $requiredName = [string] $requiredArtifact
+        if (-not $artifactMap.ContainsKey($requiredName)) {
+            $missingCompletionArtifacts += $requiredName
+        }
     }
 }
 
@@ -1426,8 +1509,12 @@ if ($missingCompletionArtifacts.Count -gt 0) {
     $runFailures.Add(("Missing required completion artifacts: {0}" -f ($missingCompletionArtifacts -join ', '))) | Out-Null
 }
 
-$hasStageFailures = ($failedStages -gt 0) -or ($runFailures.Count -gt 0)
-$overallStatus = if (-not $hasStageFailures) {
+$hardFailedStages = @($stageResults | Where-Object { $_.status -eq 'failed' }).Count
+$hasHardFailures = ($hardFailedStages -gt 0) -or ($runFailures.Count -gt 0)
+$overallStatus = if (-not $hasHardFailures -and $clarificationStages -gt 0) {
+    'partial'
+}
+elseif (-not $hasHardFailures) {
     'success'
 }
 elseif ($WarningOnly) {
@@ -1436,7 +1523,10 @@ elseif ($WarningOnly) {
 else {
     'failed'
 }
-$guardrailNotes = if ($SkipGuardrails) {
+$guardrailNotes = if ($clarificationStages -gt 0) {
+    'Clarification is required before planning or execution can continue safely.'
+}
+elseif ($SkipGuardrails) {
     'Executed with guardrails disabled.'
 }
 else {

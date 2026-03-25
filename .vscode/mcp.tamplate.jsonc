@@ -106,7 +106,6 @@
       "version": "1.0.0"
     },
     "com.microsoft/nuget": {
-      "disabled": true,
       "type": "stdio",
       "command": "dnx",
       "args": [
@@ -116,10 +115,10 @@
         "https://api.nuget.org/v3/index.json"
       ],
       "gallery": "https://api.mcp.github.com",
-      "version": "1.1.43"
+      "version": "1.1.43",
+      "disabled": true
     },
     "coplaydev/unity-mcp": {
-      "disabled": true,
       "type": "stdio",
       "command": "other",
       "args": [
@@ -129,10 +128,10 @@
         "server.py"
       ],
       "gallery": "https://api.mcp.github.com",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "disabled": true
     },
     "microsoft/azure-devops-mcp": {
-      "disabled": true,
       "type": "stdio",
       "command": "npx",
       "args": [
@@ -143,24 +142,24 @@
         "${input:ado_domain}"
       ],
       "gallery": "https://api.mcp.github.com",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "disabled": true
     },
     "com.figma.mcp/mcp": {
-      "disabled": true,
       "type": "http",
       "url": "https://mcp.figma.com/mcp",
       "gallery": "https://api.mcp.github.com",
-      "version": "1.0.3"
+      "version": "1.0.3",
+      "disabled": true
     },
     "com.stripe/mcp": {
-      "disabled": true,
       "type": "http",
       "url": "https://mcp.stripe.com",
       "gallery": "https://api.mcp.github.com",
-      "version": "0.2.4"
+      "version": "0.2.4",
+      "disabled": true
     },
     "io.github.SonarSource/sonarqube-mcp-server": {
-      "disabled": true,
       "type": "stdio",
       "command": "docker",
       "args": [
@@ -181,10 +180,10 @@
         "SONARQUBE_URL": "${input:SONARQUBE_URL}"
       },
       "gallery": "https://api.mcp.github.com",
-      "version": "1.12.0"
+      "version": "1.12.0",
+      "disabled": true
     },
     "io.github.microsoft/awesome-copilot": {
-      "disabled": true,
       "type": "stdio",
       "command": "docker",
       "args": [
@@ -194,20 +193,20 @@
         "ghcr.io/microsoft/mcp-dotnet-samples/awesome-copilot:1.0.2026032004"
       ],
       "gallery": "https://api.mcp.github.com",
-      "version": "1.0.2026032004"
+      "version": "1.0.2026032004",
+      "disabled": true
     },
     "com.postman/postman-mcp-server": {
-      "disabled": true,
       "type": "http",
       "url": "https://mcp.postman.com/mcp",
       "headers": {
         "Authorization": "${input:PostmanAuthorization}"
       },
       "gallery": "https://api.mcp.github.com",
-      "version": "2.8.4"
+      "version": "2.8.4",
+      "disabled": true
     },
     "io.github.pgEdge/postgres-mcp": {
-      "disabled": true,
       "type": "stdio",
       "command": "docker",
       "args": [
@@ -217,7 +216,8 @@
         "ghcr.io/pgedge/postgres-mcp:latest"
       ],
       "gallery": "https://api.mcp.github.com",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "disabled": true
     }
   }
 }

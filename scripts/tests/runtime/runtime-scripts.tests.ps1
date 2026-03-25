@@ -165,9 +165,35 @@ try {
     Assert-Contains -Collection $keys -Value 'WorkspaceVscodePath' -Message 'sync-vscode-global-mcp missing WorkspaceVscodePath parameter.'
     Assert-Contains -Collection $keys -Value 'GlobalVscodeUserPath' -Message 'sync-vscode-global-mcp missing GlobalVscodeUserPath parameter.'
     Assert-Contains -Collection $keys -Value 'WorkspaceHelperPath' -Message 'sync-vscode-global-mcp missing WorkspaceHelperPath parameter.'
+    Assert-Contains -Collection $keys -Value 'CatalogPath' -Message 'sync-vscode-global-mcp missing CatalogPath parameter.'
     Assert-Contains -Collection $keys -Value 'ProfilePath' -Message 'sync-vscode-global-mcp missing ProfilePath parameter.'
     Assert-Contains -Collection $keys -Value 'SyncWorkspaceHelper' -Message 'sync-vscode-global-mcp missing SyncWorkspaceHelper parameter.'
     Assert-Contains -Collection $keys -Value 'CreateBackup' -Message 'sync-vscode-global-mcp missing CreateBackup parameter.'
+
+    $scriptPath = Join-Path $runtimeScriptRoot 'render-mcp-runtime-artifacts.ps1'
+    $command = Get-Command -Name $scriptPath -ErrorAction Stop
+    $keys = @($command.Parameters.Keys)
+    Assert-Contains -Collection $keys -Value 'RepoRoot' -Message 'render-mcp-runtime-artifacts missing RepoRoot parameter.'
+    Assert-Contains -Collection $keys -Value 'CatalogPath' -Message 'render-mcp-runtime-artifacts missing CatalogPath parameter.'
+
+    $scriptPath = Join-Path $runtimeScriptRoot 'update-local-context-index.ps1'
+    $command = Get-Command -Name $scriptPath -ErrorAction Stop
+    $keys = @($command.Parameters.Keys)
+    Assert-Contains -Collection $keys -Value 'RepoRoot' -Message 'update-local-context-index missing RepoRoot parameter.'
+    Assert-Contains -Collection $keys -Value 'CatalogPath' -Message 'update-local-context-index missing CatalogPath parameter.'
+    Assert-Contains -Collection $keys -Value 'OutputRoot' -Message 'update-local-context-index missing OutputRoot parameter.'
+    Assert-Contains -Collection $keys -Value 'ForceFullRebuild' -Message 'update-local-context-index missing ForceFullRebuild parameter.'
+    Assert-Contains -Collection $keys -Value 'DetailedOutput' -Message 'update-local-context-index missing DetailedOutput parameter.'
+
+    $scriptPath = Join-Path $runtimeScriptRoot 'query-local-context-index.ps1'
+    $command = Get-Command -Name $scriptPath -ErrorAction Stop
+    $keys = @($command.Parameters.Keys)
+    Assert-Contains -Collection $keys -Value 'RepoRoot' -Message 'query-local-context-index missing RepoRoot parameter.'
+    Assert-Contains -Collection $keys -Value 'QueryText' -Message 'query-local-context-index missing QueryText parameter.'
+    Assert-Contains -Collection $keys -Value 'CatalogPath' -Message 'query-local-context-index missing CatalogPath parameter.'
+    Assert-Contains -Collection $keys -Value 'OutputRoot' -Message 'query-local-context-index missing OutputRoot parameter.'
+    Assert-Contains -Collection $keys -Value 'Top' -Message 'query-local-context-index missing Top parameter.'
+    Assert-Contains -Collection $keys -Value 'JsonOutput' -Message 'query-local-context-index missing JsonOutput parameter.'
 
     $scriptPath = Join-Path $runtimeScriptRoot 'run-agent-pipeline.ps1'
     $command = Get-Command -Name $scriptPath -ErrorAction Stop
@@ -265,44 +291,71 @@ try {
     }
 
     $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ([System.Guid]::NewGuid().ToString('N'))
-    $workspaceVscode = Join-Path $tempRoot '.vscode'
+    $tempRepoRoot = Join-Path $tempRoot 'repo'
+    $workspaceVscode = Join-Path $tempRepoRoot '.vscode'
+    $codexRoot = Join-Path $tempRepoRoot '.codex'
+    $catalogRoot = Join-Path $tempRepoRoot '.github\governance'
+    $catalogPath = Join-Path $catalogRoot 'mcp-runtime.catalog.json'
     $globalUserPath = Join-Path $tempRoot 'Code\User'
     $globalMcpPath = Join-Path $globalUserPath 'mcp.json'
     $workspaceHelperPath = Join-Path $workspaceVscode 'mcp-vscode-global.json'
     $profilePath = Join-Path $workspaceVscode 'profiles\profile-frontend.json'
     $scriptPath = Join-Path $runtimeScriptRoot 'sync-vscode-global-mcp.ps1'
+    $renderScriptPath = Join-Path $runtimeScriptRoot 'render-mcp-runtime-artifacts.ps1'
     try {
         New-Item -ItemType Directory -Path $workspaceVscode -Force | Out-Null
+        New-Item -ItemType Directory -Path $codexRoot -Force | Out-Null
+        New-Item -ItemType Directory -Path $catalogRoot -Force | Out-Null
         New-Item -ItemType Directory -Path (Split-Path -Path $profilePath -Parent) -Force | Out-Null
         New-Item -ItemType Directory -Path $globalUserPath -Force | Out-Null
-        Set-Content -LiteralPath (Join-Path $workspaceVscode 'mcp.tamplate.jsonc') -Value @(
+        Set-Content -LiteralPath $catalogPath -Value @(
             '{',
+            '  "version": 1,',
             '  "inputs": [',
-            '    {',
-            '      "id": "Authorization",',
-            '      "type": "promptString",',
-            '      "description": "Token",',
-            '      "password": true',
-            '    }',
+            '    { "id": "Authorization", "type": "promptString", "description": "Token", "password": true }',
             '  ],',
-            '  "servers": {',
-            '    "example/server": {',
-            '      "type": "stdio",',
-            '      "command": "pwsh",',
-            '      "args": [',
-            '        "%USERPROFILE%/tools/run.ps1"',
-            '      ]',
+            '  "servers": [',
+            '    {',
+            '      "id": "example/server",',
+            '      "targets": { "vscode": { "include": true, "enabledByDefault": true } },',
+            '      "definition": {',
+            '        "type": "stdio",',
+            '        "command": "pwsh",',
+            '        "args": ["%USERPROFILE%/tools/run.ps1"],',
+            '        "gallery": "https://example.invalid/gallery",',
+            '        "version": "1.0.0"',
+            '      }',
             '    },',
-            '    "disabled/by-default": {',
-            '      "disabled": true,',
-            '      "type": "http",',
-            '      "url": "https://example.invalid/mcp"',
+            '    {',
+            '      "id": "disabled/by-default",',
+            '      "targets": { "vscode": { "include": true, "enabledByDefault": false } },',
+            '      "definition": {',
+            '        "type": "http",',
+            '        "url": "https://example.invalid/mcp",',
+            '        "gallery": "https://example.invalid/gallery",',
+            '        "version": "1.0.0"',
+            '      }',
             '    },',
-            '    "enabled/by-default": {',
-            '      "type": "http",',
-            '      "url": "https://example.invalid/enabled"',
+            '    {',
+            '      "id": "enabled/by-default",',
+            '      "targets": { "vscode": { "include": true, "enabledByDefault": true } },',
+            '      "definition": {',
+            '        "type": "http",',
+            '        "url": "https://example.invalid/enabled",',
+            '        "gallery": "https://example.invalid/gallery",',
+            '        "version": "1.0.0"',
+            '      }',
+            '    },',
+            '    {',
+            '      "id": "codex-only",',
+            '      "codexName": "codex-only",',
+            '      "targets": { "codex": { "include": true } },',
+            '      "definition": {',
+            '        "type": "http",',
+            '        "url": "https://example.invalid/codex"',
+            '      }',
             '    }',
-            '  }',
+            '  ]',
             '}'
         )
         Set-Content -LiteralPath $profilePath -Value @(
@@ -319,7 +372,7 @@ try {
         )
         Set-Content -LiteralPath $globalMcpPath -Value '{}' 
 
-        & $scriptPath -RepoRoot $resolvedRepoRoot -WorkspaceVscodePath $workspaceVscode -GlobalVscodeUserPath $globalUserPath -WorkspaceHelperPath $workspaceHelperPath -ProfilePath $profilePath -CreateBackup | Out-Null
+        & $scriptPath -RepoRoot $tempRepoRoot -WorkspaceVscodePath $workspaceVscode -GlobalVscodeUserPath $globalUserPath -WorkspaceHelperPath $workspaceHelperPath -CatalogPath $catalogPath -ProfilePath $profilePath -CreateBackup | Out-Null
         $exitCode = if ($null -eq $LASTEXITCODE) { 0 } else { [int] $LASTEXITCODE }
         Assert-True ($exitCode -eq 0) 'sync-vscode-global-mcp smoke test failed.'
         Assert-True (Test-Path -LiteralPath $globalMcpPath -PathType Leaf) 'sync-vscode-global-mcp did not create the global mcp.json file.'
@@ -334,6 +387,63 @@ try {
         Assert-True (-not ($renderedDocument.servers.'disabled/by-default'.PSObject.Properties.Name -contains 'disabled')) 'sync-vscode-global-mcp did not enable a server selected by the profile.'
         Assert-True (($renderedDocument.servers.'enabled/by-default'.disabled -eq $true)) 'sync-vscode-global-mcp did not disable a server rejected by the profile.'
         Assert-True ($renderedGlobalMcp -eq $renderedHelper) 'sync-vscode-global-mcp did not keep the workspace helper aligned with the global MCP output.'
+
+        & $renderScriptPath -RepoRoot $tempRepoRoot -CatalogPath $catalogPath | Out-Null
+        $exitCode = if ($null -eq $LASTEXITCODE) { 0 } else { [int] $LASTEXITCODE }
+        Assert-True ($exitCode -eq 0) 'render-mcp-runtime-artifacts smoke test failed.'
+        $renderedTemplatePath = Join-Path $workspaceVscode 'mcp.tamplate.jsonc'
+        $renderedManifestPath = Join-Path $tempRepoRoot '.codex\mcp\servers.manifest.json'
+        Assert-True (Test-Path -LiteralPath $renderedTemplatePath -PathType Leaf) 'render-mcp-runtime-artifacts did not write the VS Code template.'
+        Assert-True (Test-Path -LiteralPath $renderedManifestPath -PathType Leaf) 'render-mcp-runtime-artifacts did not write the Codex manifest.'
+        $renderedManifest = Get-Content -LiteralPath $renderedManifestPath -Raw | ConvertFrom-Json -Depth 100
+        Assert-True (@($renderedManifest.servers).Count -gt 0) 'render-mcp-runtime-artifacts should emit manifest servers.'
+    }
+    finally {
+        if (Test-Path -LiteralPath $tempRoot) {
+            Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ([System.Guid]::NewGuid().ToString('N'))
+    $tempRepoRoot = Join-Path $tempRoot 'repo'
+    $catalogRoot = Join-Path $tempRepoRoot '.github\governance'
+    $scriptsRoot = Join-Path $tempRepoRoot 'scripts\runtime'
+    $updateIndexScriptPath = Join-Path $runtimeScriptRoot 'update-local-context-index.ps1'
+    $queryIndexScriptPath = Join-Path $runtimeScriptRoot 'query-local-context-index.ps1'
+    try {
+        New-Item -ItemType Directory -Path $catalogRoot -Force | Out-Null
+        New-Item -ItemType Directory -Path $scriptsRoot -Force | Out-Null
+        New-Item -ItemType Directory -Path (Join-Path $tempRepoRoot '.codex') -Force | Out-Null
+        New-Item -ItemType Directory -Path (Join-Path $tempRepoRoot '.vscode') -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $catalogRoot 'local-context-index.catalog.json') -Value @(
+            '{',
+            '  "version": 1,',
+            '  "indexRoot": ".temp/context-index",',
+            '  "maxFileSizeKb": 64,',
+            '  "chunking": { "maxChars": 400, "maxLines": 20 },',
+            '  "queryDefaults": { "top": 3 },',
+            '  "includeGlobs": ["README.md", "scripts/**/*.ps1", ".github/**/*.md"],',
+            '  "excludeGlobs": [".temp/**"]',
+            '}'
+        )
+        Set-Content -LiteralPath (Join-Path $tempRepoRoot 'README.md') -Value "# Demo`n`nSuper Agent context continuity uses a local context index." -Encoding UTF8 -NoNewline
+        Set-Content -LiteralPath (Join-Path $tempRepoRoot '.github\AGENTS.md') -Value "# Demo Agents`n`nUse the Super Agent lifecycle." -Encoding UTF8 -NoNewline
+        Set-Content -LiteralPath (Join-Path $scriptsRoot 'demo.ps1') -Value "Write-Output 'context compaction continuity'" -Encoding UTF8 -NoNewline
+
+        & $updateIndexScriptPath -RepoRoot $tempRepoRoot -DetailedOutput | Out-Null
+        $exitCode = if ($null -eq $LASTEXITCODE) { 0 } else { [int] $LASTEXITCODE }
+        Assert-True ($exitCode -eq 0) 'update-local-context-index smoke test failed.'
+
+        $indexPath = Join-Path $tempRepoRoot '.temp\context-index\index.json'
+        Assert-True (Test-Path -LiteralPath $indexPath -PathType Leaf) 'update-local-context-index did not write index.json.'
+        $indexDocument = Get-Content -LiteralPath $indexPath -Raw | ConvertFrom-Json -Depth 100
+        Assert-True (@($indexDocument.files).Count -gt 0) 'update-local-context-index should index at least one file.'
+
+        $queryJson = & $queryIndexScriptPath -RepoRoot $tempRepoRoot -QueryText 'context continuity' -JsonOutput
+        $exitCode = if ($null -eq $LASTEXITCODE) { 0 } else { [int] $LASTEXITCODE }
+        Assert-True ($exitCode -eq 0) 'query-local-context-index smoke test failed.'
+        $queryResult = $queryJson | ConvertFrom-Json -Depth 100
+        Assert-True ([int] $queryResult.resultCount -gt 0) 'query-local-context-index should return at least one hit for indexed content.'
     }
     finally {
         if (Test-Path -LiteralPath $tempRoot) {

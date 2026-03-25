@@ -20,8 +20,8 @@
     - scripts/security (shared security audit gates)
     - scripts/maintenance (repository-owned maintenance helpers)
 
-    When -ApplyMcpConfig is specified, applies MCP servers from the shared manifest
-    into the local Codex config.toml file.
+    When -ApplyMcpConfig is specified, applies MCP servers from the canonical
+    runtime catalog into the local Codex config.toml file.
 
 .PARAMETER RepoRoot
     Optional repository root. If omitted, the script detects root from the script location.
@@ -49,7 +49,8 @@
     Mirrors target folders (removes files not present in source) when supported by the sync mode.
 
 .PARAMETER ApplyMcpConfig
-    Applies mcp_servers blocks from .codex/mcp/servers.manifest.json into target config.toml.
+    Applies mcp_servers blocks derived from
+    `.github/governance/mcp-runtime.catalog.json` into target config.toml.
 
 .PARAMETER BackupConfig
     Creates backup before applying MCP config (used with -ApplyMcpConfig).
@@ -276,7 +277,7 @@ function Remove-ManagedCodexSkillDuplicates {
     }
 }
 
-# Applies MCP manifest settings to target Codex config.toml.
+# Applies canonical MCP runtime catalog settings to target Codex config.toml.
 function Invoke-McpConfigApply {
     param(
         [string] $ResolvedRepoRoot,
@@ -285,15 +286,15 @@ function Invoke-McpConfigApply {
     )
 
     $syncScript = Join-Path (Join-Path (Join-Path $ResolvedRepoRoot '.codex') 'scripts') 'sync-mcp-to-codex-config.ps1'
-    $manifest = Join-Path (Join-Path (Join-Path $ResolvedRepoRoot '.codex') 'mcp') 'servers.manifest.json'
+    $catalog = Join-Path (Join-Path (Join-Path $ResolvedRepoRoot '.github') 'governance') 'mcp-runtime.catalog.json'
     $targetConfig = Join-Path $CodexPath 'config.toml'
 
     Assert-PathPresent -Path $syncScript -Label 'MCP sync script'
-    Assert-PathPresent -Path $manifest -Label 'MCP manifest'
+    Assert-PathPresent -Path $catalog -Label 'MCP runtime catalog'
     Assert-PathPresent -Path $targetConfig -Label 'target Codex config'
 
     $syncArgs = @{
-        ManifestPath = $manifest
+        CatalogPath = $catalog
         TargetConfigPath = $targetConfig
     }
 

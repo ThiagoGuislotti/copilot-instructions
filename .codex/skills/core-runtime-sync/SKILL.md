@@ -1,6 +1,6 @@
 ---
 name: core-runtime-sync
-description: Sync shared repo assets into local ~/.github and ~/.codex, and apply MCP settings from the shared manifest.
+description: Sync shared repo assets into local ~/.github and ~/.codex, and apply MCP settings from the shared canonical runtime catalog.
 ---
 
 # Codex Runtime Sync
@@ -30,7 +30,7 @@ pwsh -File scripts/runtime/bootstrap.ps1
 pwsh -File .codex/scripts/sync-mcp-to-codex-config.ps1 -CreateBackup
 ```
 
-## Render VS Code MCP From Same Manifest
+## Render VS Code MCP From The Canonical Runtime Catalog
 
 ```powershell
 pwsh -File .codex/scripts/render-vscode-mcp.ps1 -OutputPath .vscode/mcp.tamplate.jsonc
@@ -38,7 +38,8 @@ pwsh -File .codex/scripts/render-vscode-mcp.ps1 -OutputPath .vscode/mcp.tamplate
 
 ## Source Of Truth
 
-- `.codex/mcp/servers.manifest.json`
+- `.github/governance/mcp-runtime.catalog.json`
+- `.codex/mcp/servers.manifest.json` (generated Codex subset)
 - `.codex/scripts/*` (MCP utilities)
 - `scripts/common/*` (runtime shared helpers)
 - `scripts/security/*` (runtime shared security scripts)

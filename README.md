@@ -81,7 +81,7 @@ All three runtimes share the same **Super Agent lifecycle**, **44 domain instruc
 - ✅ **Custom Chat Modes:** Architecture review, instruction generation
 - ✅ **Prompt Templates:** POML-based templates with CoT, SoT, ToT patterns
 - ✅ **Tool Integration:** Git, CLI tools, CI/CD pipelines, static analysis
-- ✅ **Global VS Code MCP Sync:** repository-managed `.vscode/mcp.tamplate.jsonc` now renders both the global VS Code `mcp.json` profile and the local ignored helper mirror `.vscode/mcp-vscode-global.json`
+- ✅ **Global VS Code MCP Sync:** canonical `.github/governance/mcp-runtime.catalog.json` now renders both the tracked `.vscode/mcp.tamplate.jsonc` projection and the global VS Code `mcp.json` profile plus the local ignored helper mirror `.vscode/mcp-vscode-global.json`
 - ✅ **TDD and Verification Contracts:** repository-owned workflow rules for test-first implementation and verification-before-completion
 - ✅ **Closeout Documentation Automation:** release closeout can rewrite repository README files and prepend CHANGELOG entries when the workstream is ready for commit
 - ✅ **Canonical Artifact Layout:** non-versioned generated outputs standardized under `.build/` and `.deployment/`
@@ -285,7 +285,8 @@ pwsh -File (Join-Path $RepoRoot 'scripts/runtime/install.ps1') -RuntimeProfile a
 # - chat.agent.maxRequests = 100
 # - chat.emptyState.history.enabled = false
 # - chat.restoreLastPanelSession = false
-# global VS Code MCP config also syncs `.vscode/mcp.tamplate.jsonc` into:
+# global VS Code MCP config also syncs the canonical MCP runtime catalog into:
+# - tracked projection: `.vscode/mcp.tamplate.jsonc`
 # - %APPDATA%\Code\User\mcp.json
 # - .vscode/mcp-vscode-global.json
 ```
@@ -419,14 +420,28 @@ Governance policy files live under `.github/policies/`. They define hard rules f
 | `instruction-system.policy.json` | Instruction authoring rules, ownership, and hierarchy contracts |
 | `release-governance.policy.json` | Release governance checklist, traceability, and evidence requirements |
 
+GitHub governance infrastructure exported for branch/ruleset management lives under `infra/github/`:
+
+| Infrastructure file | Scope |
+| --- | --- |
+| `infra/github/main.json` | GitHub ruleset / branch governance artifact for the main branch; not runtime or MCP configuration |
+
 ### MCP Configuration
 
-The repository provides a single-source MCP server manifest for Codex and VS Code:
+The repository now uses one canonical MCP runtime catalog plus generated per-runtime projections:
 
-- Source of truth: `.codex/mcp/servers.manifest.json`
-- Render VS Code template from manifest: `pwsh -File .codex/scripts/render-vscode-mcp.ps1`
+- Canonical source of truth: `.github/governance/mcp-runtime.catalog.json`
+- Generated VS Code projection: `.vscode/mcp.tamplate.jsonc`
+- Generated Codex projection: `.codex/mcp/servers.manifest.json`
+- Regenerate tracked projections: `pwsh -File scripts/runtime/render-mcp-runtime-artifacts.ps1`
 - Apply to Codex config: `pwsh -File .codex/scripts/sync-mcp-to-codex-config.ps1 -CreateBackup`
 - Applied automatically when `install.ps1` is run with `-ApplyMcpConfig`
+
+For safe local RAG/CAG continuity, the repository also owns a deterministic local context index:
+
+- Catalog: `.github/governance/local-context-index.catalog.json`
+- Build or refresh: `pwsh -File scripts/runtime/update-local-context-index.ps1 -RepoRoot .`
+- Query locally: `pwsh -File scripts/runtime/query-local-context-index.ps1 -RepoRoot . -QueryText "context compaction continuity" -JsonOutput`
 
 ## Dev Container
 
@@ -475,7 +490,7 @@ pwsh -File ./scripts/runtime/healthcheck.ps1 -StrictExtras
 
 `bootstrap.ps1` remains the direct runtime sync entrypoint and defaults to runtime profile `all` when called on its own. Use `-RuntimeProfile github` or `-RuntimeProfile codex` when you want the projection to stay scoped to one runtime surface.
 
-With profile `all`, bootstrap syncs versioned `.github/` and `.codex/` assets into the effective runtime locations from `runtime-location-catalog.json` plus any local override file, projects the single visible repository-owned starter/controller into `agentsSkillsRoot`, keeps the repo-owned Copilot agent profile under `githubRuntimeRoot/agents` with a non-canonical alias, removes legacy duplicate starter folders from `githubRuntimeRoot/skills` and `copilotSkillsRoot`, mirrors shared helper scripts from `scripts/common`, `scripts/security`, and `scripts/maintenance` into `codexRuntimeRoot/shared-scripts`, removes stale duplicate repo-managed skill folders from `codexRuntimeRoot/skills`, and applies MCP servers into `codexRuntimeRoot/config.toml` when `-ApplyMcpConfig` is included.
+With profile `all`, bootstrap syncs versioned `.github/` and `.codex/` assets into the effective runtime locations from `runtime-location-catalog.json` plus any local override file, projects the single visible repository-owned starter/controller into `agentsSkillsRoot`, keeps the repo-owned Copilot agent profile under `githubRuntimeRoot/agents` with a non-canonical alias, removes legacy duplicate starter folders from `githubRuntimeRoot/skills` and `copilotSkillsRoot`, mirrors shared helper scripts from `scripts/common`, `scripts/security`, and `scripts/maintenance` into `codexRuntimeRoot/shared-scripts`, removes stale duplicate repo-managed skill folders from `codexRuntimeRoot/skills`, and applies MCP servers derived from `.github/governance/mcp-runtime.catalog.json` into `codexRuntimeRoot/config.toml` when `-ApplyMcpConfig` is included.
 
 For Codex-enabled install profiles, onboarding also applies safe local runtime preferences into `config.toml`:
 - `model_reasoning_effort = "high"`
@@ -715,7 +730,7 @@ git commit -m "Apply change"
 ### post-commit
 
 - Runs `scripts/runtime/bootstrap.ps1 -Mirror` (best effort) only when `HEAD` changed runtime-managed source paths under `.github/`, `.codex/`, or `scripts/`
-- If `.codex/mcp/servers.manifest.json` changed in `HEAD`, can optionally apply MCP config
+- If the canonical MCP runtime catalog or its generated projections changed in `HEAD`, can optionally apply MCP config
 - Runs `scripts/runtime/validate-vscode-global-alignment.ps1` (best effort) only when `HEAD` changed `.vscode/` or the VS Code sync/alignment scripts
 - Re-applies safe Codex runtime preferences when runtime-managed source changed (best effort)
 - Runs `scripts/runtime/clean-codex-runtime.ps1 -IncludeSessions -Apply` (best effort) to clean runtime garbage and stale session/history files that have not been updated for more than **30 days** by **LastWriteTime**; aggressive oversized-file and storage-budget pruning are available only through explicit overrides
@@ -736,7 +751,7 @@ git commit -m "Apply change"
 
 Environment variables:
 - `CODEX_SKIP_POST_COMMIT_SYNC=1`: skip runtime sync
-- `CODEX_APPLY_MCP_ON_POST_COMMIT=1`: enable MCP apply when manifest changed
+- `CODEX_APPLY_MCP_ON_POST_COMMIT=1`: enable MCP apply when canonical MCP runtime surfaces changed
 - `CODEX_BACKUP_MCP_CONFIG=1|0`: backup control before MCP apply (`1` default)
 - `CODEX_POST_COMMIT_MIRROR=0|1`: controls mirror cleanup on post-commit sync (`1` default)
 - `CODEX_SKIP_VSCODE_GLOBAL_CHECK=1`: skips `.vscode` containment check against global VS Code User files in `post-commit`

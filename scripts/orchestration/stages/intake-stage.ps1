@@ -140,6 +140,26 @@ function Write-JsonFile {
     Set-Content -LiteralPath $Path -Value ($Value | ConvertTo-Json -Depth 100) -Encoding UTF8 -NoNewline
 }
 
+# Returns one optional property value from a JSON-like object.
+function Get-OptionalJsonPropertyValue {
+    param(
+        [object] $Object,
+        [string] $PropertyName,
+        [object] $DefaultValue = $null
+    )
+
+    if ($null -eq $Object -or [string]::IsNullOrWhiteSpace($PropertyName)) {
+        return $DefaultValue
+    }
+
+    $property = $Object.PSObject.Properties[$PropertyName]
+    if ($null -eq $property) {
+        return $DefaultValue
+    }
+
+    return $property.Value
+}
+
 # Expands a prompt template by replacing token placeholders with supplied values.
 function Expand-Template {
     param(
@@ -173,6 +193,52 @@ function Convert-ToPlanSlug {
     return $value
 }
 
+# Evaluates whether the intake request needs clarification before planning.
+function Get-IntakeClarificationAssessment {
+    param([string] $RequestText)
+
+    $normalized = (($RequestText ?? '').Trim())
+    if ([string]::IsNullOrWhiteSpace($normalized)) {
+        return [pscustomobject]@{
+            ClarificationRequired = $true
+            CanProceedSafely = $false
+            ClarificationReason = 'No actionable request text was provided, so planning scope and validation cannot be determined safely.'
+            ClarificationQuestions = @(
+                'Qual resultado exato voce quer que eu entregue?',
+                'Quais arquivos, superficies ou areas entram no escopo?',
+                'Qual validacao define sucesso para essa solicitacao?'
+            )
+        }
+    }
+
+    $questions = New-Object System.Collections.Generic.List[string]
+    $reason = $null
+    $normalizedLower = $normalized.ToLowerInvariant()
+    $isBroadEverythingRequest = $normalizedLower -match '\b(fa[çc]a tudo|faz tudo|do everything|fix everything|all of it|resolve tudo|arruma tudo)\b'
+    $isReferenceOnlyRequest = $normalizedLower -match '^(fa[çc]a|fix|resolve|arruma|ajuste|melhore|update|change|implement)\s+(isso|isto|aquilo|this|that|it)\b'
+    $hasConcreteTarget = $normalizedLower -match '([\\/]|\.md|\.ps1|\.json|\.jsonc|\.yml|\.yaml|\.cs|\.ts|\.rs|planning|scripts|readme|mcp|claude|copilot|codex|super-agent|workflow|pipeline|runtime|hook|config|schema)'
+
+    if ($isBroadEverythingRequest) {
+        $reason = 'The request asks for a broad "do everything" style change without a scoped execution boundary.'
+        $questions.Add('Qual objetivo ou entrega principal devo priorizar primeiro?') | Out-Null
+        $questions.Add('Quais areas entram no escopo agora e quais ficam fora desta rodada?') | Out-Null
+        $questions.Add('Qual validacao ou resultado final define que esta rodada terminou bem?') | Out-Null
+    }
+    elseif ($isReferenceOnlyRequest -and -not $hasConcreteTarget) {
+        $reason = 'The request references a prior topic indirectly and does not identify the concrete target area to change.'
+        $questions.Add('A que area, arquivo ou workstream voce esta se referindo exatamente?') | Out-Null
+        $questions.Add('Qual mudanca concreta devo aplicar nessa area?') | Out-Null
+        $questions.Add('Existe alguma validacao obrigatoria alem das checks padrao do repositorio?') | Out-Null
+    }
+
+    return [pscustomobject]@{
+        ClarificationRequired = ($questions.Count -gt 0)
+        CanProceedSafely = ($questions.Count -eq 0)
+        ClarificationReason = $reason
+        ClarificationQuestions = @($questions.ToArray())
+    }
+}
+
 # Retrieves a single agent contract from the orchestration manifest.
 function Get-AgentContract {
     param(
@@ -192,23 +258,43 @@ function New-FallbackIntakeResult {
     $normalized = if ([string]::IsNullOrWhiteSpace($trimmed)) { 'No request content provided.' } else { $trimmed }
     $isInformational = $normalized -match '^(what|why|how|list|show|explain)\b' -and $normalized -notmatch '\b(add|adjust|change|create|delete|edit|fix|implement|move|refactor|remove|rename|sync|update|write)\b'
     $slug = Convert-ToPlanSlug -Text $normalized
+    $clarification = Get-IntakeClarificationAssessment -RequestText $normalized
 
     return [ordered]@{
         stage = 'super-agent-intake'
         normalizedRequest = $normalized
         changeBearing = (-not $isInformational)
-        planningRequired = (-not $isInformational)
+        planningRequired = ((-not $isInformational) -and (-not [bool] $clarification.ClarificationRequired))
+        clarificationRequired = [bool] $clarification.ClarificationRequired
+        canProceedSafely = [bool] $clarification.CanProceedSafely
         workstreamSlug = $slug
-        explicitWorkItems = @($normalized)
+        explicitWorkItems = if ([bool] $clarification.ClarificationRequired) {
+            @('Clarify request scope before planning.')
+        }
+        else {
+            @($normalized)
+        }
+        clarificationQuestions = @($clarification.ClarificationQuestions)
+        clarificationReason = $clarification.ClarificationReason
         constraints = @(
             'Preserve repository instructions, policies, and validation coverage.',
             'Use repository context first and official sources second.'
         )
         risks = @(
-            'Skipping planning or review would violate the repository lifecycle.'
+            if ([bool] $clarification.ClarificationRequired) {
+                'Proceeding without clarification would risk the wrong plan, scope, or validation target.'
+            }
+            else {
+                'Skipping planning or review would violate the repository lifecycle.'
+            }
         )
         notes = @(
-            'Execution remains sequential unless later planning proves tasks are parallel-safe.'
+            if ([bool] $clarification.ClarificationRequired) {
+                'Stop after intake and wait for the user to answer the clarification questions.'
+            }
+            else {
+                'Execution remains sequential unless later planning proves tasks are parallel-safe.'
+            }
         )
     }
 }
@@ -324,6 +410,10 @@ $stageState = [ordered]@{
     dispatchCount = if ($backendUsed -eq 'codex-exec') { 1 } else { 0 }
     planningRequired = [bool] $intakeResult.planningRequired
     changeBearing = [bool] $intakeResult.changeBearing
+    clarificationRequired = [bool] $intakeResult.clarificationRequired
+    canProceedSafely = [bool] $intakeResult.canProceedSafely
+    clarificationReason = [string] (Get-OptionalJsonPropertyValue -Object $intakeResult -PropertyName 'clarificationReason')
+    clarificationQuestions = @((Get-OptionalJsonPropertyValue -Object $intakeResult -PropertyName 'clarificationQuestions' -DefaultValue @()))
     promptTemplatePath = if ($backendUsed -eq 'codex-exec') { Convert-ToRelativeRepoPath -Root $resolvedRepoRoot -Path $resolvedPromptTemplatePath } else { $null }
     responseSchemaPath = if ($backendUsed -eq 'codex-exec') { Convert-ToRelativeRepoPath -Root $resolvedRepoRoot -Path $resolvedResponseSchemaPath } else { $null }
     dispatchRecordPath = if ((Test-Path -LiteralPath $dispatchRecordPath -PathType Leaf)) { Convert-ToRelativeRepoPath -Root $resolvedRepoRoot -Path $dispatchRecordPath } else { $null }

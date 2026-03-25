@@ -46,7 +46,7 @@ if (-not (Test-Path -LiteralPath $script:CommonBootstrapPath -PathType Leaf)) {
 if (-not (Test-Path -LiteralPath $script:CommonBootstrapPath -PathType Leaf)) {
     throw "Missing shared common bootstrap helper: $script:CommonBootstrapPath"
 }
-. $script:CommonBootstrapPath -CallerScriptRoot $PSScriptRoot -Helpers @('console-style', 'repository-paths', 'validation-logging')
+. $script:CommonBootstrapPath -CallerScriptRoot $PSScriptRoot -Helpers @('console-style', 'repository-paths', 'validation-logging', 'mcp-runtime-catalog', 'local-context-index')
 $script:ScriptRoot = Split-Path -Path $PSCommandPath -Parent
 $script:IsVerboseEnabled = [bool] $Verbose
 Initialize-ValidationState -VerboseEnabled $script:IsVerboseEnabled
@@ -155,6 +155,16 @@ function Test-JsonFile {
         Add-ValidationFailure ("Invalid JSON in {0} :: {1}" -f $Path, $_.Exception.Message)
         return $null
     }
+}
+
+# Converts one object graph into stable JSON for content comparison.
+function ConvertTo-StableJson {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object] $Value
+    )
+
+    return ($Value | ConvertTo-Json -Depth 100).Replace("`r`n", "`n")
 }
 
 # Converts JSON-like objects into a hashtable keyed by property name.
@@ -904,6 +914,8 @@ $requiredFiles = @(
     '.github/governance/shared-script-checksums.manifest.json',
     '.github/governance/codex-runtime-hygiene.catalog.json',
     '.github/governance/vscode-runtime-hygiene.catalog.json',
+    '.github/governance/mcp-runtime.catalog.json',
+    '.github/governance/local-context-index.catalog.json',
     '.vscode/base.code-workspace',
     '.github/runbooks/README.md',
     '.github/runbooks/validation-failures.runbook.md',
@@ -917,6 +929,8 @@ $requiredFiles = @(
     '.github/schemas/agent.trace-record.schema.json',
     '.github/schemas/agent.policy-evaluation.schema.json',
     '.github/schemas/agent.checkpoint-state.schema.json',
+    '.github/schemas/mcp-runtime.catalog.schema.json',
+    '.github/schemas/local-context-index.catalog.schema.json',
     '.github/schemas/agent.stage-intake-result.schema.json',
     '.github/schemas/agent.stage-spec-result.schema.json',
     '.github/schemas/agent.stage-plan-result.schema.json',
@@ -972,6 +986,9 @@ $requiredFiles = @(
     'scripts/runtime/resume-agent-pipeline.ps1',
     'scripts/runtime/replay-agent-run.ps1',
     'scripts/runtime/evaluate-agent-pipeline.ps1',
+    'scripts/runtime/render-mcp-runtime-artifacts.ps1',
+    'scripts/runtime/update-local-context-index.ps1',
+    'scripts/runtime/query-local-context-index.ps1',
     'scripts/runtime/new-super-agent-worktree.ps1',
     'scripts/runtime/invoke-super-agent-brainstorm.ps1',
     'scripts/runtime/invoke-super-agent-plan.ps1',
@@ -997,6 +1014,7 @@ $requiredFiles = @(
     'scripts/tests/runtime/authoritative-source-policy.tests.ps1',
     'scripts/tests/runtime/agent-orchestration-engine.tests.ps1',
     'scripts/tests/runtime/instruction-architecture.tests.ps1',
+    'scripts/tests/runtime/mcp-config-sync.tests.ps1',
     'scripts/tests/runtime/planning-structure.tests.ps1',
     'scripts/tests/runtime/super-agent-entrypoints.tests.ps1',
     'scripts/tests/runtime/super-agent-worktree.tests.ps1',
@@ -1016,10 +1034,18 @@ if ($null -ne $schema) {
     }
 }
 
+$mcpRuntimeCatalog = Test-JsonFile -Root $resolvedRepoRoot -Path '.github/governance/mcp-runtime.catalog.json'
 $mcpManifest = Test-JsonFile -Root $resolvedRepoRoot -Path '.codex/mcp/servers.manifest.json'
 if ($null -ne $mcpManifest) {
     if ($null -eq $mcpManifest.servers -or @($mcpManifest.servers).Count -eq 0) {
         Add-ValidationFailure 'MCP manifest must contain at least one server.'
+    }
+}
+
+$localContextIndexCatalog = Test-JsonFile -Root $resolvedRepoRoot -Path '.github/governance/local-context-index.catalog.json'
+if ($null -ne $localContextIndexCatalog) {
+    if ($null -eq $localContextIndexCatalog.includeGlobs -or @($localContextIndexCatalog.includeGlobs).Count -eq 0) {
+        Add-ValidationFailure 'Local context index catalog must contain at least one includeGlobs entry.'
     }
 }
 
@@ -1114,6 +1140,24 @@ foreach ($jsonPath in $orchestrationJsonFiles) {
 if ($null -ne $vscodeMcp) {
     if ($null -eq $vscodeMcp.servers -or @($vscodeMcp.servers.PSObject.Properties).Count -eq 0) {
         Add-ValidationFailure 'VS Code MCP template must contain at least one server.'
+    }
+}
+
+if ($null -ne $mcpRuntimeCatalog -and $null -ne $vscodeMcp) {
+    try {
+        $catalogInfo = Read-McpRuntimeCatalog -RepoRoot $resolvedRepoRoot
+        $renderedVscodeDocument = Convert-McpRuntimeCatalogToVscodeDocument -Catalog $catalogInfo.Catalog
+        if ((ConvertTo-StableJson -Value $renderedVscodeDocument) -ne (ConvertTo-StableJson -Value $vscodeMcp)) {
+            Add-ValidationFailure 'VS Code MCP template drift detected. Re-run scripts/runtime/render-mcp-runtime-artifacts.ps1.'
+        }
+
+        $renderedCodexManifest = Convert-McpRuntimeCatalogToCodexManifest -Catalog $catalogInfo.Catalog
+        if ($null -ne $mcpManifest -and ((ConvertTo-StableJson -Value $renderedCodexManifest) -ne (ConvertTo-StableJson -Value $mcpManifest))) {
+            Add-ValidationFailure 'Codex MCP manifest drift detected. Re-run scripts/runtime/render-mcp-runtime-artifacts.ps1.'
+        }
+    }
+    catch {
+        Add-ValidationFailure ("Unable to validate MCP runtime catalog parity: {0}" -f $_.Exception.Message)
     }
 }
 

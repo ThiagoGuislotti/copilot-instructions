@@ -8,8 +8,12 @@
     "normalizedRequest",
     "changeBearing",
     "planningRequired",
+    "clarificationRequired",
+    "canProceedSafely",
     "workstreamSlug",
     "explicitWorkItems",
+    "clarificationQuestions",
+    "clarificationReason",
     "constraints",
     "risks",
     "notes"
@@ -30,6 +34,12 @@
     "planningRequired": {
       "type": "boolean"
     },
+    "clarificationRequired": {
+      "type": "boolean"
+    },
+    "canProceedSafely": {
+      "type": "boolean"
+    },
     "workstreamSlug": {
       "type": "string",
       "pattern": "^[a-z0-9-]{1,64}$"
@@ -40,6 +50,19 @@
         "type": "string",
         "minLength": 1
       }
+    },
+    "clarificationQuestions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "clarificationReason": {
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "constraints": {
       "type": "array",

@@ -41,12 +41,17 @@ The resumed planning slice also needs to absorb four concrete follow-ups discove
 - Copilot is exposing multiple visible `super-agent` entries when typing `/`, which means the duplication audit now needs to isolate the exact registration surfaces and converge them to one canonical visible controller entry
 - Claude Code already exposes a repository-owned `super-agent` skill and hook set, so the parity audit must verify it stays aligned with Copilot/Codex and does not keep stale controller behavior
 - the Super Agent controller currently routes and plans well, but it still lacks an explicit repository-owned contract for asking concise clarifying questions when ambiguity materially changes plan, architecture, runtime behavior, or validation
+- `.codex/mcp/servers.manifest.json` is still only a reduced MCP subset and its current renderer drops `disabled`, `gallery`, `version`, `env`, and richer auth/input fields, so the repository now needs a canonical MCP runtime catalog with derived per-runtime renderers instead of treating any current runtime file as complete
+- `infra/github/main.json` is present as a GitHub ruleset artifact and should be documented as governance infrastructure rather than being confused with runtime or MCP configuration
 
 The first resumed cleanup slice is now materially implemented:
 - `.vscode/profiles/` is promoted to a versioned reusable profile-baseline surface with explicit local selection support, while `.vscode/mcp-vscode-global.json` remains a local helper/reference artifact for now
 - the runtime sync contract no longer projects `.github/skills/super-agent` into any Copilot-visible runtime skill root; instead, bootstrap removes legacy `super-agent` and `using-super-agent` folders from both `%USERPROFILE%\\.github\\skills` and `%USERPROFILE%\\.copilot\\skills` so the shared `%USERPROFILE%\\.agents\\skills\\super-agent` surface stays canonical for slash discovery
 - the repo-owned `.github/agents/super-agent.agent.md` profile remains available for Copilot, but with a secondary workspace-controller alias instead of a second visible `/super-agent`
 - the repository-owned `.github/skills/super-agent/SKILL.md` surface is removed to avoid keeping a second competing native Copilot-visible starter under version control
+- the canonical MCP runtime catalog now lives at `.github/governance/mcp-runtime.catalog.json`, and both `.vscode/mcp.tamplate.jsonc` and `.codex/mcp/servers.manifest.json` are treated as generated projections
+- the initial local RAG/CAG slice now exists as a deterministic incremental index under `.temp/context-index/`, maintained by `scripts/runtime/update-local-context-index.ps1`, queried by `scripts/runtime/query-local-context-index.ps1`, and refreshed by `invoke-super-agent-housekeeping.ps1`
+- the Super Agent intake/controller contract now includes explicit clarification gating with `clarificationRequired`, `canProceedSafely`, `clarificationReason`, and `clarificationQuestions`
 
 ## External Reference Baseline
 
@@ -83,6 +88,8 @@ The repository should not copy `context-mode` blindly. Its plugin/hook architect
 14. Claude Code must keep the same Super Agent lifecycle and clarification behavior as Copilot/Codex, with portable hook/settings configuration.
 15. Super Agent intake must ask concise clarification questions only when ambiguity materially changes plan, execution, runtime safety, or validation.
 16. The future local RAG/CAG implementation must explicitly document which `context-mode` patterns were adopted, adapted, or rejected.
+17. MCP configuration must use one canonical rich runtime catalog with per-runtime renderers; `.vscode/mcp.tamplate.jsonc` and the Codex manifest are both generated outputs from that catalog.
+18. Repository documentation must classify `infra/github/main.json` as GitHub governance/ruleset infrastructure.
 
 ## Alternatives Considered
 
@@ -112,6 +119,7 @@ The repository should not copy `context-mode` blindly. Its plugin/hook architect
 - Output-side economy can still regress operator clarity if summaries become too short or hide failures.
 - A stale local index/cache can return outdated context unless invalidation on add/update/delete is reliable.
 - Promoting `.vscode` helper surfaces without clarifying ownership could create more duplicate MCP or controller registrations.
+- Promoting `.codex/mcp/servers.manifest.json` to source-of-truth prematurely would regress VS Code MCP fidelity because the current renderer cannot preserve the full contract.
 - Runtime sync may be projecting duplicate command/agent surfaces into VS Code and confusing discovery.
 - Clarification-question behavior can become noisy if it is not gated to material ambiguity only.
 - If the duplicated command source is not isolated precisely, cleanup could remove a valid runtime surface accidentally.
@@ -135,6 +143,8 @@ The repository should not copy `context-mode` blindly. Its plugin/hook architect
 14. The planning artifacts explicitly cover isolating and removing duplicate visible `super-agent` entries in Copilot slash discovery.
 15. The planning artifacts explicitly cover Claude Code Super Agent parity review.
 16. The planning artifacts explicitly cover adding concise clarification-question behavior to the Super Agent controller surfaces.
+17. The planning artifacts explicitly cover introducing one canonical MCP runtime catalog plus derived VS Code/Codex/Claude renderers without losing VS Code-only metadata.
+18. The planning artifacts explicitly cover documenting `infra/github/main.json` as governance/ruleset infrastructure.
 
 ## Planning Readiness Statement
 

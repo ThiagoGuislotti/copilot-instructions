@@ -47,6 +47,7 @@ function Resolve-CommonHelperFileName {
         'vscode-runtime-hygiene' { return 'vscode-runtime-hygiene.ps1' }
         'runtime-execution-context' { return 'runtime-execution-context.ps1' }
         'agent-runtime-hardening' { return 'agent-runtime-hardening.ps1' }
+        'mcp-runtime-catalog' { return 'mcp-runtime-catalog.ps1' }
         'runtime-operation-support' { return 'runtime-operation-support.ps1' }
         'runtime-install-profiles' { return 'runtime-install-profiles.ps1' }
         'validation-logging' { return 'validation-logging.ps1' }

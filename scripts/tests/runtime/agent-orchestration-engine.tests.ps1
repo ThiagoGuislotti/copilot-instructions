@@ -301,8 +301,12 @@ end {
             normalizedRequest = $normalizedRequest
             changeBearing = $true
             planningRequired = $true
+            clarificationRequired = $false
+            canProceedSafely = $true
             workstreamSlug = $workstreamSlug
             explicitWorkItems = @('Normalize request', 'Plan execution')
+            clarificationQuestions = @()
+            clarificationReason = $null
             constraints = @('Preserve repository policy and validation gates.')
             risks = @('Skipping planning would violate the lifecycle.')
             notes = @('Use sequential execution unless the planner proves tasks are parallel-safe.')
@@ -725,6 +729,27 @@ end {
 
     $pipelineRunRoot = Join-Path $tempRoot 'pipeline-runs'
     $pipelineScriptPath = Join-Path $resolvedRepoRoot 'scripts/runtime/run-agent-pipeline.ps1'
+
+    & $pipelineScriptPath `
+        -RepoRoot $resolvedRepoRoot `
+        -RunRoot $pipelineRunRoot `
+        -TraceId 'clarification-needed-test' `
+        -RequestText 'Fix that.' `
+        -ExecutionBackend 'script-only' `
+        -WarningOnly:$false | Out-Null
+    Assert-Equal -Actual ([int] $LASTEXITCODE) -Expected 0 -Message 'Pipeline should stop cleanly when clarification is required.'
+
+    $clarificationRunArtifactPath = Join-Path $pipelineRunRoot 'clarification-needed-test\run-artifact.json'
+    $clarificationRunArtifact = Get-Content -Raw -LiteralPath $clarificationRunArtifactPath | ConvertFrom-Json -Depth 100
+    Assert-Equal -Actual ([string] $clarificationRunArtifact.status) -Expected 'partial' -Message 'Clarification-only pipeline should report partial status.'
+    Assert-Equal -Actual @($clarificationRunArtifact.stages).Count -Expected 1 -Message 'Clarification-only pipeline should stop after the intake stage.'
+    $clarificationStage = @($clarificationRunArtifact.stages | Select-Object -First 1)
+    Assert-Equal -Actual ([string] $clarificationStage.stageId) -Expected 'intake' -Message 'Clarification-only pipeline should record only the intake stage.'
+    Assert-Equal -Actual ([string] $clarificationStage.status) -Expected 'partial' -Message 'Intake stage should be marked partial when clarification is required.'
+    Assert-True ([bool] $clarificationStage.execution.clarificationRequired) 'Intake stage should record clarificationRequired=true.'
+    Assert-True (-not [bool] $clarificationStage.execution.canProceedSafely) 'Clarification-only pipeline should record canProceedSafely=false.'
+    Assert-True (@($clarificationStage.execution.clarificationQuestions).Count -gt 0) 'Clarification-only pipeline should record clarification questions.'
+    Assert-True ([int] $clarificationRunArtifact.summary.warningCount -gt 0) 'Clarification-only pipeline should emit warnings explaining the stop.'
 
     & $pipelineScriptPath `
         -RepoRoot $resolvedRepoRoot `

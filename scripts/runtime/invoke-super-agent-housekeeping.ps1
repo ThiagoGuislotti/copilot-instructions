@@ -6,6 +6,7 @@
     Performs best-effort, planning-anchored housekeeping for a workspace in a
     way that is safe for active sessions:
     - exports a concise planning handoff summary first
+    - refreshes the local context index used for safe RAG/CAG reuse
     - cleans persisted Codex runtime state
     - cleans persisted VS Code user-runtime state
     - enforces a workspace-local throttle so repeated session hooks do not run
@@ -293,11 +294,15 @@ if (-not [string]::IsNullOrWhiteSpace($RecordOnlyPath)) {
 }
 
 $exportScript = Resolve-RuntimeScriptPath -ScriptName 'export-planning-summary.ps1'
+$updateLocalIndexScript = Resolve-RuntimeScriptPath -ScriptName 'update-local-context-index.ps1'
 $cleanCodexScript = Resolve-RuntimeScriptPath -ScriptName 'clean-codex-runtime.ps1'
 $cleanVscodeScript = Resolve-RuntimeScriptPath -ScriptName 'clean-vscode-user-runtime.ps1'
 
 Write-StyledOutput 'Exporting planning handoff summary before housekeeping cleanup...'
 & $exportScript -RepoRoot $resolvedRepoRoot | Out-Host
+
+Write-DetailedLog 'Refreshing local context index.'
+& $updateLocalIndexScript -RepoRoot $resolvedRepoRoot -DetailedOutput:$DetailedOutput | Out-Host
 
 Write-DetailedLog 'Running Codex runtime cleanup.'
 if ($Apply) {
