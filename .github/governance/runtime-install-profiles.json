@@ -19,7 +19,7 @@
       }
     },
     "github": {
-      "description": "Project only the GitHub/Copilot runtime surface (.github, mirrored scripts, and native Copilot skills).",
+      "description": "Project only the GitHub/Copilot runtime surface (.github and mirrored scripts) while keeping the shared `super-agent` controller canonical in `agentsSkillsRoot` and cleaning legacy duplicate starters from `githubRuntimeRoot/skills` plus `copilotSkillsRoot`.",
       "install": {
         "bootstrap": true,
         "globalVscodeSettings": false,

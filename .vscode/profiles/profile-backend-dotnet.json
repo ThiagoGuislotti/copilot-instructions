@@ -1,0 +1,26 @@
+{
+  "name": "Backend .NET",
+  "description": "C# / ASP.NET / Clean Architecture. Sem Python, Java, Vue, Azure pesado.",
+  "extends": "Base",
+  "extensions": [
+    "ms-dotnettools.csharp",
+    "ms-dotnettools.csdevkit",
+    "ms-dotnettools.vscode-dotnet-runtime",
+    "ms-dotnettools.vscode-dotnet-modernize",
+    "ms-vscode.powershell",
+    "dotjoshjohnson.xml",
+    "redhat.vscode-yaml",
+    "github.vscode-github-actions",
+    "docker.docker",
+    "ms-vscode-remote.remote-containers"
+  ],
+  "mcp": {
+    "servers": {
+      "io.github.github/github-mcp-server": { "enabled": true },
+      "microsoftdocs/mcp":                  { "enabled": true },
+      "com.microsoft/nuget":                { "enabled": true },
+      "microsoft/playwright-mcp":           { "enabled": false },
+      "com.microsoft/azure":                { "enabled": false }
+    }
+  }
+}

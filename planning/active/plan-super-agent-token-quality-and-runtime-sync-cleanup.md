@@ -1,23 +1,32 @@
 # Super Agent Token Quality And Runtime Sync Cleanup Plan
 
 Generated: 2026-03-22 00:00
-LastUpdated: 2026-03-23 00:00
+LastUpdated: 2026-03-25 00:00
 
 ## Status
 
 - State: active
 - Spec: `planning/specs/active/spec-super-agent-token-quality-and-runtime-sync-cleanup.md`
-- Current safe slice implemented: instruction/prompt-level output economy, quality-first routing guidance, session-start continuity summaries, throttled housekeeping with planning export, runtime overflow fixes, context boundary monitoring, dating policy, progress logging, Stop hook for planning export, hardcoded-path removal
+- Current safe slice implemented: instruction/prompt-level output economy, quality-first routing guidance, session-start continuity summaries, throttled housekeeping with planning export, runtime overflow fixes, context boundary monitoring, dating policy, progress logging, Stop hook for planning export, hardcoded-path removal, `.vscode` profile-base promotion, and Copilot `super-agent` deduplication across canonical skill plus secondary agent alias surfaces
 - Current urgent slice completed: tasks 1a–1g below
-- Remaining deferred scope: local incremental RAG/CAG index plus mirrored `.github` runtime-sync duplication audit (tasks 4–6)
+- Active next scope: local incremental RAG/CAG index, Claude surface audit, and clarifying-question behavior (tasks 3–6)
 
 ## Objective And Scope
 
 Prepare the deferred follow-up that will keep quality-first behavior, avoid risky input/context trimming, and instead target safer output-side token economy plus an audit of the mirrored `.github` runtime-sync flow for duplicate or garbage command surfaces in VS Code. In the immediate slice, stop Codex local-session disk and token blowups and prune VS Code Copilot workspace trash by applying safer runtime defaults and stale-session cleanup that preserves active context.
 
+Use `mksglu/context-mode` as the external reference baseline for the future local RAG/CAG implementation. Reuse its strong ideas where they fit this repository-owned runtime model: source-side context reduction instead of output post-processing, local-first persistence, searchable session continuity, and retrieval of only relevant continuity fragments after compaction or restart. Do not copy its platform/plugin architecture blindly; adapt only the durable patterns that fit this repository and its runtime contracts.
+
 ## Normalized Request Summary
 
 The user does not want token-economy behavior to reduce quality. They want risky input/context compaction undone and the next optimization wave to focus on safer output-side economy, including shorter default responses, less duplication, and better local RAG/CAG usage. They also suspect the `.github` runtime sync may be leaving duplicate or garbage surfaces, visible as repeated `/super-agent` command entries in VS Code. In parallel, Codex local sessions are consuming extreme disk and likely amplifying token use through long reasoning chains and unbounded local session retention, while VS Code `Code/User/workspaceStorage` is accumulating multi-gigabyte Copilot state such as `GitHub.copilot-chat/local-index*.db` and huge `chatSessions/*.jsonl` files. The immediate safe fix is to enforce saner runtime defaults plus stale-session cleanup for both local runtimes without disabling strategic multi-agent use.
+
+Fresh observations for the resumed slice on 2026-03-25:
+- `.vscode/profiles/` and `.vscode/mcp-vscode-global.json` now exist locally and appear to describe optional VS Code profile + MCP activation surfaces that were not yet folded into the runtime source-of-truth model.
+- `.vscode/profiles/README.md` and `setup-profiles.ps1` still reference `profile-vision-engine.json`, but that file does not exist in the folder, so the profile surface already has drift that must be classified before it becomes part of the RAG/CAG strategy.
+- Copilot currently exposes multiple visible `super-agent` slash surfaces, so the duplication audit must now treat both workspace-local and mirrored/global runtime registration as concrete suspects instead of a hypothetical defect.
+- Claude Code already has a `super-agent` skill and custom hooks under `.claude/settings.json`; this surface needs parity review so it does not drift from Copilot/Codex.
+- The current routing prompt already allows clarifying questions, but the Super Agent intake/controller layer does not yet have a strong explicit rule to ask concise clarification questions when ambiguity materially changes planning or execution.
 
 ## Ordered Tasks
 
@@ -40,22 +49,32 @@ The user does not want token-economy behavior to reduce quality. They want risky
    - [2026-03-23 00:00] 2d. Add `## Iterative In-Session Directive Exception` to `subagent-planning-workflow.instructions.md` — clarifies when retroactive plan updates replace upfront spec/plan ✓ [2026-03-23 00:00]
    - [2026-03-23 00:00] 2e. Update `scripts/README.md` — add `export-planning-summary.ps1` to directory tree and API reference table ✓ [2026-03-23 00:00]
 
-3. Define local RAG/CAG-first response guidance
-   - [2026-03-22 00:00] Task created — deferred
+3. Define local RAG/CAG-first response guidance plus clarifying-question behavior
+- [2026-03-25 00:00] Resume this slice with explicit clarification behavior instead of silent assumptions on ambiguous requests.
    - Target paths:
      - `.github/AGENTS.md`
      - `.github/copilot-instructions.md`
      - `.github/instructions/repository-operating-model.instructions.md`
      - `.github/instructions/super-agent.instructions.md`
+     - `.codex/orchestration/prompts/super-agent-intake-stage.prompt.md`
+     - `.github/skills/super-agent/SKILL.md`
+     - `.codex/skills/super-agent/SKILL.md`
+     - `.claude/skills/super-agent/SKILL.md`
    - Commands:
      - `pwsh -NoLogo -NoProfile -File scripts/validation/validate-instruction-architecture.ps1 -RepoRoot . -WarningOnly:$false`
    - Checkpoints:
      - local repository retrieval stays preferred over repeated restatement
      - future guidance makes output shorter without trimming required working context
      - Copilot and Codex guidance stay aligned
+     - Super Agent asks concise clarification questions when ambiguity changes plan, architecture, runtime behavior, or validation
+     - Claude skill contract stays aligned with the same clarification behavior
 
-4. Design a local incremental index for RAG/CAG
+4. Design a local incremental index for RAG/CAG and audit the new `.vscode` profile/MCP surfaces
+   - [2026-03-25 00:00] 4a. Promoted `.vscode/profiles/` to a versioned profile-baseline surface, removed its `.gitignore` exclusion, replaced the hardcoded setup script with JSON discovery + explicit profile selection, and removed stale `profile-vision-engine.json` references; `.vscode/mcp-vscode-global.json` remains a local helper surface for now ✓ [2026-03-25 00:00]
+   - [2026-03-25 00:00] 4b. Treat `https://github.com/mksglu/context-mode` as the reference baseline for the local RAG/CAG slice: source-side context savings, local persistence, searchable continuity state, and retrieval of only relevant continuity on resume/compaction must be evaluated first before inventing a parallel design ✓ [2026-03-25 00:00]
    - Target paths:
+     - `.vscode/profiles/**`
+     - `.vscode/mcp-vscode-global.json`
      - `scripts/runtime/**`
      - `scripts/common/**`
      - `.github/governance/**`
@@ -63,11 +82,15 @@ The user does not want token-economy behavior to reduce quality. They want risky
    - Commands:
      - `pwsh -NoLogo -NoProfile -File scripts/runtime/doctor.ps1 -RepoRoot . -RuntimeProfile all -DetailedOutput`
    - Checkpoints:
+     - `.vscode/profiles` is treated as a versioned reusable baseline with explicit local selection support
+     - `.vscode/mcp-vscode-global.json` is still classified as a local helper artifact until a runtime contract promotes it
+     - the local index design explicitly documents which `context-mode` ideas are adopted, adapted, or rejected
      - index design covers add/update/delete invalidation
-     - retrieval can reuse local code/instruction summaries without rereading everything
+     - retrieval can reuse local code/instruction/planning summaries without rereading everything
      - one canonical local cache/index location is defined
 
-5. Audit mirrored `.github` runtime-sync duplication
+5. Audit mirrored `.github` runtime-sync duplication plus Claude parity
+   - [2026-03-25 00:00] 5a. Isolated duplicated Copilot `super-agent` visibility to overlapping legacy starter surfaces and switched bootstrap from projecting `.github/skills` into `copilotSkillsRoot` to removing legacy `super-agent` / `using-super-agent` entries from both `githubRuntimeRoot/skills` and `copilotSkillsRoot`, leaving the shared `%USERPROFILE%\\.agents\\skills` surface canonical ✓ [2026-03-25 00:00]
    - Target paths:
      - `scripts/runtime/bootstrap.ps1`
      - `scripts/runtime/install.ps1`
@@ -76,13 +99,19 @@ The user does not want token-economy behavior to reduce quality. They want risky
      - `.github/hooks/**`
      - `.github/agents/**`
      - `.github/skills/**`
+     - `.claude/settings.json`
+     - `.claude/skills/**`
    - Commands:
      - `pwsh -NoLogo -NoProfile -File scripts/runtime/doctor.ps1 -RepoRoot . -RuntimeProfile all -DetailedOutput`
      - `pwsh -NoLogo -NoProfile -File scripts/runtime/install.ps1 -RuntimeProfile all -CreateSettingsBackup -ApplyMcpConfig -BackupMcpConfig -GitHookEofMode autofix -GitHookEofScope global`
    - Checkpoints:
+     - the exact sources of the three visible Copilot `super-agent` slash surfaces are isolated
+     - one canonical visible Copilot `super-agent` entry remains after cleanup
      - the exact source of duplicated `/super-agent` discovery is isolated
+     - the canonical visible `/super-agent` starter remains the shared `.agents/skills` surface while the repo-owned Copilot agent profile uses a secondary alias
      - local vs mirrored runtime ownership is mapped clearly
      - any garbage or duplicate registration paths are identified safely
+     - Claude `super-agent` skill, settings, hooks, and runtime sync remain aligned with the same controller contract after cleanup
 
 6. Define cleanup and validation strategy
    - Target paths:
@@ -97,6 +126,8 @@ The user does not want token-economy behavior to reduce quality. They want risky
      - `pwsh -NoLogo -NoProfile -File scripts/validation/validate-all.ps1 -RepoRoot . -ValidationProfile dev`
    - Checkpoints:
      - future cleanup has runtime tests covering command-surface duplication
+     - future cleanup has runtime tests covering `.vscode` profile/MCP source-of-truth decisions
+     - future cleanup has runtime tests covering clarification-question behavior in Super Agent intake surfaces
      - docs explain the canonical sync authority clearly
      - install/runtime sync remains green after cleanup
 
@@ -115,8 +146,12 @@ The user does not want token-economy behavior to reduce quality. They want risky
   - Fallback: keep full summaries mandatory and move detail behind verbose/detailed switches only.
 - Risk: local RAG/CAG guidance gets interpreted as license to trim needed working context.
   - Fallback: keep retrieval/local-context guidance focused on answer construction, not on shrinking required execution context by default.
+- Risk: `.vscode/profiles` and `mcp-vscode-global.json` are helpful local references but not true runtime source-of-truth, so integrating them blindly could add more duplicated surfaces.
+  - Fallback: classify them first and only promote the canonical artifacts into the runtime flow.
 - Risk: duplicated slash commands come from both repo-local and mirrored runtime surfaces.
   - Fallback: map discovery paths first and remove only one duplicated registration path at a time.
+- Risk: adding clarification behavior could regress into noisy questioning on trivial requests.
+  - Fallback: gate questions to only ambiguity that materially changes planning, execution, validation, or runtime safety.
 - Risk: cleanup accidentally removes a legitimate runtime entry or a still-relevant local session.
   - Fallback: gate cleanup behind targeted runtime tests plus doctor/install validation.
 
@@ -129,5 +164,6 @@ The user does not want token-economy behavior to reduce quality. They want risky
 ## Closeout Expectations
 
 - Do not implement this slice until the user explicitly resumes it.
+- This workstream is now explicitly resumed for planning and execution sequencing.
 - When resumed, keep quality preservation explicit in README/changelog language.
 - Return a commit message only when the deferred cleanup and quality-safe response economy changes are materially implemented and validated.

@@ -7,6 +7,7 @@
     - bootstrap shared `.github` and `.codex` runtime assets
     - optionally apply MCP configuration
     - render versioned global VS Code settings
+    - render versioned global VS Code MCP configuration
     - synchronize versioned VS Code snippets
     - configure local Git hooks
     - configure global Git aliases
@@ -28,7 +29,8 @@
     Optional runtime target path for picker-visible local skills.
 
 .PARAMETER TargetCopilotSkillsPath
-    Optional runtime target path for GitHub Copilot native personal skills.
+    Optional runtime target path for the GitHub Copilot native skill root used
+    for legacy duplicate starter cleanup.
 
 .PARAMETER TargetClaudePath
     Optional runtime target path for the Claude Code runtime used by
@@ -76,7 +78,7 @@
     Creates backup before applying MCP configuration.
 
 .PARAMETER CreateSettingsBackup
-    Creates a backup before rendering the global VS Code settings file.
+    Creates backups before rendering the global VS Code `settings.json` and `mcp.json` files.
 
 .PARAMETER SkipGlobalSettings
     Skips global VS Code settings synchronization.
@@ -375,6 +377,7 @@ if ($resolvedRuntimeProfile.InstallGlobalVscodeSettings -and -not $SkipGlobalSet
     }
 
     $steps.Add((New-InstallStep -Name 'Render global VS Code settings' -ScriptPath (Resolve-RepoPath -Root $resolvedRepoRoot -Path 'scripts/runtime/sync-vscode-global-settings.ps1') -Arguments $settingsArguments)) | Out-Null
+    $steps.Add((New-InstallStep -Name 'Render global VS Code MCP configuration' -ScriptPath (Resolve-RepoPath -Root $resolvedRepoRoot -Path 'scripts/runtime/sync-vscode-global-mcp.ps1') -Arguments $settingsArguments)) | Out-Null
 }
 
 if ($resolvedRuntimeProfile.InstallGlobalVscodeSnippets -and -not $SkipGlobalSnippets) {

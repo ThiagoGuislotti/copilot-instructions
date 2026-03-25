@@ -1,0 +1,29 @@
+{
+  "name": "Backend Java",
+  "description": "Java / Spring Boot / Maven / Gradle. Sem Python, .NET, Vue, Azure.",
+  "extends": "Base",
+  "extensions": [
+    "redhat.java",
+    "vscjava.vscode-java-pack",
+    "vscjava.vscode-java-debug",
+    "vscjava.vscode-java-test",
+    "vscjava.vscode-java-dependency",
+    "vscjava.vscode-maven",
+    "vscjava.vscode-gradle",
+    "vscjava.vscode-java-upgrade",
+    "al-rimi.tomcat",
+    "dotjoshjohnson.xml",
+    "redhat.vscode-yaml",
+    "github.vscode-github-actions",
+    "docker.docker"
+  ],
+  "mcp": {
+    "servers": {
+      "io.github.github/github-mcp-server": { "enabled": true },
+      "microsoftdocs/mcp":                  { "enabled": true },
+      "microsoft/playwright-mcp":           { "enabled": false },
+      "com.microsoft/nuget":                { "enabled": false },
+      "com.microsoft/azure":                { "enabled": false }
+    }
+  }
+}

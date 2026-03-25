@@ -71,7 +71,7 @@ priority: high
   - `pwsh -File scripts/runtime/bootstrap.ps1`
   - mirrors `.github` and `scripts` into `~/.github`
   - syncs `.codex/skills` into `~/.agents/skills` as the single visible Codex/VS Code starter/controller surface
-  - syncs `.github/skills` into `~/.copilot/skills` for native GitHub Copilot skill discovery
+  - removes legacy starter/controller skill duplicates from both `~/.github/skills` and `~/.copilot/skills` so the shared `super-agent` starter stays canonical
   - syncs remaining `.codex` runtime assets into `~/.codex`
 - Non-versioned artifact layout:
   - `.build/` for transient build and generated outputs

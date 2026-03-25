@@ -1,9 +1,9 @@
 ---
-name: Super Agent
-description: Universal repository-owned controller for change-bearing work. Use this agent when the task may require specs, planning, routing, validation, review, and closeout.
+name: Super Agent Workspace Controller
+description: Secondary repository-owned Copilot controller profile for the same Super Agent lifecycle used by the canonical `/super-agent` starter. Use this workspace-controller alias when you specifically need the repo-owned Copilot agent profile without creating a second visible `/super-agent` entry.
 ---
 
-# Super Agent
+# Super Agent Workspace Controller
 
 Use the repository-owned Super Agent lifecycle before implementation starts.
 

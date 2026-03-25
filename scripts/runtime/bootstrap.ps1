@@ -7,7 +7,6 @@
     - <user-home>/.github
     - <user-home>/.github/scripts
     - <user-home>/.agents/skills
-    - <user-home>/.copilot/skills
     - <user-home>/.codex/shared-mcp
     - <user-home>/.codex/shared-scripts
     - <user-home>/.codex/shared-orchestration
@@ -37,7 +36,9 @@
     Target path for picker-visible local skills. Defaults to <user-home>/.agents/skills.
 
 .PARAMETER TargetCopilotSkillsPath
-    Target path for GitHub Copilot native personal skills. Defaults to <user-home>/.copilot/skills.
+    Target path for the GitHub Copilot native skill root. The repository-owned
+    bootstrap uses this path only to remove legacy duplicate
+    starter/controller folders such as `super-agent` and `using-super-agent`.
 
 .PARAMETER RuntimeProfile
     Runtime activation profile. Supported values are defined in
@@ -246,22 +247,6 @@ function Invoke-AgentsSkillSync {
     }
 }
 
-# Synchronizes repository-owned GitHub Copilot native skills into the local `~/.copilot/skills` path.
-function Invoke-CopilotSkillSync {
-    param(
-        [string] $SourceRoot,
-        [string] $DestinationRoot,
-        [switch] $MirrorMode
-    )
-
-    if (-not (Test-Path -LiteralPath $SourceRoot -PathType Container)) {
-        Write-VerboseColor ("Skipping missing Copilot skill source root: {0}" -f $SourceRoot) 'Yellow'
-        return
-    }
-
-    Invoke-DirectorySync -Source $SourceRoot -Destination $DestinationRoot -MirrorMode:$MirrorMode
-}
-
 # Removes repository-managed skill duplicates from the local `.codex/skills` runtime root.
 function Remove-ManagedCodexSkillDuplicates {
     param(
@@ -365,10 +350,39 @@ if ($ApplyMcpConfig -and -not $resolvedRuntimeProfile.EnableCodexRuntime) {
     throw ("Runtime profile '{0}' does not enable the Codex runtime surface required by -ApplyMcpConfig." -f $resolvedRuntimeProfile.Name)
 }
 
+# Removes legacy repository-managed starter/controller skills from runtime
+# roots that should no longer surface duplicate visible Copilot starters.
+function Remove-LegacyStarterSkillDuplicates {
+    param(
+        [string[]] $SkillRoots
+    )
+
+    foreach ($skillRoot in @($SkillRoots)) {
+        if ([string]::IsNullOrWhiteSpace($skillRoot)) {
+            continue
+        }
+
+        if (-not (Test-Path -LiteralPath $skillRoot -PathType Container)) {
+            continue
+        }
+
+        foreach ($skillName in @('super-agent', 'using-super-agent')) {
+            $candidatePath = Join-Path $skillRoot $skillName
+            if (Test-Path -LiteralPath $candidatePath) {
+                Remove-Item -LiteralPath $candidatePath -Recurse -Force -ErrorAction Stop
+                Write-VerboseColor ("Removed legacy starter skill duplicate: {0}" -f $candidatePath) 'Gray'
+            }
+        }
+    }
+}
+
 if ($resolvedRuntimeProfile.EnableGithubRuntime) {
     Invoke-DirectorySync -Source $sourceGithub -Destination $TargetGithubPath -MirrorMode:$Mirror
     Invoke-DirectorySync -Source $sourceScripts -Destination (Join-Path $TargetGithubPath 'scripts') -MirrorMode:$Mirror
-    Invoke-CopilotSkillSync -SourceRoot $runtimeContext.Sources.GithubSkillsRoot -DestinationRoot $TargetCopilotSkillsPath -MirrorMode:$Mirror
+    Remove-LegacyStarterSkillDuplicates -SkillRoots @(
+        (Join-Path $TargetGithubPath 'skills'),
+        $TargetCopilotSkillsPath
+    )
 }
 else {
     Write-VerboseColor ("Skipping GitHub runtime projection for profile '{0}'." -f $resolvedRuntimeProfile.Name) 'Yellow'
@@ -402,7 +416,7 @@ Write-StyledOutput ("  runtime location overrides: {0}" -f ($(if ($effectiveRunt
 if ($resolvedRuntimeProfile.EnableGithubRuntime) {
     Write-StyledOutput ("  .github -> {0}" -f $TargetGithubPath)
     Write-StyledOutput ("  scripts -> {0}" -f (Join-Path $TargetGithubPath 'scripts'))
-    Write-StyledOutput ("  .github/skills -> {0}" -f $TargetCopilotSkillsPath)
+    Write-StyledOutput ("  runtime legacy starter cleanup -> {0}, {1}" -f (Join-Path $TargetGithubPath 'skills'), $TargetCopilotSkillsPath)
 }
 else {
     Write-StyledOutput '  GitHub runtime surface: skipped'

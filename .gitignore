@@ -19,6 +19,7 @@ Thumbs.db
 
 # Visual Studio Code
 # .vscode/
+.vscode/mcp-vscode-global.json
 
 # Visual Studio
 .vs/

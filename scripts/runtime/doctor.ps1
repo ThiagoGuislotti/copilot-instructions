@@ -7,7 +7,7 @@
     - .github -> ~/.github
     - scripts -> ~/.github/scripts
     - .codex/skills -> ~/.agents/skills
-    - .github/skills -> ~/.copilot/skills
+    - legacy starter cleanup under ~/.github/skills and ~/.copilot/skills
     - duplicate repo-managed skill folders that should not remain in ~/.codex/skills
     - .codex/mcp -> ~/.codex/shared-mcp
     - .codex/scripts (root tools) -> ~/.codex/shared-scripts
@@ -38,7 +38,8 @@
     Runtime target path for picker-visible local skills. Defaults to <user-home>/.agents/skills.
 
 .PARAMETER TargetCopilotSkillsPath
-    Runtime target path for GitHub Copilot native personal skills. Defaults to <user-home>/.copilot/skills.
+    Runtime target path for the GitHub Copilot native skill root used for
+    legacy duplicate starter cleanup. Defaults to <user-home>/.copilot/skills.
 
 .PARAMETER RuntimeProfile
     Runtime activation profile. Supported values are defined in
@@ -348,7 +349,7 @@ function Invoke-Doctor {
                 IgnoreExtraPrefixes = @()
             },
             [pscustomobject]@{
-                Name = '.github/skills -> runtime .copilot/skills'
+                Name = 'legacy starter cleanup -> runtime .github/skills and .copilot/skills'
                 Source = $RuntimeContext.Sources.GithubSkillsRoot
                 Target = $TargetCopilotSkillsPath
                 IgnoreExtraPrefixes = @()

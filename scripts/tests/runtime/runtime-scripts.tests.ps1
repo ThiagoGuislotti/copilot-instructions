@@ -158,6 +158,17 @@ try {
     Assert-Contains -Collection $keys -Value 'CreateBackup' -Message 'set-codex-runtime-preferences missing CreateBackup parameter.'
     Assert-Contains -Collection $keys -Value 'PreviewOnly' -Message 'set-codex-runtime-preferences missing PreviewOnly parameter.'
 
+    $scriptPath = Join-Path $runtimeScriptRoot 'sync-vscode-global-mcp.ps1'
+    $command = Get-Command -Name $scriptPath -ErrorAction Stop
+    $keys = @($command.Parameters.Keys)
+    Assert-Contains -Collection $keys -Value 'RepoRoot' -Message 'sync-vscode-global-mcp missing RepoRoot parameter.'
+    Assert-Contains -Collection $keys -Value 'WorkspaceVscodePath' -Message 'sync-vscode-global-mcp missing WorkspaceVscodePath parameter.'
+    Assert-Contains -Collection $keys -Value 'GlobalVscodeUserPath' -Message 'sync-vscode-global-mcp missing GlobalVscodeUserPath parameter.'
+    Assert-Contains -Collection $keys -Value 'WorkspaceHelperPath' -Message 'sync-vscode-global-mcp missing WorkspaceHelperPath parameter.'
+    Assert-Contains -Collection $keys -Value 'ProfilePath' -Message 'sync-vscode-global-mcp missing ProfilePath parameter.'
+    Assert-Contains -Collection $keys -Value 'SyncWorkspaceHelper' -Message 'sync-vscode-global-mcp missing SyncWorkspaceHelper parameter.'
+    Assert-Contains -Collection $keys -Value 'CreateBackup' -Message 'sync-vscode-global-mcp missing CreateBackup parameter.'
+
     $scriptPath = Join-Path $runtimeScriptRoot 'run-agent-pipeline.ps1'
     $command = Get-Command -Name $scriptPath -ErrorAction Stop
     $keys = @($command.Parameters.Keys)
@@ -254,17 +265,103 @@ try {
     }
 
     $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ([System.Guid]::NewGuid().ToString('N'))
+    $workspaceVscode = Join-Path $tempRoot '.vscode'
+    $globalUserPath = Join-Path $tempRoot 'Code\User'
+    $globalMcpPath = Join-Path $globalUserPath 'mcp.json'
+    $workspaceHelperPath = Join-Path $workspaceVscode 'mcp-vscode-global.json'
+    $profilePath = Join-Path $workspaceVscode 'profiles\profile-frontend.json'
+    $scriptPath = Join-Path $runtimeScriptRoot 'sync-vscode-global-mcp.ps1'
+    try {
+        New-Item -ItemType Directory -Path $workspaceVscode -Force | Out-Null
+        New-Item -ItemType Directory -Path (Split-Path -Path $profilePath -Parent) -Force | Out-Null
+        New-Item -ItemType Directory -Path $globalUserPath -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $workspaceVscode 'mcp.tamplate.jsonc') -Value @(
+            '{',
+            '  "inputs": [',
+            '    {',
+            '      "id": "Authorization",',
+            '      "type": "promptString",',
+            '      "description": "Token",',
+            '      "password": true',
+            '    }',
+            '  ],',
+            '  "servers": {',
+            '    "example/server": {',
+            '      "type": "stdio",',
+            '      "command": "pwsh",',
+            '      "args": [',
+            '        "%USERPROFILE%/tools/run.ps1"',
+            '      ]',
+            '    },',
+            '    "disabled/by-default": {',
+            '      "disabled": true,',
+            '      "type": "http",',
+            '      "url": "https://example.invalid/mcp"',
+            '    },',
+            '    "enabled/by-default": {',
+            '      "type": "http",',
+            '      "url": "https://example.invalid/enabled"',
+            '    }',
+            '  }',
+            '}'
+        )
+        Set-Content -LiteralPath $profilePath -Value @(
+            '{',
+            '  "name": "Frontend",',
+            '  "description": "Example profile",',
+            '  "mcp": {',
+            '    "servers": {',
+            '      "disabled/by-default": { "enabled": true },',
+            '      "enabled/by-default": { "enabled": false }',
+            '    }',
+            '  }',
+            '}'
+        )
+        Set-Content -LiteralPath $globalMcpPath -Value '{}' 
+
+        & $scriptPath -RepoRoot $resolvedRepoRoot -WorkspaceVscodePath $workspaceVscode -GlobalVscodeUserPath $globalUserPath -WorkspaceHelperPath $workspaceHelperPath -ProfilePath $profilePath -CreateBackup | Out-Null
+        $exitCode = if ($null -eq $LASTEXITCODE) { 0 } else { [int] $LASTEXITCODE }
+        Assert-True ($exitCode -eq 0) 'sync-vscode-global-mcp smoke test failed.'
+        Assert-True (Test-Path -LiteralPath $globalMcpPath -PathType Leaf) 'sync-vscode-global-mcp did not create the global mcp.json file.'
+        Assert-True (Test-Path -LiteralPath $workspaceHelperPath -PathType Leaf) 'sync-vscode-global-mcp did not create the workspace helper file.'
+        Assert-True (@(Get-ChildItem -LiteralPath $globalUserPath -Filter 'mcp.json.*.bak' -File).Count -eq 1) 'sync-vscode-global-mcp did not create a global mcp.json backup.'
+        $renderedGlobalMcp = Get-Content -LiteralPath $globalMcpPath -Raw
+        $renderedHelper = Get-Content -LiteralPath $workspaceHelperPath -Raw
+        $renderedDocument = $renderedGlobalMcp | ConvertFrom-Json -Depth 100
+        Assert-True ($renderedGlobalMcp -notmatch '%USERPROFILE%') 'sync-vscode-global-mcp did not replace %USERPROFILE% in the global MCP file.'
+        Assert-True ($renderedGlobalMcp -match 'tools[/\\\\]run\.ps1') 'sync-vscode-global-mcp did not preserve the rendered MCP command path.'
+        Assert-True ($null -ne $renderedDocument.servers.'disabled/by-default') 'sync-vscode-global-mcp lost the profile-enabled server entry.'
+        Assert-True (-not ($renderedDocument.servers.'disabled/by-default'.PSObject.Properties.Name -contains 'disabled')) 'sync-vscode-global-mcp did not enable a server selected by the profile.'
+        Assert-True (($renderedDocument.servers.'enabled/by-default'.disabled -eq $true)) 'sync-vscode-global-mcp did not disable a server rejected by the profile.'
+        Assert-True ($renderedGlobalMcp -eq $renderedHelper) 'sync-vscode-global-mcp did not keep the workspace helper aligned with the global MCP output.'
+    }
+    finally {
+        if (Test-Path -LiteralPath $tempRoot) {
+            Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ([System.Guid]::NewGuid().ToString('N'))
     $targetGithub = Join-Path $tempRoot '.github'
     $targetCodex = Join-Path $tempRoot '.codex'
     $targetAgentsSkills = Join-Path $tempRoot '.agents\skills'
     $targetCopilotSkills = Join-Path $tempRoot '.copilot\skills'
+    $targetGithubSkills = Join-Path $targetGithub 'skills'
     $targetCodexSkills = Join-Path $targetCodex 'skills'
     $scriptPath = Join-Path $runtimeScriptRoot 'bootstrap.ps1'
     try {
         New-Item -ItemType Directory -Path (Join-Path $targetCodexSkills 'super-agent') -Force | Out-Null
         New-Item -ItemType Directory -Path (Join-Path $targetCodexSkills '.system') -Force | Out-Null
+        New-Item -ItemType Directory -Path (Join-Path $targetGithubSkills 'super-agent') -Force | Out-Null
+        New-Item -ItemType Directory -Path (Join-Path $targetGithubSkills 'using-super-agent') -Force | Out-Null
+        New-Item -ItemType Directory -Path (Join-Path $targetCopilotSkills 'super-agent') -Force | Out-Null
+        New-Item -ItemType Directory -Path (Join-Path $targetCopilotSkills 'using-super-agent') -Force | Out-Null
         Set-Content -LiteralPath (Join-Path $targetCodexSkills 'super-agent\SKILL.md') -Value 'duplicate'
         Set-Content -LiteralPath (Join-Path $targetCodexSkills '.system\SKILL.md') -Value 'system'
+        Set-Content -LiteralPath (Join-Path $targetGithubSkills 'super-agent\SKILL.md') -Value 'legacy'
+        Set-Content -LiteralPath (Join-Path $targetGithubSkills 'using-super-agent\SKILL.md') -Value 'legacy'
+        Set-Content -LiteralPath (Join-Path $targetCopilotSkills 'super-agent\SKILL.md') -Value 'legacy'
+        Set-Content -LiteralPath (Join-Path $targetCopilotSkills 'using-super-agent\SKILL.md') -Value 'legacy'
 
         & $scriptPath -RepoRoot $resolvedRepoRoot -TargetGithubPath $targetGithub -TargetCodexPath $targetCodex -TargetAgentsSkillsPath $targetAgentsSkills -TargetCopilotSkillsPath $targetCopilotSkills -Mirror | Out-Null
         $exitCode = if ($null -eq $LASTEXITCODE) { 0 } else { [int] $LASTEXITCODE }
@@ -272,7 +369,10 @@ try {
         Assert-True (Test-Path -LiteralPath $targetGithub -PathType Container) 'bootstrap did not create target github folder.'
         Assert-True (Test-Path -LiteralPath (Join-Path $targetGithub 'agents\super-agent.agent.md') -PathType Leaf) 'bootstrap did not project the repository-owned Copilot agent profile.'
         Assert-True (Test-Path -LiteralPath (Join-Path $targetAgentsSkills 'super-agent\SKILL.md') -PathType Leaf) 'bootstrap did not project picker-visible skills.'
-        Assert-True (Test-Path -LiteralPath (Join-Path $targetCopilotSkills 'super-agent\SKILL.md') -PathType Leaf) 'bootstrap did not project native Copilot skills.'
+        Assert-True (-not (Test-Path -LiteralPath (Join-Path $targetGithubSkills 'super-agent'))) 'bootstrap did not remove the mirrored GitHub runtime super-agent starter duplicate.'
+        Assert-True (-not (Test-Path -LiteralPath (Join-Path $targetGithubSkills 'using-super-agent'))) 'bootstrap did not remove the mirrored GitHub runtime using-super-agent starter duplicate.'
+        Assert-True (-not (Test-Path -LiteralPath (Join-Path $targetCopilotSkills 'super-agent'))) 'bootstrap did not remove the legacy native Copilot super-agent starter.'
+        Assert-True (-not (Test-Path -LiteralPath (Join-Path $targetCopilotSkills 'using-super-agent'))) 'bootstrap did not remove the legacy native Copilot using-super-agent starter.'
         Assert-True (-not (Test-Path -LiteralPath (Join-Path $targetCodexSkills 'super-agent'))) 'bootstrap did not remove duplicate repo-managed super-agent from .codex/skills.'
         Assert-True (Test-Path -LiteralPath (Join-Path $targetCodexSkills '.system\SKILL.md') -PathType Leaf) 'bootstrap should preserve unmanaged/system skills in .codex/skills.'
         Assert-True (Test-Path -LiteralPath (Join-Path $targetCodex 'shared-scripts') -PathType Container) 'bootstrap did not sync shared-scripts folder.'
@@ -291,11 +391,16 @@ try {
     $targetCopilotSkills = Join-Path $tempRoot '.copilot\skills'
     $scriptPath = Join-Path $runtimeScriptRoot 'bootstrap.ps1'
     try {
+        New-Item -ItemType Directory -Path (Join-Path $targetCopilotSkills 'super-agent') -Force | Out-Null
+        New-Item -ItemType Directory -Path (Join-Path $targetGithub 'skills\super-agent') -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $targetCopilotSkills 'super-agent\SKILL.md') -Value 'legacy'
+        Set-Content -LiteralPath (Join-Path $targetGithub 'skills\super-agent\SKILL.md') -Value 'legacy'
         & $scriptPath -RepoRoot $resolvedRepoRoot -TargetGithubPath $targetGithub -TargetCodexPath $targetCodex -TargetAgentsSkillsPath $targetAgentsSkills -TargetCopilotSkillsPath $targetCopilotSkills -RuntimeProfile github | Out-Null
         $exitCode = if ($null -eq $LASTEXITCODE) { 0 } else { [int] $LASTEXITCODE }
         Assert-True ($exitCode -eq 0) 'bootstrap github-profile smoke test failed.'
         Assert-True (Test-Path -LiteralPath (Join-Path $targetGithub 'agents\super-agent.agent.md') -PathType Leaf) 'bootstrap github profile must project repository-owned GitHub runtime files.'
-        Assert-True (Test-Path -LiteralPath (Join-Path $targetCopilotSkills 'super-agent\SKILL.md') -PathType Leaf) 'bootstrap github profile must project native Copilot skills.'
+        Assert-True (-not (Test-Path -LiteralPath (Join-Path $targetGithub 'skills\super-agent'))) 'bootstrap github profile must remove mirrored GitHub runtime starter duplicates.'
+        Assert-True (-not (Test-Path -LiteralPath (Join-Path $targetCopilotSkills 'super-agent'))) 'bootstrap github profile must remove legacy native Copilot starters instead of projecting a second managed starter.'
         Assert-True (-not (Test-Path -LiteralPath $targetAgentsSkills)) 'bootstrap github profile must not project Codex picker-visible skills.'
         Assert-True (-not (Test-Path -LiteralPath (Join-Path $targetCodex 'shared-scripts'))) 'bootstrap github profile must not project Codex shared scripts.'
     }

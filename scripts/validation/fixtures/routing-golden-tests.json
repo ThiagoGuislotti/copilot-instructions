@@ -252,6 +252,16 @@
       ]
     },
     {
+      "id": "context-economy-route",
+      "request": "Update plan, show progress, and resume from summary after compress context.",
+      "expected_route_ids": [
+        "context-economy"
+      ],
+      "expected_selected_paths": [
+        "instructions/context-economy-checkpoint.instructions.md"
+      ]
+    },
+    {
       "id": "no-match-route",
       "request": "Tell me a random joke.",
       "expected_route_ids": [],

@@ -1,6 +1,6 @@
 ---
 name: super-agent
-description: Universal controller for change-bearing work. Activates the 9-step Super Agent lifecycle: intake, spec, plan, route, execute, test, review, closeout, planning update. Use as the first controller for any task that changes files, runtime, planning state, docs, or governance.
+description: Use as the single visible starter and controller for workspace work that may change files, runtime assets, planning state, docs, settings, or governance. Normalize the request into the Super Agent lifecycle: intake, spec registration for non-trivial work, planning registration, specialist routing, execution, testing, review, closeout, and planning-state updates before implementation begins.
 ---
 
 # Super Agent

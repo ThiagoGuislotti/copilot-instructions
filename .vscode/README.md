@@ -25,7 +25,10 @@ For global VS Code settings, the repository uses `settings.tamplate.jsonc` as th
 - ✅ Base workspace pseudo-inheritance via `base.code-workspace`
 - ✅ Template-first Copilot/Codex snippets under `snippets/`
 - ✅ Rendered global VS Code settings sync via `scripts/runtime/sync-vscode-global-settings.ps1`
+- ✅ Rendered global VS Code MCP sync via `scripts/runtime/sync-vscode-global-mcp.ps1`
 - ✅ Validation integrated in `scripts/validation/validate-instructions.ps1`
+- ✅ Versioned VS Code profile baselines under `.vscode/profiles/` with explicit selection support
+- ✅ Local rendered MCP helper mirror under `.vscode/mcp-vscode-global.json`
 
 ---
 
@@ -52,11 +55,11 @@ No installation is required beyond PowerShell 7+ and VS Code.
 
 ## Quick Start
 
-Regenerate MCP template from the shared manifest:
+Refresh the active workspace MCP file from the tracked template and then sync the global MCP profile:
 
 ```powershell
-pwsh -File .\.codex\scripts\render-vscode-mcp.ps1 -OutputPath .\.vscode\mcp.tamplate.jsonc
 pwsh -File .\scripts\runtime\apply-vscode-templates.ps1
+pwsh -File .\scripts\runtime\sync-vscode-global-mcp.ps1 -CreateBackup
 ```
 
 ---
@@ -93,7 +96,13 @@ pwsh -File .\scripts\runtime\sync-vscode-global-snippets.ps1
 pwsh -File .\scripts\runtime\sync-vscode-global-settings.ps1 -CreateBackup
 ```
 
-### Example 6: Generate a workspace from the shared base and settings baseline
+### Example 6: Render the versioned MCP template into the global VS Code profile and refresh the local helper mirror
+
+```powershell
+pwsh -File .\scripts\runtime\sync-vscode-global-mcp.ps1 -CreateBackup
+```
+
+### Example 7: Generate a workspace from the shared base and settings baseline
 
 ```powershell
 pwsh -File .\scripts\runtime\sync-workspace-settings.ps1 -WorkspacePath C:\Users\me\Projects\api.code-workspace -FolderPath src\Api
@@ -104,14 +113,63 @@ pwsh -File .\scripts\runtime\sync-workspace-settings.ps1 -WorkspacePath C:\Users
 ## API Reference
 
 - `settings.tamplate.jsonc`: base VS Code/Copilot instruction-routing settings.
-- `mcp.tamplate.jsonc`: base VS Code MCP servers map derived from `.codex/mcp/servers.manifest.json`.
+- `mcp.tamplate.jsonc`: versioned VS Code MCP template used to render the global VS Code `mcp.json` profile and the local helper mirror. The `.codex/mcp/servers.manifest.json` file still governs the Codex-shared subset, but the VS Code template is currently the richer source-of-truth for VS Code-only server metadata and per-server auth inputs.
 - `base.code-workspace`: shared pseudo-inheritance source for `.code-workspace` files.
 - `snippets/codex-cli.tamplate.code-snippets`: versioned Codex CLI snippet template synchronized into the global profile.
 - `snippets/copilot.tamplate.code-snippets`: versioned Copilot chat/workflow snippet template synchronized into the global profile.
 - `scripts/runtime/apply-vscode-templates.ps1`: applies templates into active `settings.json` and `mcp.json`.
 - `scripts/runtime/sync-vscode-global-settings.ps1`: renders `settings.tamplate.jsonc` into the global VS Code user profile.
+- `scripts/runtime/sync-vscode-global-mcp.ps1`: renders `mcp.tamplate.jsonc` into the global VS Code user profile and refreshes `.vscode/mcp-vscode-global.json`.
 - `scripts/runtime/sync-vscode-global-snippets.ps1`: synchronizes canonical snippets into the global VS Code user profile.
 - `scripts/runtime/sync-workspace-settings.ps1`: merges `base.code-workspace` with target workspaces and regenerates the approved workspace `settings` block.
+- `.vscode/profiles/`: curated versioned VS Code profile definitions plus the setup helper that can list or create selected profiles.
+- `.vscode/profiles/README.md`: operator guide for profile creation and profile-driven MCP enablement.
+
+### VS Code profile baselines
+
+The repository treats `.vscode/profiles/` as a versioned baseline surface. Use it to keep a curated set of reusable VS Code profiles in source control and choose which ones to create locally.
+
+Profiles can also drive MCP enable/disable selection for the global VS Code
+runtime through the `mcp.servers.<name>.enabled` map consumed by
+`.vscode/profiles/setup-profiles.ps1`.
+
+Examples:
+
+```powershell
+pwsh -File .\.vscode\profiles\setup-profiles.ps1 -ListProfiles
+pwsh -File .\.vscode\profiles\setup-profiles.ps1 -DryRun -ProfileName Base,Frontend
+pwsh -File .\.vscode\profiles\setup-profiles.ps1 -ProfileName "Backend .NET"
+pwsh -File .\.vscode\profiles\setup-profiles.ps1 -ProfileName Frontend -CreateMcpBackup
+```
+
+### Local helper assets
+
+The repository treats this path as a generated local helper, not as an input source-of-truth:
+
+- `.vscode/mcp-vscode-global.json`
+
+This surface is ignored by Git and is regenerated from `.vscode/mcp.tamplate.jsonc` by:
+
+- `scripts/runtime/sync-vscode-global-mcp.ps1`
+- `scripts/runtime/install.ps1`
+
+Use the tracked files below as the only authoritative VS Code runtime inputs:
+
+- `.vscode/settings.tamplate.jsonc`
+- `.vscode/mcp.tamplate.jsonc`
+- `.vscode/base.code-workspace`
+- `.vscode/snippets/*.tamplate.code-snippets`
+
+### MCP authentication persistence
+
+When the global `mcp.json` uses `${input:...}` placeholders, VS Code prompts once per input id and then stores the answer securely for reuse. Keep auth inputs stable and scoped per server so repeated chat conversations do not force unnecessary reauthentication.
+
+Examples in this repository:
+
+- GitHub MCP: `${input:Authorization}`
+- Postman MCP: `${input:PostmanAuthorization}`
+- SonarQube MCP: `${input:SONARQUBE_TOKEN}`
+
 
 ---
 
@@ -127,11 +185,14 @@ pwsh -File .\scripts\validation\validate-instructions.ps1
 
 - Keep template files valid JSON/JSONC.
 - Do not commit active `settings.json` or `mcp.json`.
-- When MCP servers change, regenerate `mcp.tamplate.jsonc` from manifest.
+- When VS Code MCP servers change, update `.vscode/mcp.tamplate.jsonc` first, then regenerate the local helper with `scripts/runtime/sync-vscode-global-mcp.ps1`.
 - Apply templates locally when needed with `scripts/runtime/apply-vscode-templates.ps1`.
 - Sync the global VS Code settings from `settings.tamplate.jsonc` with `scripts/runtime/sync-vscode-global-settings.ps1`.
+- Sync the global VS Code MCP profile from `mcp.tamplate.jsonc` with `scripts/runtime/sync-vscode-global-mcp.ps1`.
 - Treat `base.code-workspace` as the shared workspace inheritance baseline.
 - Treat `.vscode/snippets/*.tamplate.code-snippets` as the versioned snippet source and sync them into the global profile when they change.
+- Keep `.vscode/profiles/` versioned and internally consistent with the checked-in `profile-*.json` set.
+- Keep `.vscode/mcp-vscode-global.json` ignored and generated; do not hand-edit it.
 
 ---
 
@@ -149,6 +210,7 @@ pwsh -File .\scripts\validation\validate-instructions.ps1
 - `.vscode/base.code-workspace`
 - `scripts/runtime/apply-vscode-templates.ps1`
 - `scripts/runtime/sync-vscode-global-settings.ps1`
+- `scripts/runtime/sync-vscode-global-mcp.ps1`
 - `scripts/runtime/sync-vscode-global-snippets.ps1`
 - `scripts/runtime/sync-workspace-settings.ps1`
 - `scripts/validation/validate-instructions.ps1`

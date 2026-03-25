@@ -22,8 +22,8 @@ This folder centralizes operational scripts used by this repository. It includes
 - ✅ Safe parallel batching for dependency-independent work items with write-set conflict blocking
 - ✅ Super Agent worktree isolation helper and thin lifecycle entry commands
 - ✅ Single picker-visible `super-agent` controller projected into `%USERPROFILE%\\.agents\\skills`
-- ✅ Native Copilot skill projection from `.github/skills` into `%USERPROFILE%\\.copilot\\skills`
-- ✅ Repository-owned Copilot agent profile under `.github/agents/super-agent.agent.md`
+- ✅ Legacy starter cleanup in `%USERPROFILE%\\.github\\skills` and `%USERPROFILE%\\.copilot\\skills` so the shared `super-agent` controller remains canonical
+- ✅ Repository-owned Copilot agent profile under `.github/agents/super-agent.agent.md` with a non-canonical alias so `/super-agent` stays unique
 - ✅ Configurable VS Code startup-controller selector with repository default plus local and environment overrides
 - ✅ Repository-owned PreToolUse EOF normalization for supported VS Code AI edit tools
 - ✅ Repository-owned TDD and verification workflow contracts for execution stages
@@ -117,6 +117,7 @@ The installer now uses a versioned runtime profile catalog at `.github/governanc
 
 - `none` is the default profile for `install.ps1`
 - `none` means the installer does not mutate runtime folders, VS Code globals, or Git configuration
+- `all` now renders both the global VS Code `settings.json` and the global VS Code `mcp.json` from the tracked `.vscode/*.tamplate.jsonc` files
 - Codex-enabled install profiles also apply safe local Codex runtime preferences by default: `model_reasoning_effort = "high"` and `[features].multi_agent = true`
 - Those defaults preserve multi-agent availability, but the repository-owned Super Agent workflow remains responsible for calling subagents strategically instead of using fan-out for trivial work.
 - `bootstrap.ps1`, `doctor.ps1`, `healthcheck.ps1`, and `self-heal.ps1` still default to `all` when called directly
@@ -126,7 +127,7 @@ Supported install profiles:
 | Profile | Behavior |
 | --- | --- |
 | `none` | Default. No runtime projection or editor/Git integration changes. |
-| `github` | Only sync `githubRuntimeRoot`, its mirrored `scripts/`, and `copilotSkillsRoot`. |
+| `github` | Only sync `githubRuntimeRoot`, its mirrored `scripts/`, and cleanup of legacy duplicate starters under `githubRuntimeRoot/skills` plus `copilotSkillsRoot`. |
 | `codex` | Only sync `agentsSkillsRoot` plus `codexRuntimeRoot/shared-*`. |
 | `all` | Sync both runtime surfaces and also apply global VS Code settings/snippets, local Git hooks, global Git aliases, and installer healthcheck. |
 
@@ -183,6 +184,11 @@ kept on a safer default profile for long-running sessions:
 - `chat.emptyState.history.enabled = false`
 - `chat.restoreLastPanelSession = false`
 
+When the managed global VS Code MCP template is applied:
+- `%APPDATA%\\Code\\User\\mcp.json` is rendered from `.vscode/mcp.tamplate.jsonc`
+- `.vscode/mcp-vscode-global.json` is refreshed as an ignored local helper mirror
+- stable `${input:...}` ids let VS Code keep MCP credentials in its secure store after the first prompt instead of reauthenticating on every conversation
+
 The VS Code hook bootstrap selects its startup controller from `.github/hooks/super-agent.selector.json`. Keep the repository default in version control and override locally only through `~/.github/hooks/super-agent.selector.local.json` or the environment variables `COPILOT_SUPER_AGENT_SKILL` and `COPILOT_SUPER_AGENT_NAME`.
 
 Operational scripts now follow a shared execution-session contract:
@@ -236,6 +242,7 @@ pwsh -File .\scripts\runtime\doctor.ps1 -Verbose
 pwsh -File .\scripts\runtime\healthcheck.ps1 -Verbose
 pwsh -File .\scripts\runtime\self-heal.ps1 -Verbose
 pwsh -File .\scripts\runtime\sync-vscode-global-settings.ps1 -Verbose
+pwsh -File .\scripts\runtime\sync-vscode-global-mcp.ps1 -Verbose
 pwsh -File .\scripts\runtime\sync-vscode-global-snippets.ps1 -Verbose
 pwsh -File .\scripts\runtime\sync-workspace-settings.ps1 -Verbose
 ```
@@ -411,6 +418,7 @@ scripts/
 │   ├── install.ps1
 │   ├── apply-vscode-templates.ps1
 │   ├── new-super-agent-worktree.ps1
+│   ├── sync-vscode-global-mcp.ps1
 │   ├── sync-vscode-global-snippets.ps1
 │   ├── sync-workspace-settings.ps1
 │   ├── invoke-super-agent-brainstorm.ps1
@@ -464,7 +472,8 @@ scripts/
 - `-RuntimeProfile github` syncs only:
   - `.github/` -> `githubRuntimeRoot`
   - `scripts/` -> `githubRuntimeRoot/scripts`
-  - `.github/skills/` -> `copilotSkillsRoot`
+  - legacy duplicate starter folders are removed from `githubRuntimeRoot/skills` and `copilotSkillsRoot`
+  - the repo-owned Copilot agent profile still syncs into `githubRuntimeRoot/agents`, but with a secondary alias that does not compete with `/super-agent`
 - `-RuntimeProfile codex` syncs only:
   - `.codex/skills/` -> `agentsSkillsRoot`
   - stale repo-managed duplicates are removed from `codexRuntimeRoot/skills` while unmanaged/system skill folders are preserved
@@ -532,6 +541,7 @@ Runtime-sensitive files such as `codexRuntimeRoot/auth.json`, `codexRuntimeRoot/
 | `runtime/set-codex-runtime-preferences.ps1` | Applies safe local Codex runtime preferences into `config.toml`, currently managing `model_reasoning_effort` and `[features].multi_agent` from the hygiene catalog or explicit overrides. The default contract keeps multi-agent available and leaves strategic subagent use to the repository-owned controller prompts/instructions. | `pwsh -File scripts/runtime/set-codex-runtime-preferences.ps1 -CreateBackup` |
 | `runtime/apply-vscode-templates.ps1` | Applies `.vscode/*.tamplate.jsonc` into active `.vscode/settings.json` and `.vscode/mcp.json` files. | `pwsh -File scripts/runtime/apply-vscode-templates.ps1 -Force` |
 | `runtime/sync-vscode-global-settings.ps1` | Renders `.vscode/settings.tamplate.jsonc` into the global VS Code user profile `settings.json`, replacing runtime placeholders such as `%USERPROFILE%` and optionally creating a backup first. | `pwsh -File scripts/runtime/sync-vscode-global-settings.ps1 -CreateBackup` |
+| `runtime/sync-vscode-global-mcp.ps1` | Renders `.vscode/mcp.tamplate.jsonc` into the global VS Code user profile `mcp.json`, refreshes the ignored local helper `.vscode/mcp-vscode-global.json`, and keeps stable per-server `${input:...}` ids so VS Code can reuse securely stored MCP credentials after the first prompt. | `pwsh -File scripts/runtime/sync-vscode-global-mcp.ps1 -CreateBackup` |
 | `runtime/sync-vscode-global-snippets.ps1` | Synchronizes versioned `.vscode/snippets/*.tamplate.code-snippets` files into the global VS Code user profile under `Code/User/snippets`, removing `.tamplate` from target names. | `pwsh -File scripts/runtime/sync-vscode-global-snippets.ps1` |
 | `runtime/sync-workspace-settings.ps1` | Generates or refreshes `.code-workspace` files from `.vscode/base.code-workspace` plus the approved local override block derived from `.github/governance/workspace-efficiency.baseline.json`. Preserves folders, removes settings already covered by the global template, and merges workspace-specific extension recommendations with the shared base. | `pwsh -File scripts/runtime/sync-workspace-settings.ps1 -WorkspacePath .\workspaces\api.code-workspace -FolderPath src\Api` |
 | `runtime/update-copilot-chat-titles.ps1` | Normalizes persisted GitHub Copilot chat titles to `<project-prefix> - <task summary>` using `%APPDATA%\\Code\\User\\workspaceStorage\\<workspace-id>\\chatSessions\\*.json*`, with optional backups before writing. | `pwsh -File scripts/runtime/update-copilot-chat-titles.ps1 -Apply -CreateBackup` |
@@ -612,6 +622,9 @@ pwsh -File .\scripts\runtime\apply-vscode-templates.ps1 -Force
 
 # render the versioned settings template into the global VS Code user profile
 pwsh -File .\scripts\runtime\sync-vscode-global-settings.ps1 -CreateBackup
+
+# render the versioned MCP template into the global VS Code user profile
+pwsh -File .\scripts\runtime\sync-vscode-global-mcp.ps1 -CreateBackup
 
 # synchronize canonical VS Code snippets into the global user profile
 pwsh -File .\scripts\runtime\sync-vscode-global-snippets.ps1

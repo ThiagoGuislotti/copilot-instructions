@@ -99,13 +99,19 @@ try {
     Assert-Equal -Actual $effectiveLocations.codexGitHooksRoot -Expected ([System.IO.Path]::GetFullPath($codexGitHooksRoot)) -Message 'Runtime location settings must override the default global Git hooks root.'
     Assert-Equal -Actual $effectiveLocations.settingsPath -Expected ([System.IO.Path]::GetFullPath($settingsPath)) -Message 'Runtime location settings summary must expose the active override file.'
 
+    New-Item -ItemType Directory -Path (Join-Path $githubRuntimeRoot 'skills\super-agent') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $githubRuntimeRoot 'skills\super-agent\SKILL.md') -Value 'legacy'
+    New-Item -ItemType Directory -Path (Join-Path $copilotSkillsRoot 'super-agent') -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $copilotSkillsRoot 'super-agent\SKILL.md') -Value 'legacy'
+
     & $bootstrapScriptPath -RepoRoot $resolvedRepoRoot -RuntimeProfile all -Mirror | Out-Null
     $exitCode = if ($null -eq $LASTEXITCODE) { 0 } else { [int] $LASTEXITCODE }
     Assert-True ($exitCode -eq 0) 'bootstrap must accept runtime location override settings without explicit target arguments.'
     Assert-True (Test-Path -LiteralPath (Join-Path $githubRuntimeRoot 'hooks/super-agent.bootstrap.json') -PathType Leaf) 'bootstrap must project the GitHub runtime into the override path.'
     Assert-True (Test-Path -LiteralPath (Join-Path $codexRuntimeRoot 'shared-scripts/maintenance/trim-trailing-blank-lines.ps1') -PathType Leaf) 'bootstrap must project Codex shared scripts into the override path.'
     Assert-True (Test-Path -LiteralPath (Join-Path $agentsSkillsRoot 'super-agent/SKILL.md') -PathType Leaf) 'bootstrap must project picker-visible skills into the override agents path.'
-    Assert-True (Test-Path -LiteralPath (Join-Path $copilotSkillsRoot 'super-agent/SKILL.md') -PathType Leaf) 'bootstrap must project Copilot skills into the override path.'
+    Assert-True (-not (Test-Path -LiteralPath (Join-Path $githubRuntimeRoot 'skills\super-agent'))) 'bootstrap must keep the override GitHub runtime skill root free of legacy managed super-agent starters.'
+    Assert-True (-not (Test-Path -LiteralPath (Join-Path $copilotSkillsRoot 'super-agent'))) 'bootstrap must keep the override Copilot skill root free of the legacy managed super-agent starter.'
 
     Write-Host '[OK] runtime location path tests passed.'
     exit 0

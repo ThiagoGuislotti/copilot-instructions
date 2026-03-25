@@ -54,7 +54,7 @@ All three runtimes share the same **Super Agent lifecycle**, **44 domain instruc
 - ✅ **Authoritative Source Policy:** Repository context first, then official docs by stack
 
 ### AI Runtime Support
-- ✅ **Native Copilot Super Agent Surface:** `.github/skills/super-agent` and `.github/agents/super-agent.agent.md` for GitHub Copilot-native discovery
+- ✅ **Single Visible Super Agent Starter:** the shared `super-agent` starter/controller stays canonical through `%USERPROFILE%\\.agents\\skills`; GitHub/Copilot runtime sync removes legacy duplicate starters from `%USERPROFILE%\\.github\\skills` and `%USERPROFILE%\\.copilot\\skills`, while the repo-owned Copilot agent profile keeps a secondary non-`/super-agent` alias under `%USERPROFILE%\\.github\\agents`
 - ✅ **Codex Multi-Agent Orchestration:** 22 skills under `.codex/skills/`, pipeline manifests, and MCP configuration for OpenAI Codex
 - ✅ **Claude Code Integration Layer:** `CLAUDE.md` workspace adapter, `.claude/skills/` skill adapters, and `settings.json` lifecycle hooks for Claude Code-native discovery and Super Agent lifecycle activation
 - ✅ **VS Code Session Bootstrap Hooks:** repository-owned `SessionStart`, `PreToolUse`, and `SubagentStart` hooks for Copilot and Codex sessions inside VS Code
@@ -81,6 +81,7 @@ All three runtimes share the same **Super Agent lifecycle**, **44 domain instruc
 - ✅ **Custom Chat Modes:** Architecture review, instruction generation
 - ✅ **Prompt Templates:** POML-based templates with CoT, SoT, ToT patterns
 - ✅ **Tool Integration:** Git, CLI tools, CI/CD pipelines, static analysis
+- ✅ **Global VS Code MCP Sync:** repository-managed `.vscode/mcp.tamplate.jsonc` now renders both the global VS Code `mcp.json` profile and the local ignored helper mirror `.vscode/mcp-vscode-global.json`
 - ✅ **TDD and Verification Contracts:** repository-owned workflow rules for test-first implementation and verification-before-completion
 - ✅ **Closeout Documentation Automation:** release closeout can rewrite repository README files and prepend CHANGELOG entries when the workstream is ready for commit
 - ✅ **Canonical Artifact Layout:** non-versioned generated outputs standardized under `.build/` and `.deployment/`
@@ -216,7 +217,7 @@ Use one of these explicit profiles:
 | Profile | What it enables |
 | --- | --- |
 | `none` | Default. No runtime projection, no VS Code global changes, no Git integration changes. |
-| `github` | Only the GitHub/Copilot runtime surface: `githubRuntimeRoot`, its mirrored `scripts/`, and `copilotSkillsRoot`. |
+| `github` | Only the GitHub/Copilot runtime surface: `githubRuntimeRoot`, its mirrored `scripts/`, and cleanup of legacy duplicate starters under `githubRuntimeRoot/skills` plus `copilotSkillsRoot`. |
 | `codex` | Only the Codex runtime surface: `agentsSkillsRoot` plus `codexRuntimeRoot/shared-*`. |
 | `claude` | Only the Claude Code runtime surface: `.claude/skills/` synced to `claudeRuntimeRoot/skills/` (`~/.claude/skills`). |
 | `all` | Everything above plus global VS Code settings/snippets, local Git hooks, global Git aliases, and installer healthcheck. |
@@ -284,7 +285,16 @@ pwsh -File (Join-Path $RepoRoot 'scripts/runtime/install.ps1') -RuntimeProfile a
 # - chat.agent.maxRequests = 100
 # - chat.emptyState.history.enabled = false
 # - chat.restoreLastPanelSession = false
+# global VS Code MCP config also syncs `.vscode/mcp.tamplate.jsonc` into:
+# - %APPDATA%\Code\User\mcp.json
+# - .vscode/mcp-vscode-global.json
 ```
+
+The VS Code MCP template also uses stable `${input:...}` identifiers per server so VS Code can store prompted credentials securely and reuse them across conversations instead of asking again every time:
+
+- GitHub MCP: `${input:Authorization}`
+- Postman MCP: `${input:PostmanAuthorization}`
+- SonarQube MCP: `${input:SONARQUBE_TOKEN}`
 
 Operational PowerShell entrypoints now share one execution-session pattern:
 
@@ -465,7 +475,7 @@ pwsh -File ./scripts/runtime/healthcheck.ps1 -StrictExtras
 
 `bootstrap.ps1` remains the direct runtime sync entrypoint and defaults to runtime profile `all` when called on its own. Use `-RuntimeProfile github` or `-RuntimeProfile codex` when you want the projection to stay scoped to one runtime surface.
 
-With profile `all`, bootstrap syncs versioned `.github/` and `.codex/` assets into the effective runtime locations from `runtime-location-catalog.json` plus any local override file, projects the single visible repository-owned starter/controller into `agentsSkillsRoot`, projects native Copilot skills into `copilotSkillsRoot`, mirrors shared helper scripts from `scripts/common`, `scripts/security`, and `scripts/maintenance` into `codexRuntimeRoot/shared-scripts`, removes stale duplicate repo-managed skill folders from `codexRuntimeRoot/skills`, and applies MCP servers into `codexRuntimeRoot/config.toml` when `-ApplyMcpConfig` is included.
+With profile `all`, bootstrap syncs versioned `.github/` and `.codex/` assets into the effective runtime locations from `runtime-location-catalog.json` plus any local override file, projects the single visible repository-owned starter/controller into `agentsSkillsRoot`, keeps the repo-owned Copilot agent profile under `githubRuntimeRoot/agents` with a non-canonical alias, removes legacy duplicate starter folders from `githubRuntimeRoot/skills` and `copilotSkillsRoot`, mirrors shared helper scripts from `scripts/common`, `scripts/security`, and `scripts/maintenance` into `codexRuntimeRoot/shared-scripts`, removes stale duplicate repo-managed skill folders from `codexRuntimeRoot/skills`, and applies MCP servers into `codexRuntimeRoot/config.toml` when `-ApplyMcpConfig` is included.
 
 For Codex-enabled install profiles, onboarding also applies safe local runtime preferences into `config.toml`:
 - `model_reasoning_effort = "high"`

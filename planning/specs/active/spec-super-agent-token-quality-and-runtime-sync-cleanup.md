@@ -36,6 +36,35 @@ The next safe continuity slice can also ship immediately: the VS Code `SessionSt
 
 The same bootstrap surface can safely own periodic housekeeping as long as it stays bounded: `SessionStart` and `SubagentStart` may dispatch a throttled workspace-local maintenance pass that first exports a concise planning handoff and then cleans only persisted Codex and VS Code runtime state. This must never attempt to clear the live active context window or reset the runtime UI token meter.
 
+The resumed planning slice also needs to absorb four concrete follow-ups discovered after the first hygiene pass:
+- `.vscode/profiles/` and `.vscode/mcp-vscode-global.json` now exist as local helper surfaces, but they are not yet clearly classified as runtime source-of-truth, generated artifacts, or removable references
+- Copilot is exposing multiple visible `super-agent` entries when typing `/`, which means the duplication audit now needs to isolate the exact registration surfaces and converge them to one canonical visible controller entry
+- Claude Code already exposes a repository-owned `super-agent` skill and hook set, so the parity audit must verify it stays aligned with Copilot/Codex and does not keep stale controller behavior
+- the Super Agent controller currently routes and plans well, but it still lacks an explicit repository-owned contract for asking concise clarifying questions when ambiguity materially changes plan, architecture, runtime behavior, or validation
+
+The first resumed cleanup slice is now materially implemented:
+- `.vscode/profiles/` is promoted to a versioned reusable profile-baseline surface with explicit local selection support, while `.vscode/mcp-vscode-global.json` remains a local helper/reference artifact for now
+- the runtime sync contract no longer projects `.github/skills/super-agent` into any Copilot-visible runtime skill root; instead, bootstrap removes legacy `super-agent` and `using-super-agent` folders from both `%USERPROFILE%\\.github\\skills` and `%USERPROFILE%\\.copilot\\skills` so the shared `%USERPROFILE%\\.agents\\skills\\super-agent` surface stays canonical for slash discovery
+- the repo-owned `.github/agents/super-agent.agent.md` profile remains available for Copilot, but with a secondary workspace-controller alias instead of a second visible `/super-agent`
+- the repository-owned `.github/skills/super-agent/SKILL.md` surface is removed to avoid keeping a second competing native Copilot-visible starter under version control
+
+## External Reference Baseline
+
+Use `mksglu/context-mode` as the reference baseline for the future local RAG/CAG slice. The repository documents two core ideas that are directly relevant here:
+- context reduction should happen at the source/tool boundary instead of after raw payloads already polluted the model context
+- session continuity should be persisted locally and retrieved selectively on resume/compaction instead of replaying the whole transcript
+
+Reference:
+- `https://github.com/mksglu/context-mode`
+
+The future local RAG/CAG design in this repository should evaluate these ideas first:
+1. local-first persistence only, no cloud dependency for continuity state
+2. searchable continuity state for tasks, edits, decisions, and errors
+3. retrieval of only relevant continuity fragments after compaction or restart
+4. explicit continuity recovery before the agent rereads large raw artifacts
+
+The repository should not copy `context-mode` blindly. Its plugin/hook architecture is platform-specific. We only want to adopt the durable design patterns that fit the repository-owned Super Agent runtime, planning-first continuity model, and local runtime sync contracts.
+
 ## Key Decisions
 
 1. Quality remains the primary objective; token economy is acceptable only when it preserves or improves task quality.
@@ -49,6 +78,11 @@ The same bootstrap surface can safely own periodic housekeeping as long as it st
 9. Runtime cleanup must protect active sessions by default, with stale-session retention as the normal path and oversized-file or storage-budget pruning reserved for explicit overrides.
 10. VS Code user-runtime cleanup must protect recent active work by using retention windows plus grace windows and by throttling repeated scans.
 11. Session bootstrap continuity should come from the active plan/spec artifacts so context compaction can recover from versioned repository state instead of large chat transcripts.
+12. `.vscode/profiles/` is a versioned reusable baseline surface with explicit local selection, while `.vscode/mcp-vscode-global.json` must still be classified before it influences runtime sync, MCP enablement, or token-economy behavior.
+13. Copilot should expose one canonical visible `super-agent` controller entry after runtime-sync cleanup; duplicate visible entries are a defect.
+14. Claude Code must keep the same Super Agent lifecycle and clarification behavior as Copilot/Codex, with portable hook/settings configuration.
+15. Super Agent intake must ask concise clarification questions only when ambiguity materially changes plan, execution, runtime safety, or validation.
+16. The future local RAG/CAG implementation must explicitly document which `context-mode` patterns were adopted, adapted, or rejected.
 
 ## Alternatives Considered
 
@@ -66,16 +100,20 @@ The same bootstrap surface can safely own periodic housekeeping as long as it st
 - The risky input/context token-economy implementation is rolled back and should remain rolled back unless explicitly revisited.
 - A future local index/cache should be deterministic, incremental, and delete-safe.
 - The duplicate slash-command behavior is likely related to mirrored `.github` runtime sync, local adapter duplication, or overlapping agent/skill registration.
+- `.vscode/profiles/README.md` and `setup-profiles.ps1` already reference `profile-vision-engine.json`, but that file is absent from the folder, so the profile surface currently contains drift that must be resolved before broader adoption.
 - The follow-up should remain repo-owned and deterministic.
 - The output-economy and local-index portions remain deferred until the user decides to resume them.
 - The Codex runtime blowup controls are safe to implement immediately because they do not trim required execution context.
+- The user has now resumed the planning of the local RAG/CAG slice and expects the deferred items above to be sequenced for execution.
 
 ## Risks
 
 - Over-aggressive input/context optimization can reduce task quality or omit needed domain context.
 - Output-side economy can still regress operator clarity if summaries become too short or hide failures.
 - A stale local index/cache can return outdated context unless invalidation on add/update/delete is reliable.
+- Promoting `.vscode` helper surfaces without clarifying ownership could create more duplicate MCP or controller registrations.
 - Runtime sync may be projecting duplicate command/agent surfaces into VS Code and confusing discovery.
+- Clarification-question behavior can become noisy if it is not gated to material ambiguity only.
 - If the duplicated command source is not isolated precisely, cleanup could remove a valid runtime surface accidentally.
 - If runtime cleanup thresholds are too aggressive, they could remove older large sessions the user still wanted to inspect.
 
@@ -93,10 +131,14 @@ The same bootstrap surface can safely own periodic housekeeping as long as it st
 10. VS Code user-runtime cleanup defaults now enforce age plus oversized-file caps with documented environment overrides and a throttled hook execution window.
 11. Session bootstrap hooks inject a short continuity summary that references the latest active plan/spec artifact and tells the agent to resume from those artifacts first after context compaction.
 12. Session bootstrap hooks can trigger safe periodic housekeeping no more than once per workspace interval, exporting planning continuity first and then cleaning only persisted runtime state.
+13. The planning artifacts explicitly cover classification of `.vscode/profiles/` and `.vscode/mcp-vscode-global.json` before they are allowed to influence runtime sync or MCP enablement.
+14. The planning artifacts explicitly cover isolating and removing duplicate visible `super-agent` entries in Copilot slash discovery.
+15. The planning artifacts explicitly cover Claude Code Super Agent parity review.
+16. The planning artifacts explicitly cover adding concise clarification-question behavior to the Super Agent controller surfaces.
 
 ## Planning Readiness Statement
 
-Planning is ready. The workstream is clear enough to sequence, but execution is intentionally deferred for later.
+Planning is ready. The workstream is clear enough to sequence, and the deferred local RAG/CAG + controller-parity slice is now resumed for execution planning.
 
 ## Recommended Specialist Focus
 

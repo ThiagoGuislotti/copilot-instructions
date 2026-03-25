@@ -30,7 +30,8 @@
     Runtime target path for picker-visible local skills. Defaults to <user-home>/.agents/skills.
 
 .PARAMETER TargetCopilotSkillsPath
-    Runtime target path for GitHub Copilot native personal skills. Defaults to <user-home>/.copilot/skills.
+    Runtime target path for the GitHub Copilot native skill root used for
+    legacy duplicate starter cleanup. Defaults to <user-home>/.copilot/skills.
 
 .PARAMETER RuntimeProfile
     Runtime activation profile passed to bootstrap and doctor. Supported
