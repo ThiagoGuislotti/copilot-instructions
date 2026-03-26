@@ -1,0 +1,19 @@
+{
+  "summary": "Instruções de orquestração exigem Codex sem fallback, criando conflito operacional com workflow padrão.",
+  "issues": [
+    {
+      "id": "ISS-001",
+      "title": "Exigência rígida de Codex CLI",
+      "location": ".github/copilot-instructions.md",
+      "evidence": "Tool Selection Matrix impõe uso exclusivo do Codex CLI.",
+      "impact": "High",
+      "urgency": "Immediate",
+      "recommendation": "Adicionar fallback documentado para ferramentas padrão quando Codex não estiver habilitado."
+    }
+  ],
+  "nextSteps": [
+    "Ajustar instrução de orquestração para permitir fallback.",
+    "Notificar equipe sobre mudança de processo."
+  ],
+  "confidence": "0.78"
+}

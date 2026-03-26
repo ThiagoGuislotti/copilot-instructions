@@ -1,0 +1,6 @@
+interface:
+  display_name: "Test Engineer"
+  short_description: "Design stable tests and raise behavior coverage."
+  default_prompt: "Use $test-engineer to add deterministic tests for this behavior and reduce regression risk."
+policy:
+  allow_implicit_invocation: true

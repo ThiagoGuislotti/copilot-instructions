@@ -1,0 +1,60 @@
+#!/usr/bin/env sh
+set -eu
+
+# Resolve repository root independently of caller directory.
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$REPO_ROOT"
+
+echo "[post-merge] Running validation suite..."
+log_retention_days="${CODEX_LOG_RETENTION_DAYS:-30}"
+include_sessions_cleanup="${CODEX_INCLUDE_SESSIONS_CLEANUP:-1}"
+session_retention_days="${CODEX_SESSION_RETENTION_DAYS:-30}"
+
+# Validate instruction/routing/skills contracts after merge updates.
+if command -v pwsh >/dev/null 2>&1; then
+  if ! pwsh -NoLogo -NoProfile -File ./scripts/validation/validate-all.ps1 -ValidationProfile release -WarningOnly true; then
+    echo "[post-merge] Warning: validation command failed." >&2
+  fi
+
+  if [ "${CODEX_SKIP_RUNTIME_CLEANUP:-0}" = "1" ]; then
+    echo "[post-merge] Runtime cleanup skipped (CODEX_SKIP_RUNTIME_CLEANUP=1)."
+  else
+    echo "[post-merge] Running runtime cleanup (log retention: ${log_retention_days} days)..."
+    cleanup_args="-LogRetentionDays $log_retention_days -Apply"
+    if [ "$include_sessions_cleanup" = "1" ]; then
+      cleanup_args="$cleanup_args -IncludeSessions -SessionRetentionDays $session_retention_days"
+    fi
+
+    if ! pwsh -NoLogo -NoProfile -File ./scripts/runtime/clean-codex-runtime.ps1 $cleanup_args; then
+      echo "[post-merge] Warning: runtime cleanup failed." >&2
+    fi
+  fi
+
+  exit 0
+fi
+
+# Windows PowerShell fallback.
+if command -v powershell >/dev/null 2>&1; then
+  if ! powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\validation\\validate-all.ps1 -ValidationProfile release -WarningOnly true; then
+    echo "[post-merge] Warning: validation command failed." >&2
+  fi
+
+  if [ "${CODEX_SKIP_RUNTIME_CLEANUP:-0}" = "1" ]; then
+    echo "[post-merge] Runtime cleanup skipped (CODEX_SKIP_RUNTIME_CLEANUP=1)."
+  else
+    echo "[post-merge] Running runtime cleanup (log retention: ${log_retention_days} days)..."
+    cleanup_args="-LogRetentionDays $log_retention_days -Apply"
+    if [ "$include_sessions_cleanup" = "1" ]; then
+      cleanup_args="$cleanup_args -IncludeSessions -SessionRetentionDays $session_retention_days"
+    fi
+
+    if ! powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\runtime\\clean-codex-runtime.ps1 $cleanup_args; then
+      echo "[post-merge] Warning: runtime cleanup failed." >&2
+    fi
+  fi
+
+  exit 0
+fi
+
+echo "[post-merge] Warning: PowerShell not found. Validation skipped." >&2
+exit 0

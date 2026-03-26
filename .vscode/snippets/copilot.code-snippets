@@ -1,0 +1,98 @@
+{
+    "Copilot Review Instructions": {
+        "prefix": "copilotreview",
+        "description": "Instructions for code review with Copilot Chat (reviewSelection).",
+        "body": [
+            "\"github.copilot.chat.reviewSelection.instructions\": [",
+            "  { \"file\": \"%USERPROFILE%\\.github\\AGENTS.md\" },",
+            "  { \"file\": \"%USERPROFILE%\\.github\\copilot-instructions.md\" },",
+            "  { \"file\": \"%USERPROFILE%\\.github\\instructions\\workflow-optimization.instructions.md\" },",
+            "  { \"file\": \"%USERPROFILE%\\.github\\instructions\\powershell-execution.instructions.md\" },",
+            "  { \"file\": \"%USERPROFILE%\\.github\\instructions\\feedback-changelog.instructions.md\" },",
+            "  { \"file\": \"%USERPROFILE%\\.github\\instructions\\${1:backend}.instructions.md\" },",
+            "  { \"file\": \"%USERPROFILE%\\.github\\instructions\\${2:dotnet-csharp}.instructions.md\" },",
+            "  { \"text\": \"Code suggestions must follow Clean Architecture: separation of concerns, dependency inversion, maintainability, readability and simplicity.\" }",
+            "]"
+        ]
+    },
+    "Copilot Commit Message": {
+        "prefix": "copilotcommit",
+        "description": "Instructions for generating commit messages (Conventional Commits).",
+        "body": [
+            "\"github.copilot.chat.commitMessageGeneration.instructions\": [",
+            "  { \"file\": \"%USERPROFILE%\\.github\\AGENTS.md\" },",
+            "  { \"file\": \"%USERPROFILE%\\.github\\copilot-instructions.md\" },",
+            "  { \"file\": \"%USERPROFILE%\\.github\\instructions\\pr.instructions.md\" },",
+            "  { \"text\": \"Use Conventional Commits (feat, fix, docs, refactor, test, chore).\" },",
+            "  { \"text\": \"English, imperative mood, ≤72 chars, optional scope, no trailing period.\" },",
+            "  { \"text\": \"Reference issues with Closes/Refs when applicable.\" }",
+            "]"
+        ]
+    },
+    "Copilot PR Description": {
+        "prefix": "copilotpr",
+        "description": "Instructions for generating PR descriptions with required sections.",
+        "body": [
+            "\"github.copilot.chat.pullRequestDescriptionGeneration.instructions\": [",
+            "  { \"file\": \"%USERPROFILE%\\.github\\AGENTS.md\" },",
+            "  { \"file\": \"%USERPROFILE%\\.github\\copilot-instructions.md\" },",
+            "  { \"file\": \"%USERPROFILE%\\.github\\instructions\\pr.instructions.md\" },",
+            "  { \"text\": \"Include: Context | Changes | Rationale | Risks | Testing | Docs | Breaking Changes | Migration.\" },",
+            "  { \"text\": \"Add 'Applied instructions' listing AGENTS.md, copilot-instructions.md and domain instructions used.\" },",
+            "  { \"text\": \"Ensure green build/tests; include session tracking when useful; no secrets.\" }",
+            "]"
+        ]
+    },
+    "Copilot Applied Instructions Block": {
+        "prefix": "appliedinstr",
+        "description": "Standard block to list applied instructions in PRs/descriptions.",
+        "body": [
+            "Applied instructions:",
+            "- %USERPROFILE%\\.github\\AGENTS.md",
+            "- %USERPROFILE%\\.github\\copilot-instructions.md",
+            "- ${1:.github/instructions/backend.instructions.md}",
+            "- ${2:.github/instructions/dotnet-csharp.instructions.md}",
+            "${3:}"
+        ]
+    },
+    "Copilot Quality Gates Checklist": {
+        "prefix": "qualitygates",
+        "description": "Quick checklist to report quality gates status.",
+        "body": [
+            "Quality gates:",
+            "- Build: ${1:PASS|FAIL}",
+            "- Lint/Typecheck: ${2:PASS|FAIL}",
+            "- Unit tests: ${3:PASS|FAIL} ${4:(n passed, n failed)}",
+            "- Smoke test: ${5:PASS|FAIL}",
+            "- Notes: ${6:brief}"
+        ]
+    },
+    "Copilot Progress Update": {
+        "prefix": "progressupdate",
+        "description": "Concise structure for progress updates per guidelines.",
+        "body": [
+            "actions taken: ${1:what you ran}",
+            "key results: ${2:top findings or outputs}",
+            "next: ${3:what you'll do next}",
+            "requirements coverage: ${4:Done/Deferred with reason}"
+        ]
+    },
+    "Changelog Entry Block": {
+        "prefix": "changelogentry",
+        "description": "Insert a changelog entry block aligned with templates and repo structure.",
+        "body": [
+            "## [${1:X.Y.Z}] - ${2:YYYY-MM-DD}",
+            "",
+            "### ${3:Added|Changed|Fixed|Removed|Breaking}",
+            "- `.github/instructions/${4:AREA}.instructions.md`: ${5:CHANGE_DESCRIPTION}",
+            "  - ${6:SPECIFIC_COMPONENT}: ${7:DETAILS}"
+        ]
+    },
+    "README Mapping Row": {
+        "prefix": "readmemaprow",
+        "description": "Insert a README mapping table row for instructions.",
+        "body": [
+            "| ${1:AREA} | ${2:FOLDERS} | `.github/instructions/${3:file.instructions.md}` | ${4:GLOB} | ${5:DESCRIPTION} |"
+        ]
+    }
+}

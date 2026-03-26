@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/agent.run-artifact.schema.json",
+  "title": "Multi-Agent Run Artifact",
+  "type": "object",
+  "required": [
+    "traceId",
+    "pipelineId",
+    "status",
+    "startedAt",
+    "finishedAt",
+    "stages",
+    "summary"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "traceId": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9-]{8,128}$"
+    },
+    "pipelineId": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]{2,64}$"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "success",
+        "failed",
+        "partial"
+      ]
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "finishedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "stages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/stageRun"
+      }
+    },
+    "summary": {
+      "$ref": "#/$defs/summary"
+    }
+  },
+  "$defs": {
+    "stageRun": {
+      "type": "object",
+      "required": [
+        "stageId",
+        "agentId",
+        "status",
+        "startedAt",
+        "finishedAt",
+        "durationMs",
+        "inputArtifacts",
+        "outputArtifacts"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "stageId": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{2,64}$"
+        },
+        "agentId": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{2,64}$"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "success",
+            "failed",
+            "skipped"
+          ]
+        },
+        "startedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "finishedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "durationMs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "inputArtifacts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "outputArtifacts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "validation": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "warnings": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "failures": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "stageCount",
+        "failedStages",
+        "warningCount",
+        "estimatedCostUsd",
+        "totalDurationMs"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "stageCount": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "failedStages": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "warningCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "estimatedCostUsd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "totalDurationMs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

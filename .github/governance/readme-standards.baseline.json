@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "global": {
+    "requireFeaturesCheckmarks": true,
+    "requireCodeFences": true,
+    "requireTocLinks": true,
+    "requireHorizontalSeparators": true
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "requiredSections": [
+        "Features",
+        "Table of Contents|Contents",
+        "Installation",
+        "Quick Start",
+        "Usage Examples",
+        "API Reference",
+        "Dependencies",
+        "References"
+      ],
+      "allowIntroductionPreamble": true
+    },
+    {
+      "path": "scripts/README.md",
+      "requiredSections": [
+        "Introduction",
+        "Features",
+        "Contents|Table of Contents",
+        "Installation",
+        "Quick Start",
+        "Usage Examples",
+        "API Reference",
+        "Build and Tests",
+        "Contributing",
+        "Dependencies",
+        "References"
+      ],
+      "allowIntroductionPreamble": false
+    },
+    {
+      "path": ".codex/README.md",
+      "requiredSections": [
+        "Introduction",
+        "Features",
+        "Contents|Table of Contents",
+        "Installation",
+        "Quick Start",
+        "Usage Examples",
+        "API Reference",
+        "Build and Tests",
+        "Contributing",
+        "Dependencies",
+        "References"
+      ],
+      "allowIntroductionPreamble": false
+    },
+    {
+      "path": ".codex/mcp/README.md",
+      "requiredSections": [
+        "Introduction",
+        "Features",
+        "Contents|Table of Contents",
+        "Installation",
+        "Quick Start",
+        "Usage Examples",
+        "API Reference",
+        "Build and Tests",
+        "Contributing",
+        "Dependencies",
+        "References"
+      ],
+      "allowIntroductionPreamble": false
+    },
+    {
+      "path": ".codex/scripts/README.md",
+      "requiredSections": [
+        "Introduction",
+        "Features",
+        "Contents|Table of Contents",
+        "Installation",
+        "Quick Start",
+        "Usage Examples",
+        "API Reference",
+        "Build and Tests",
+        "Contributing",
+        "Dependencies",
+        "References"
+      ],
+      "allowIntroductionPreamble": false
+    },
+    {
+      "path": ".codex/orchestration/README.md",
+      "requiredSections": [
+        "Introduction",
+        "Features",
+        "Contents|Table of Contents",
+        "Installation",
+        "Quick Start",
+        "Usage Examples",
+        "API Reference",
+        "Build and Tests",
+        "Contributing",
+        "Dependencies",
+        "References"
+      ],
+      "allowIntroductionPreamble": false
+    },
+    {
+      "path": ".codex/skills/README.md",
+      "requiredSections": [
+        "Introduction",
+        "Features",
+        "Contents|Table of Contents",
+        "Installation",
+        "Quick Start",
+        "Usage Examples",
+        "API Reference",
+        "Build and Tests",
+        "Contributing",
+        "Dependencies",
+        "References"
+      ],
+      "allowIntroductionPreamble": false
+    }
+  ]
+}

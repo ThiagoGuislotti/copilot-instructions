@@ -1,0 +1,11 @@
+{
+  "id": "branch-protection-baseline",
+  "description": "Required assets for branch protection baseline validation and apply tooling.",
+  "requiredFiles": [
+    ".github/governance/branch-protection.baseline.json",
+    "scripts/governance/set-branch-protection.ps1"
+  ],
+  "requiredDirectories": [
+    "scripts/governance"
+  ]
+}
