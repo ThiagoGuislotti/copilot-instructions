@@ -1,0 +1,6 @@
+interface:
+  display_name: "Context Token Optimizer"
+  short_description: "Minimize context and route to the right specialist."
+  default_prompt: "Use $context-token-optimizer to build a minimal context pack and choose the correct specialist for execution."
+policy:
+  allow_implicit_invocation: true

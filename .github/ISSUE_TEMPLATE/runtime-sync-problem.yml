@@ -1,0 +1,52 @@
+name: Runtime Sync Problem
+description: Report drift or synchronization failures between the repository and local runtime paths.
+title: "[runtime-sync] "
+labels:
+  - bug
+  - runtime
+  - triage
+body:
+  - type: dropdown
+    id: runtime_target
+    attributes:
+      label: Runtime target
+      options:
+        - %USERPROFILE%\.github
+        - %USERPROFILE%\.codex
+        - %APPDATA%\Code\User
+        - .code-workspace files
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected sync result
+      placeholder: bootstrap.ps1 should mirror the updated scripts and remove stale files.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+      placeholder: A stale file remained after post-commit sync...
+    validations:
+      required: true
+  - type: textarea
+    id: commands
+    attributes:
+      label: Commands executed
+      placeholder: |
+        pwsh -File scripts/runtime/bootstrap.ps1 -Mirror
+        pwsh -File scripts/runtime/doctor.ps1
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Provide logs or parameterized paths only.
+      placeholder: |
+        .temp/healthcheck-report.json
+        %USERPROFILE%\.codex\shared-scripts
+    validations:
+      required: false

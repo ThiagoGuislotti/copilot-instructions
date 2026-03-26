@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "defaultAgent": {
+    "skillName": "super-agent",
+    "displayName": "Super Agent"
+  },
+  "overrideSources": {
+    "environment": {
+      "skillVariable": "COPILOT_SUPER_AGENT_SKILL",
+      "displayVariable": "COPILOT_SUPER_AGENT_NAME"
+    },
+    "localOverrideFile": "super-agent.selector.local.json"
+  }
+}

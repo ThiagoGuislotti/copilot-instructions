@@ -1,0 +1,180 @@
+{
+    "Codex Command": {
+        "prefix": "codex",
+        "description": "Codex CLI command (Route → Execute workflow); end with ;exit; add flags only when allowed",
+        "body": [
+            "codex \"${1:task description with context and quality requirements}\"$2 ;exit"
+        ]
+    },
+    "Codex Safe Command": {
+        "prefix": "codexsafe",
+        "description": "Codex command with safety note (no dangerous flags by default)",
+        "body": [
+            "codex \"${1:task description with constraints and acceptance}\"$2 ;exit"
+        ]
+    },
+    "Codex Flags (allowed env only)": {
+        "prefix": "codexflags",
+        "description": "Append dangerous flags only when approvals=never and sandbox=danger-full-access",
+        "body": [
+            "--dangerously-bypass-approvals-and-sandbox --sandbox workspace-write"
+        ]
+    },
+    "Codex Create Class": {
+        "prefix": "codexclass",
+        "description": "Create a sealed class following NetToolsKit conventions (namespace/folder match, XML docs, TFMs)",
+        "body": [
+            "codex \"Create sealed class ${1:ClassName} in NetToolsKit.Core.${2:SubFolder} namespace; File src/NetToolsKit.Core/${2:SubFolder}/${1:ClassName}.cs; Namespace NetToolsKit.Core.${2:SubFolder} match folder structure; Sealed class when appropriate; Comprehensive XML documentation; Target frameworks net8.0 net9.0; Clean using statements; UTF-8 without BOM; No trailing empty lines\"$3 ;exit"
+        ]
+    },
+    "Codex Azure DevOps Pipeline Step": {
+        "prefix": "codexpipeline",
+        "description": "Create a build+test pipeline YAML for .NET (net8/net9) with test results and coverage checks",
+        "body": [
+            "codex \"Create Azure DevOps pipeline YAML step for dotnet restore/build/test; Matrix net8.0 net9.0; Publish test results; Fail on low coverage; File path .azure/pipelines/build-test.yml; Concise and production-ready\"$1 ;exit"
+        ]
+    },
+    "Orchestration Decision Template": {
+        "prefix": "codexchoose",
+        "description": "Template for TOOL SELECTION + reasoning + Codex command + validation",
+        "body": [
+            "TOOL SELECTION ${1:Copilot|Codex CLI} ${2:confidence}% | rationale short",
+            "REASONING ${3:brief explanation}",
+            "If Codex CLI then CODEX COMMAND: codex \"${4:task}\"$5 ;exit",
+            "VALIDATION: paths match repo structure; TFMs net8.0;net9.0 (if applicable); XML docs; sealed classes; clean usings; UTF-8 no BOM; no trailing blank line"
+        ]
+    },
+    "Session Tracking Entry": {
+        "prefix": "nts-track",
+        "description": "Session tracking line (project | file | component/method | action)",
+        "body": [
+            "${1:Project} | ${2:Path/File} | ${3:ComponentOrMethod} | ${4:Action}"
+        ]
+    },
+    "Codex Backend Task": {
+        "prefix": "codexbackend",
+        "description": "Backend task referencing Copilot + domain instructions (clean architecture, C#, backend)",
+        "body": [
+            "codex \"Backend task: ${1:short description}; Follow .github/copilot-instructions.md; .github/instructions/clean-architecture-code.instructions.md; .github/instructions/dotnet-csharp.instructions.md; .github/instructions/backend.instructions.md; File ${2:src/Project/Path/File.cs}; Namespace matches folder structure; Target frameworks net8.0 net9.0; XML docs; sealed classes when appropriate; clean using statements; UTF-8 without BOM; no trailing blank line\"$3 ;exit"
+        ]
+    },
+    "Codex Frontend Task": {
+        "prefix": "codexfrontend",
+        "description": "Frontend task referencing Copilot + domain instructions (frontend, ui-ux, vue-quasar)",
+        "body": [
+            "codex \"Frontend task: ${1:short description}; Follow .github/copilot-instructions.md; .github/instructions/frontend.instructions.md; .github/instructions/ui-ux.instructions.md; .github/instructions/vue-quasar.instructions.md; File ${2:src/app/components/Component.vue}; Performance and accessibility per instructions; no heavy bundles; error/loading/success states; no trailing blank line\"$3 ;exit"
+        ]
+    },
+    "Codex UI-UX Task": {
+        "prefix": "codexuiux",
+        "description": "UI/UX task referencing Copilot + UI-UX instructions",
+        "body": [
+            "codex \"UI/UX task: ${1:short description}; Follow .github/copilot-instructions.md; .github/instructions/ui-ux.instructions.md; Ensure WCAG AA, focus order, aria*, responsive and motion preferences; File ${2:src/app/components/Component.tsx}; no trailing blank line\"$3 ;exit"
+        ]
+    },
+    "Codex Infra Task": {
+        "prefix": "codexinfra",
+        "description": "Infrastructure task referencing Copilot + infra instructions (docker, k8s, ci-cd, static analysis)",
+        "body": [
+            "codex \"Infra task: ${1:short description}; Follow .github/copilot-instructions.md; .github/instructions/docker.instructions.md; .github/instructions/k8s.instructions.md; .github/instructions/ci-cd-devops.instructions.md; .github/instructions/static-analysis-sonarqube.instructions.md; File ${2:.azure/pipelines/build-test.yml}; production-ready and secure defaults; no trailing blank line\"$3 ;exit"
+        ]
+    },
+    "Codex Database Task": {
+        "prefix": "codexdb",
+        "description": "Database task referencing Copilot + data instructions (ORM, database, microservices performance)",
+        "body": [
+            "codex \"Database task: ${1:short description}; Follow .github/copilot-instructions.md; .github/instructions/orm.instructions.md; .github/instructions/database.instructions.md; .github/instructions/microservices-performance.instructions.md; File ${2:src/Project/Data/Repository.cs}; avoid N+1; sargable queries; indexes; transactions and retries; no trailing blank line\"$3 ;exit"
+        ]
+    },
+    "Codex Testing Task": {
+        "prefix": "codextest",
+        "description": "Testing task referencing Copilot + testing instructions (E2E, .NET test categories)",
+        "body": [
+            "codex \"Testing task: ${1:Unit|Integration|E2E} for ${2:component}; Follow .github/copilot-instructions.md; .github/instructions/e2e-testing.instructions.md; .github/instructions/dotnet-csharp.instructions.md; Create tests with correct categories (xUnit Trait or NUnit Category); deterministic and isolated; File ${3:tests/Project.Tests/ComponentTests.cs}; no trailing blank line\"$4 ;exit"
+        ]
+    },
+    "Codex Readme Task": {
+        "prefix": "codexreadme",
+        "description": "Create or update README following readme.instructions.md",
+        "body": [
+            "codex \"README task: ${1:short description}; Follow .github/copilot-instructions.md; .github/instructions/readme.instructions.md; Use template .github/templates/readme-template.md; File ${2:src/Project/README.md}; concise and practical; no trailing blank line\"$3 ;exit"
+        ]
+    },
+    "Codex Prompt Template Task": {
+        "prefix": "codexprompt",
+        "description": "Create/update prompt templates per prompt-templates.instructions.md",
+        "body": [
+            "codex \"Prompt template task: ${1:short description}; Follow .github/instructions/prompt-templates.instructions.md; Use templates under .github/templates/; provide Context | Objective | Requirements | Acceptance | Expected output; File ${2:.github/templates/changelog-entry-template.md}; no trailing blank line\"$3 ;exit"
+        ]
+    },
+    "Codex K8s Task": {
+        "prefix": "codexk8s",
+        "description": "Kubernetes manifests/Helm tasks per k8s.instructions.md",
+        "body": [
+            "codex \"K8s task: ${1:short description}; Follow .github/instructions/k8s.instructions.md; security (non-root, NetworkPolicies), resources (requests/limits), probes; File ${2:deploy/k8s/deployment.yaml}; no trailing blank line\"$3 ;exit"
+        ]
+    },
+    "Codex Docker Task": {
+        "prefix": "codexdocker",
+        "description": "Dockerfile/compose tasks per docker.instructions.md",
+        "body": [
+            "codex \"Docker task: ${1:short description}; Follow .github/instructions/docker.instructions.md; multi-stage, non-root, small images; File ${2:Dockerfile}; no trailing blank line\"$3 ;exit"
+        ]
+    },
+    "Codex CI/CD Task": {
+        "prefix": "codexcicd",
+        "description": "Pipeline tasks per ci-cd-devops.instructions.md",
+        "body": [
+            "codex \"CI/CD task: ${1:short description}; Follow .github/instructions/ci-cd-devops.instructions.md; stages build/test/package/deploy; artifacts; rollbacks; File ${2:.azure/pipelines/ci.yml}; no trailing blank line\"$3 ;exit"
+        ]
+    },
+    "Codex SonarQube Task": {
+        "prefix": "codexsonar",
+        "description": "Static analysis tasks per static-analysis-sonarqube.instructions.md",
+        "body": [
+            "codex \"SonarQube task: ${1:short description}; Follow .github/instructions/static-analysis-sonarqube.instructions.md; quality gate; coverage integration; PR decoration; File ${2:sonar-project.properties}; no trailing blank line\"$3 ;exit"
+        ]
+    },
+    "Codex Microservices Performance Task": {
+        "prefix": "codexmsa",
+        "description": "Performance/caching/communication patterns per microservices-performance.instructions.md",
+        "body": [
+            "codex \"Microservices performance task: ${1:short description}; Follow .github/instructions/microservices-performance.instructions.md; caching, retries, circuit breaker; resource limits; File ${2:src/Service/Settings.json}; no trailing blank line\"$3 ;exit"
+        ]
+    },
+    "Codex E2E Testing Task": {
+        "prefix": "codexe2e",
+        "description": "E2E/integration tests per e2e-testing.instructions.md",
+        "body": [
+            "codex \"Testing task: ${1:E2E|Integration}; Follow .github/instructions/e2e-testing.instructions.md; framework selection, environment, retries, reporting; File ${2:tests/E2E/specs/sample.spec.ts}; no trailing blank line\"$3 ;exit"
+        ]
+    },
+    "Codex ORM Task": {
+        "prefix": "codexorm",
+        "description": "ORM mapping/repository tasks per orm.instructions.md",
+        "body": [
+            "codex \"ORM task: ${1:short description}; Follow .github/instructions/orm.instructions.md; mapping centralized; no lazy loading; DTOs; File ${2:src/Project/Infrastructure/Repository/EntityRepository.cs}; no trailing blank line\"$3 ;exit"
+        ]
+    },
+    "Codex PS Task": {
+        "prefix": "codexps",
+        "description": "PowerShell script tasks per powershell-execution.instructions.md",
+        "body": [
+            "codex \"PowerShell task: ${1:short description}; Follow .github/instructions/powershell-execution.instructions.md; auto-detect solution root; robust error handling; cross-platform; File ${2:scripts/Task.ps1}; no trailing blank line\"$3 ;exit"
+        ]
+    },
+    "Codex Instruction Creation Task": {
+        "prefix": "codexinstr",
+        "description": "Create/modify instruction files per copilot-instruction-creation.instructions.md",
+        "body": [
+            "codex \"Instruction task: ${1:new or update} ${2:area}.instructions.md; Follow .github/instructions/copilot-instruction-creation.instructions.md; include front matter (--- applyTo: \"glob\" ---); semicolon-separated single-line paragraphs; allow internal blank lines; forbid headings/lists/fences; English only; File .github/instructions/${2:area}.instructions.md; UTF-8 without BOM; no trailing blank line\"$3 ;exit"
+        ]
+    },
+    "Codex PR Task": {
+        "prefix": "codexpr",
+        "description": "Create/curate PR description per pr.instructions.md",
+        "body": [
+            "codex \"PR task: ${1:short description}; Follow .github/instructions/pr.instructions.md; include sections Context | Changes | Rationale | Risks | Testing | Docs | Breaking Changes | Migration; add Applied instructions; English; File ${2:.github/templates/github-change-checklist-template.md}; no trailing blank line\"$3 ;exit"
+        ]
+    }
+}

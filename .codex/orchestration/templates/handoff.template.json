@@ -1,0 +1,26 @@
+{
+  "traceId": "run-20260226-0001",
+  "pipelineId": "default-dev-flow",
+  "fromStage": "plan",
+  "toStage": "implement",
+  "producedAt": "2026-02-26T00:00:00Z",
+  "summary": "Planner generated execution scope and context pack.",
+  "artifacts": [
+    {
+      "name": "task-plan",
+      "path": ".temp/runs/run-20260226-0001/task-plan.md",
+      "checksum": "sha256:replace-me"
+    },
+    {
+      "name": "context-pack",
+      "path": ".temp/runs/run-20260226-0001/context-pack.json",
+      "checksum": "sha256:replace-me"
+    }
+  ],
+  "risks": [
+    "Scope ambiguity in API naming."
+  ],
+  "openQuestions": [
+    "Should integration tests be mandatory for this change?"
+  ]
+}

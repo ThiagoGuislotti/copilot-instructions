@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/agent.stage-intake-result.schema.json",
+  "title": "Agent Stage Intake Result",
+  "type": "object",
+  "required": [
+    "stage",
+    "normalizedRequest",
+    "changeBearing",
+    "planningRequired",
+    "clarificationRequired",
+    "canProceedSafely",
+    "workstreamSlug",
+    "explicitWorkItems",
+    "clarificationQuestions",
+    "clarificationReason",
+    "constraints",
+    "risks",
+    "notes"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "stage": {
+      "type": "string",
+      "const": "super-agent-intake"
+    },
+    "normalizedRequest": {
+      "type": "string",
+      "minLength": 1
+    },
+    "changeBearing": {
+      "type": "boolean"
+    },
+    "planningRequired": {
+      "type": "boolean"
+    },
+    "clarificationRequired": {
+      "type": "boolean"
+    },
+    "canProceedSafely": {
+      "type": "boolean"
+    },
+    "workstreamSlug": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]{1,64}$"
+    },
+    "explicitWorkItems": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "clarificationQuestions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "clarificationReason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

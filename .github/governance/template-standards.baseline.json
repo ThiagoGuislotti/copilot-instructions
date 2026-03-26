@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "requiredFiles": [
+    ".github/templates/readme-template.md",
+    ".github/templates/copilot-instruction-creation.instructions-template.md",
+    ".github/templates/github-change-checklist-template.md",
+    ".github/templates/changelog-entry-template.md",
+    ".github/templates/effort-estimation-poc-mvp-template.md",
+    ".github/templates/powershell-script-template.ps1",
+    ".github/templates/dotnet-dockerfile-template",
+    ".github/templates/docker-compose-template.yml"
+  ],
+  "templateRules": [
+    {
+      "path": ".github/templates/readme-template.md",
+      "requiredPatterns": [
+        "^# \\[PROJECT_NAME\\]",
+        "Remove sections that do not apply\\.",
+        "## Contents",
+        "(?m)^    - \\[Example 1: MAIN_USE_CASE\\]\\(#example-1-main_use_case\\)",
+        "(?m)^    - \\[Example 2: ADVANCED_USE_CASE\\]\\(#example-2-advanced_use_case\\)",
+        "(?m)^    - \\[Main Types / Services\\]\\(#main-types--services\\)",
+        "(?m)^    - \\[Extension Methods\\]\\(#extension-methods\\)",
+        "(?m)^    - \\[Enums\\]\\(#enums\\)",
+        "(?m)^    - \\[Data Shapes\\]\\(#data-shapes\\)",
+        "## Build and Tests",
+        "## Contributing",
+        "## Dependencies",
+        "## License"
+      ]
+    },
+    {
+      "path": ".github/templates/copilot-instruction-creation.instructions-template.md",
+      "requiredPatterns": [
+        "(?m)^---",
+        "(?m)^applyTo:\\s+\"\\[TARGET_GLOB\\]\"",
+        "(?m)^priority:\\s+\\[medium\\|high\\]",
+        "(?m)^# \\[Instruction Title\\]",
+        "## Validation Checklist"
+      ],
+      "forbiddenPatterns": [
+        "RULE_TITLE_1",
+        "scripts/copilot\\.ps1",
+        "Semicolon-separated"
+      ]
+    },
+    {
+      "path": ".github/templates/github-change-checklist-template.md",
+      "requiredPatterns": [
+        "^# GitHub Change Validation Checklist",
+        "\\.github/copilot-instructions\\.md",
+        "README\\.md",
+        "CHANGELOG\\.md",
+        "validate-instruction-metadata\\.ps1",
+        "validate-instructions\\.ps1",
+        "## Change Notes"
+      ],
+      "forbiddenPatterns": [
+        "scripts/copilot\\.ps1",
+        "Checklist:\\s+\\.github Change"
+      ],
+      "requiredPathReferences": [
+        "scripts/validation/validate-instruction-metadata.ps1",
+        "scripts/validation/validate-instructions.ps1",
+        ".github/copilot-instructions.md",
+        "README.md",
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "path": ".github/templates/changelog-entry-template.md",
+      "requiredPatterns": [
+        "(?m)^## \\[X\\.Y\\.Z\\] - YYYY-MM-DD",
+        "### Breaking",
+        "### Feedback Integration"
+      ]
+    },
+    {
+      "path": ".github/templates/effort-estimation-poc-mvp-template.md",
+      "requiredPatterns": [
+        "(?m)^# Effort Estimation",
+        "## 6\\) Estimation by Use Case Points \\(UCP\\)",
+        "## 8\\) UCP calculation examples"
+      ]
+    },
+    {
+      "path": ".github/templates/powershell-script-template.ps1",
+      "requiredPatterns": [
+        "\\.SYNOPSIS",
+        "\\.PARAMETER RepoRoot",
+        "\\$ErrorActionPreference = 'Stop'",
+        "function Resolve-RepositoryRoot",
+        "function Invoke-TemplateOperation",
+        "Write-StyledOutput"
+      ]
+    },
+    {
+      "path": ".github/templates/dotnet-dockerfile-template",
+      "requiredPatterns": [
+        "FROM mcr.microsoft.com/dotnet/sdk:\\$VERSION AS build",
+        "USER unet:gnet",
+        "ENTRYPOINT \\[\"dotnet\", \"\\[PROJECT_NAME\\]\\.dll\"\\]"
+      ]
+    },
+    {
+      "path": ".github/templates/docker-compose-template.yml",
+      "requiredPatterns": [
+        "(?m)^version:\\s+'3\\.8'",
+        "(?m)^services:",
+        "healthcheck:",
+        "depends_on:"
+      ]
+    }
+  ]
+}

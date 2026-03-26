@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "description": "Safe local Codex runtime defaults that limit runaway session growth without trimming required execution context.",
+  "defaults": {
+    "reasoningEffort": "high",
+    "multiAgentMode": "enabled",
+    "logRetentionDays": 14,
+    "sessionRetentionDays": 30
+  }
+}

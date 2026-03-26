@@ -1,0 +1,13 @@
+{
+  "id": "git-hooks-baseline",
+  "description": "Required local git hook files for validation and runtime sync workflows.",
+  "requiredFiles": [
+    "scripts/git-hooks/setup-git-hooks.ps1"
+  ],
+  "requiredGitHooks": [
+    "pre-commit",
+    "post-commit",
+    "post-merge",
+    "post-checkout"
+  ]
+}

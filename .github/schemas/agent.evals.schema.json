@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/agent.evals.schema.json",
+  "title": "Multi-Agent Golden Eval Fixtures",
+  "type": "object",
+  "required": [
+    "version",
+    "cases"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/evalCase"
+      }
+    }
+  },
+  "$defs": {
+    "evalCase": {
+      "type": "object",
+      "required": [
+        "id",
+        "request",
+        "expectedPipelineId",
+        "expectedStageOrder",
+        "requiredAgents"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{2,64}$"
+        },
+        "request": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expectedPipelineId": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{2,64}$"
+        },
+        "expectedStageOrder": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "requiredAgents": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]{2,64}$"
+          }
+        }
+      }
+    }
+  }
+}

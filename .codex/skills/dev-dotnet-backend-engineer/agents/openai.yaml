@@ -1,0 +1,6 @@
+interface:
+  display_name: "Dev .NET Backend Engineer"
+  short_description: "Extend Dev Software Engineer for .NET backend specialization."
+  default_prompt: "Use $dev-software-engineer as base, then apply $dev-dotnet-backend-engineer overrides for this ASP.NET/CQRS backend change."
+policy:
+  allow_implicit_invocation: true

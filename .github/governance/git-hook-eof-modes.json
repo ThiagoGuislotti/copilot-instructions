@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "defaultMode": "manual",
+  "defaultScope": "local-repo",
+  "scopes": {
+    "local-repo": {
+      "description": "Persist EOF hook mode only for the current repository clone/worktree under .git/."
+    },
+    "global": {
+      "description": "Persist EOF hook mode globally for this machine under %USERPROFILE%/.codex so repositories using the shared hook runner inherit it unless a local override exists."
+    }
+  },
+  "modes": {
+    "manual": {
+      "description": "Do not auto-fix staged files in pre-commit. Users run trim manually when needed.",
+      "autoFixStagedFiles": false
+    },
+    "autofix": {
+      "description": "Trim staged text files in pre-commit and re-stage them before validation.",
+      "autoFixStagedFiles": true
+    }
+  }
+}

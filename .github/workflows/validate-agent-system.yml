@@ -1,0 +1,71 @@
+name: Validate Agent System
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-agent-system-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate Agent System (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Export audit report (includes healthcheck + validate-all)
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -File ./scripts/validation/export-audit-report.ps1 `
+            -RepoRoot $PWD `
+            -SyncRuntime `
+            -Mirror `
+            -StrictExtras `
+            -ValidationProfile release `
+            -WarningOnly:$true `
+            -TreatRuntimeDriftAsWarning:$true `
+            -TargetGithubPath ./.temp/runtime/github `
+            -TargetCodexPath ./.temp/runtime/codex `
+            -OutputPath ./.temp/audit-report.json `
+            -HealthcheckOutputPath ./.temp/healthcheck-report.json `
+            -LogPath ./.temp/logs/audit-ci.log
+
+      - name: Execute multi-agent pipeline smoke test
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -File ./scripts/runtime/run-agent-pipeline.ps1 `
+            -RepoRoot $PWD `
+            -RunRoot ./.temp/runs `
+            -TraceId ci-smoke-run-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.os }} `
+            -RequestText "Validate pipeline orchestration in CI"
+
+      - name: Upload audit artifacts
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        with:
+          name: agent-audit-report-${{ matrix.os }}
+          path: |
+            .temp/audit-report.json
+            .temp/healthcheck-report.json
+            .temp/runs/
+            .temp/logs/
+          if-no-files-found: warn
+          retention-days: 14

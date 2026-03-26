@@ -1,0 +1,6 @@
+interface:
+  display_name: "Sec API Performance Security Engineer"
+  short_description: "Optimize and harden APIs with rate-limits and resilience."
+  default_prompt: "Use $sec-api-performance-security-engineer to implement a high-performance and secure API change with rate limiting."
+policy:
+  allow_implicit_invocation: true

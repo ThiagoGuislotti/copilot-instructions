@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/agent.task-review-result.schema.json",
+  "title": "Task Review Result",
+  "type": "object",
+  "required": ["reviewType", "decision", "summary", "findings", "followUps"],
+  "additionalProperties": false,
+  "properties": {
+    "reviewType": {
+      "type": "string",
+      "enum": ["spec-compliance", "code-quality"]
+    },
+    "decision": {
+      "type": "string",
+      "enum": ["approved", "needs-fix", "blocked"]
+    },
+    "summary": { "type": "string", "minLength": 1 },
+    "findings": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "followUps": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

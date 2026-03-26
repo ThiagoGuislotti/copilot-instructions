@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/agent.stage-review-result.schema.json",
+  "title": "Reviewer Stage Result",
+  "type": "object",
+  "required": [
+    "decision",
+    "summary",
+    "findings",
+    "requiredFollowUps",
+    "recommendation"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "decision": {
+      "type": "string",
+      "enum": ["approved", "blocked", "needs-attention"]
+    },
+    "summary": { "type": "string", "minLength": 1 },
+    "findings": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "requiredFollowUps": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "recommendation": { "type": "string", "minLength": 1 }
+  }
+}

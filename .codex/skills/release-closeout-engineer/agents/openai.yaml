@@ -1,0 +1,6 @@
+interface:
+  display_name: "Release Closeout Engineer"
+  short_description: "Apply README and changelog closeout artifacts together with commit guidance."
+  default_prompt: "Use $release-closeout-engineer to finalize README updates, commit message, and changelog update payloads for this completed workstream."
+policy:
+  allow_implicit_invocation: true

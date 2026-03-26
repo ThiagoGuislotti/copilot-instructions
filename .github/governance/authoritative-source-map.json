@@ -1,0 +1,146 @@
+{
+  "version": 1,
+  "defaultPolicy": {
+    "repositoryContextFirst": true,
+    "officialDocumentationRequiredForExternalBehavior": true,
+    "officialMaintainerFallbackAllowed": true,
+    "communityFallbackOnly": true,
+    "responseSourceDisclosureRequired": true
+  },
+  "stackRules": [
+    {
+      "id": "dotnet",
+      "displayName": ".NET / C# / ASP.NET Core / EF Core / PowerShell / Azure",
+      "keywords": [
+        "dotnet",
+        "c#",
+        "asp.net",
+        "ef core",
+        "powershell",
+        "azure"
+      ],
+      "officialDomains": [
+        "learn.microsoft.com"
+      ]
+    },
+    {
+      "id": "github-copilot",
+      "displayName": "GitHub Copilot",
+      "keywords": [
+        "copilot",
+        "github copilot",
+        "copilot chat"
+      ],
+      "officialDomains": [
+        "docs.github.com"
+      ]
+    },
+    {
+      "id": "vscode",
+      "displayName": "Visual Studio Code",
+      "keywords": [
+        "vscode",
+        "visual studio code",
+        "code workspace"
+      ],
+      "officialDomains": [
+        "code.visualstudio.com"
+      ]
+    },
+    {
+      "id": "rust",
+      "displayName": "Rust",
+      "keywords": [
+        "rust",
+        "cargo",
+        "rustc"
+      ],
+      "officialDomains": [
+        "doc.rust-lang.org",
+        "rust-lang.org"
+      ]
+    },
+    {
+      "id": "tokio",
+      "displayName": "Tokio",
+      "keywords": [
+        "tokio",
+        "async rust"
+      ],
+      "officialDomains": [
+        "tokio.rs"
+      ]
+    },
+    {
+      "id": "vue",
+      "displayName": "Vue",
+      "keywords": [
+        "vue",
+        "vuejs",
+        "pinia"
+      ],
+      "officialDomains": [
+        "vuejs.org"
+      ]
+    },
+    {
+      "id": "quasar",
+      "displayName": "Quasar",
+      "keywords": [
+        "quasar"
+      ],
+      "officialDomains": [
+        "quasar.dev"
+      ]
+    },
+    {
+      "id": "docker",
+      "displayName": "Docker",
+      "keywords": [
+        "docker",
+        "dockerfile",
+        "docker compose"
+      ],
+      "officialDomains": [
+        "docs.docker.com"
+      ]
+    },
+    {
+      "id": "kubernetes",
+      "displayName": "Kubernetes",
+      "keywords": [
+        "kubernetes",
+        "k8s",
+        "helm"
+      ],
+      "officialDomains": [
+        "kubernetes.io"
+      ]
+    },
+    {
+      "id": "postgresql",
+      "displayName": "PostgreSQL",
+      "keywords": [
+        "postgresql",
+        "postgres",
+        "psql"
+      ],
+      "officialDomains": [
+        "postgresql.org"
+      ]
+    },
+    {
+      "id": "openai",
+      "displayName": "OpenAI",
+      "keywords": [
+        "openai",
+        "gpt",
+        "responses api"
+      ],
+      "officialDomains": [
+        "platform.openai.com",
+        "help.openai.com"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Review Code Engineer"
+  short_description: "Review changes for bugs, risks, and regressions."
+  default_prompt: "Use $review-code-engineer to review this diff with severity-ranked findings and test gaps."
+policy:
+  allow_implicit_invocation: true

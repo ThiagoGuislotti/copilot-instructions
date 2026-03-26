@@ -1,0 +1,40 @@
+name: Validation Gap
+description: Propose or report missing validation coverage for instructions, templates, runtime scripts, or governance artifacts.
+title: "[validation-gap] "
+labels:
+  - enhancement
+  - validation
+  - triage
+body:
+  - type: textarea
+    id: gap
+    attributes:
+      label: Gap description
+      description: Explain what is currently unvalidated and why it matters.
+      placeholder: Template X can drift from instruction Y without any current validator catching it.
+    validations:
+      required: true
+  - type: textarea
+    id: current_behavior
+    attributes:
+      label: Current behavior or failure mode
+      placeholder: A broken path in the template is only discovered after runtime sync.
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_check
+    attributes:
+      label: Proposed validation
+      description: Describe the script/baseline/check you expect.
+      placeholder: Add validate-foo.ps1 and include it in validate-all under the dev profile.
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: Related files
+      placeholder: |
+        .github/governance/template-standards.baseline.json
+        scripts/validation/validate-template-standards.ps1
+    validations:
+      required: false

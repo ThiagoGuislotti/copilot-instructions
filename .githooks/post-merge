@@ -1,0 +1,121 @@
+#!/usr/bin/env sh
+set -eu
+
+# Resolve repository root independently of caller directory.
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$REPO_ROOT"
+
+echo "[post-merge] Running validation suite..."
+include_sessions_cleanup="${CODEX_INCLUDE_SESSIONS_CLEANUP:-1}"
+vscode_recent_window_hours="${CODEX_VSCODE_RECENT_RUN_WINDOW_HOURS:-12}"
+vscode_cleanup_background="${CODEX_VSCODE_RUNTIME_CLEANUP_BACKGROUND:-1}"
+
+run_background_cleanup() {
+  cmd="$1"
+  shift 1
+
+  if [ "$cmd" = "powershell" ]; then
+    "$cmd" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$@" >/dev/null 2>&1 &
+    return 0
+  fi
+
+  "$cmd" -NoLogo -NoProfile -File "$@" >/dev/null 2>&1 &
+  return 0
+}
+
+# Validate instruction/routing/skills contracts after merge updates.
+if command -v pwsh >/dev/null 2>&1; then
+  if ! pwsh -NoLogo -NoProfile -File ./scripts/validation/validate-all.ps1 -ValidationProfile release '-WarningOnly:$true'; then
+    echo "[post-merge] Warning: validation command failed." >&2
+  fi
+
+  if [ "${CODEX_SKIP_RUNTIME_PREFERENCES_APPLY:-0}" = "1" ]; then
+    echo "[post-merge] Runtime preferences apply skipped (CODEX_SKIP_RUNTIME_PREFERENCES_APPLY=1)."
+  else
+    echo "[post-merge] Applying safe Codex runtime preferences..."
+    if ! pwsh -NoLogo -NoProfile -File ./scripts/runtime/set-codex-runtime-preferences.ps1; then
+      echo "[post-merge] Warning: runtime preferences apply failed." >&2
+    fi
+  fi
+
+  if [ "${CODEX_SKIP_RUNTIME_CLEANUP:-0}" = "1" ]; then
+    echo "[post-merge] Runtime cleanup skipped (CODEX_SKIP_RUNTIME_CLEANUP=1)."
+  else
+    echo "[post-merge] Running runtime cleanup..."
+    cleanup_args="-Apply"
+    if [ "$include_sessions_cleanup" = "1" ]; then
+      cleanup_args="$cleanup_args -IncludeSessions"
+    fi
+
+    if ! pwsh -NoLogo -NoProfile -File ./scripts/runtime/clean-codex-runtime.ps1 $cleanup_args; then
+      echo "[post-merge] Warning: runtime cleanup failed." >&2
+    fi
+  fi
+
+  if [ "${CODEX_SKIP_VSCODE_RUNTIME_CLEANUP:-0}" = "1" ]; then
+    echo "[post-merge] VS Code user runtime cleanup skipped (CODEX_SKIP_VSCODE_RUNTIME_CLEANUP=1)."
+  else
+    echo "[post-merge] Running VS Code user runtime cleanup..."
+    if [ "$vscode_cleanup_background" = "1" ]; then
+      if ! run_background_cleanup pwsh ./scripts/runtime/clean-vscode-user-runtime.ps1 -Apply -RecentRunWindowHours "$vscode_recent_window_hours"; then
+        echo "[post-merge] Warning: VS Code user runtime cleanup could not be scheduled." >&2
+      else
+        echo "[post-merge] VS Code user runtime cleanup scheduled in background."
+      fi
+    elif ! pwsh -NoLogo -NoProfile -File ./scripts/runtime/clean-vscode-user-runtime.ps1 -Apply -RecentRunWindowHours "$vscode_recent_window_hours"; then
+      echo "[post-merge] Warning: VS Code user runtime cleanup failed." >&2
+    fi
+  fi
+
+  exit 0
+fi
+
+# Windows PowerShell fallback.
+if command -v powershell >/dev/null 2>&1; then
+  if ! powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\validation\\validate-all.ps1 -ValidationProfile release '-WarningOnly:$true'; then
+    echo "[post-merge] Warning: validation command failed." >&2
+  fi
+
+  if [ "${CODEX_SKIP_RUNTIME_PREFERENCES_APPLY:-0}" = "1" ]; then
+    echo "[post-merge] Runtime preferences apply skipped (CODEX_SKIP_RUNTIME_PREFERENCES_APPLY=1)."
+  else
+    echo "[post-merge] Applying safe Codex runtime preferences..."
+    if ! powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\runtime\\set-codex-runtime-preferences.ps1; then
+      echo "[post-merge] Warning: runtime preferences apply failed." >&2
+    fi
+  fi
+
+  if [ "${CODEX_SKIP_RUNTIME_CLEANUP:-0}" = "1" ]; then
+    echo "[post-merge] Runtime cleanup skipped (CODEX_SKIP_RUNTIME_CLEANUP=1)."
+  else
+    echo "[post-merge] Running runtime cleanup..."
+    cleanup_args="-Apply"
+    if [ "$include_sessions_cleanup" = "1" ]; then
+      cleanup_args="$cleanup_args -IncludeSessions"
+    fi
+
+    if ! powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\runtime\\clean-codex-runtime.ps1 $cleanup_args; then
+      echo "[post-merge] Warning: runtime cleanup failed." >&2
+    fi
+  fi
+
+  if [ "${CODEX_SKIP_VSCODE_RUNTIME_CLEANUP:-0}" = "1" ]; then
+    echo "[post-merge] VS Code user runtime cleanup skipped (CODEX_SKIP_VSCODE_RUNTIME_CLEANUP=1)."
+  else
+    echo "[post-merge] Running VS Code user runtime cleanup..."
+    if [ "$vscode_cleanup_background" = "1" ]; then
+      if ! run_background_cleanup powershell .\\scripts\\runtime\\clean-vscode-user-runtime.ps1 -Apply -RecentRunWindowHours "$vscode_recent_window_hours"; then
+        echo "[post-merge] Warning: VS Code user runtime cleanup could not be scheduled." >&2
+      else
+        echo "[post-merge] VS Code user runtime cleanup scheduled in background."
+      fi
+    elif ! powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\runtime\\clean-vscode-user-runtime.ps1 -Apply -RecentRunWindowHours "$vscode_recent_window_hours"; then
+      echo "[post-merge] Warning: VS Code user runtime cleanup failed." >&2
+    fi
+  fi
+
+  exit 0
+fi
+
+echo "[post-merge] Warning: PowerShell not found. Validation skipped." >&2
+exit 0

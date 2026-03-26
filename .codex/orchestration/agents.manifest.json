@@ -1,0 +1,158 @@
+{
+  "version": 1,
+  "owner": "copilot-instructions",
+  "defaults": {
+    "maxRetries": 1,
+    "timeoutMinutes": 30,
+    "approvalRequired": false
+  },
+  "agents": [
+    {
+      "id": "super-agent",
+      "displayName": "Super Agent",
+      "role": "planner",
+      "skill": "super-agent",
+      "model": "gpt-5",
+      "tools": ["read", "search", "plan", "route"],
+      "allowedPaths": [".github/**", ".codex/**", "planning/**", "scripts/**", "README.md", "CHANGELOG.md", "CONTRIBUTING.md"],
+      "blockedCommands": ["git reset --hard", "git checkout --"],
+      "budget": {
+        "maxSteps": 16,
+        "maxDurationMinutes": 15,
+        "maxFileEdits": 8,
+        "maxTokens": 45000
+      },
+      "fallbackAgentId": "planner",
+      "notes": "Normalizes the request and enforces the repository-owned lifecycle before planning starts."
+    },
+    {
+      "id": "brainstormer",
+      "displayName": "Brainstorm Spec Architect",
+      "role": "planner",
+      "skill": "brainstorm-spec-architect",
+      "model": "gpt-5",
+      "tools": ["read", "search", "plan", "route"],
+      "allowedPaths": [".github/**", ".codex/**", "planning/**", "scripts/**", "README.md", "CHANGELOG.md", "CONTRIBUTING.md"],
+      "blockedCommands": ["git reset --hard", "git checkout --"],
+      "budget": {
+        "maxSteps": 18,
+        "maxDurationMinutes": 20,
+        "maxFileEdits": 10,
+        "maxTokens": 55000
+      },
+      "fallbackAgentId": "planner",
+      "notes": "Creates or updates versioned design specs before execution planning when the workstream is non-trivial."
+    },
+    {
+      "id": "planner",
+      "displayName": "Plan Active Work Planner",
+      "role": "planner",
+      "skill": "plan-active-work-planner",
+      "model": "gpt-5",
+      "tools": ["read", "search", "plan"],
+      "allowedPaths": [".github/**", ".codex/**", "planning/**", "scripts/**", ".temp/**", "README.md", "CHANGELOG.md"],
+      "blockedCommands": ["git reset --hard", "git checkout --"],
+      "budget": {
+        "maxSteps": 20,
+        "maxDurationMinutes": 20,
+        "maxFileEdits": 12,
+        "maxTokens": 70000
+      },
+      "fallbackAgentId": "router",
+      "notes": "Creates or updates the active planning artifact and structured work plan."
+    },
+    {
+      "id": "router",
+      "displayName": "Context Token Optimizer",
+      "role": "router",
+      "skill": "context-token-optimizer",
+      "model": "gpt-5",
+      "tools": ["read", "search", "route"],
+      "allowedPaths": [".github/**", ".codex/**", "planning/**", "scripts/**", ".temp/**", "README.md", "CHANGELOG.md"],
+      "blockedCommands": ["git reset --hard", "git checkout --"],
+      "budget": {
+        "maxSteps": 15,
+        "maxDurationMinutes": 15,
+        "maxFileEdits": 8,
+        "maxTokens": 50000
+      },
+      "fallbackAgentId": "specialist",
+      "notes": "Builds the minimal context pack and recommends the specialist focus."
+    },
+    {
+      "id": "specialist",
+      "displayName": "Implementation Specialist",
+      "role": "specialist",
+      "skill": "dev-software-engineer",
+      "model": "gpt-5",
+      "tools": ["read", "search", "edit", "shell", "run-tests"],
+      "allowedPaths": ["src/**", "modules/**", "samples/**", "tests/**", "scripts/**", ".github/**", ".codex/**", ".temp/**", "README.md", "CHANGELOG.md"],
+      "blockedCommands": ["git reset --hard", "git checkout --"],
+      "approvalRequired": true,
+      "approvalInstructions": "Explicit approval is required before running the implement stage because this agent can edit repository files and execute shell commands.",
+      "budget": {
+        "maxSteps": 45,
+        "maxDurationMinutes": 50,
+        "maxFileEdits": 40,
+        "maxTokens": 180000
+      },
+      "fallbackAgentId": "tester",
+      "notes": "Executes planned work within scoped paths using the routed specialist focus."
+    },
+    {
+      "id": "tester",
+      "displayName": "Test Engineer",
+      "role": "tester",
+      "skill": "test-engineer",
+      "model": "gpt-5",
+      "tools": ["read", "search", "shell", "run-tests"],
+      "allowedPaths": ["tests/**", "src/**", "modules/**", "samples/**", "scripts/**", ".github/**", ".temp/**"],
+      "blockedCommands": ["git reset --hard", "git checkout --"],
+      "budget": {
+        "maxSteps": 25,
+        "maxDurationMinutes": 30,
+        "maxFileEdits": 20,
+        "maxTokens": 120000
+      },
+      "fallbackAgentId": "reviewer",
+      "notes": "Executes deterministic validation before final review."
+    },
+    {
+      "id": "reviewer",
+      "displayName": "Review Code Engineer",
+      "role": "reviewer",
+      "skill": "review-code-engineer",
+      "model": "gpt-5",
+      "tools": ["read", "search", "review"],
+      "allowedPaths": ["src/**", "modules/**", "samples/**", "planning/**", "scripts/**", ".github/**", ".codex/**", ".temp/**", "README.md", "CHANGELOG.md"],
+      "blockedCommands": ["git reset --hard", "git checkout --"],
+      "budget": {
+        "maxSteps": 20,
+        "maxDurationMinutes": 25,
+        "maxFileEdits": 10,
+        "maxTokens": 90000
+      },
+      "fallbackAgentId": "release-engineer",
+      "notes": "Performs final risk-focused review and release recommendation."
+    },
+    {
+      "id": "release-engineer",
+      "displayName": "Release Closeout Engineer",
+      "role": "release",
+      "skill": "release-closeout-engineer",
+      "model": "gpt-5",
+      "tools": ["read", "search", "edit", "summarize"],
+      "allowedPaths": [".github/**", ".codex/**", "planning/**", "scripts/**", ".temp/**", "README.md", "CHANGELOG.md", "CONTRIBUTING.md"],
+      "blockedCommands": ["git reset --hard", "git checkout --"],
+      "approvalRequired": true,
+      "approvalInstructions": "Explicit approval is required before running the closeout stage because this agent can rewrite README, CHANGELOG, and planning artifacts.",
+      "budget": {
+        "maxSteps": 20,
+        "maxDurationMinutes": 20,
+        "maxFileEdits": 15,
+        "maxTokens": 80000
+      },
+      "notes": "Consolidates README updates, changelog update payloads, commit guidance, and plan completion."
+    }
+  ]
+}

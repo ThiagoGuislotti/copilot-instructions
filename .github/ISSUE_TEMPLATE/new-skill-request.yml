@@ -1,0 +1,55 @@
+name: New Skill Request
+description: Propose a new Codex or Copilot skill/domain capability for the shared runtime.
+title: "[skill] "
+labels:
+  - enhancement
+  - skill
+  - triage
+body:
+  - type: input
+    id: skill_name
+    attributes:
+      label: Proposed skill name
+      placeholder: dev-database-performance-engineer
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Explain the recurring need or workflow gap.
+      placeholder: We repeatedly need a dedicated skill for ...
+    validations:
+      required: true
+  - type: textarea
+    id: triggers
+    attributes:
+      label: Trigger phrases or use cases
+      description: List the user intents that should activate this skill.
+      placeholder: |
+        - optimize SQL Server indexes
+        - analyze deadlocks
+        - tune database pooling
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies and references
+      description: Existing instructions, templates, scripts, or external docs this skill should reuse.
+      placeholder: |
+        .github/instructions/database-configuration-operations.instructions.md
+        scripts/security/Invoke-PreBuildSecurityGate.ps1
+    validations:
+      required: false
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Define what “done” means.
+      placeholder: |
+        - skill exists under .codex/skills/
+        - routing/instructions updated
+        - validation coverage updated
+    validations:
+      required: true

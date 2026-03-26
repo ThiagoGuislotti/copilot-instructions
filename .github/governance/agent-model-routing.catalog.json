@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "defaults": {
+    "fallbackModel": "gpt-5"
+  },
+  "rules": [
+    {
+      "id": "planning-stages-default",
+      "stageIds": ["intake", "spec", "plan"],
+      "model": "gpt-5",
+      "reason": "High-context planning stages stay on the strongest repository baseline."
+    },
+    {
+      "id": "execution-stages-default",
+      "stageIds": ["route", "implement", "review", "closeout"],
+      "model": "gpt-5",
+      "reason": "Execution and release stages currently stay on the existing stable model baseline until empirical eval data justifies a lower-cost route."
+    },
+    {
+      "id": "validation-stage-scripted",
+      "stageIds": ["validate"],
+      "model": "gpt-5",
+      "reason": "Validate is script-led today; the route is recorded for trace parity."
+    }
+  ]
+}

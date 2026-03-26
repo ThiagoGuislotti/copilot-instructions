@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "workspaceFileGlobs": [
+    "**/*.code-workspace"
+  ],
+  "templateWorkspacePaths": [
+    ".vscode/base.code-workspace"
+  ],
+  "allowedWorkspaceOverrideSettings": [
+    "git.autorefresh",
+    "chat.agent.maxRequests"
+  ],
+  "requiredSettings": {
+    "git.autofetch": false,
+    "git.detectWorktrees": false,
+    "git.detectSubmodules": false,
+    "files.exclude": {
+      "requiredKeys": [
+        "**/.git",
+        "**/.vs",
+        "**/TestResults",
+        "**/packages",
+        "**/BenchmarkDotNet.Artifacts",
+        "**/.sonarqube"
+      ]
+    },
+    "files.watcherExclude": {
+      "requiredKeys": [
+        "**/.git/**",
+        "**/.git/objects/**",
+        "**/.git/subtree-cache/**",
+        "**/.vs/**",
+        "**/TestResults/**",
+        "**/packages/**",
+        "**/node_modules/**",
+        "**/dist/**",
+        "**/build/**",
+        "**/BenchmarkDotNet.Artifacts/**",
+        "**/.sonarqube/**",
+        "**/target/**",
+        "**/bin/**",
+        "**/obj/**",
+        "**/coverage/**",
+        "**/.temp/**",
+        "**/artifacts/**",
+        "**/.next/**",
+        "**/.nuxt/**",
+        "**/.output/**",
+        "**/.turbo/**",
+        "**/.cache/**",
+        "**/.parcel-cache/**",
+        "**/.svelte-kit/**",
+        "**/.venv/**"
+      ]
+    },
+    "search.exclude": {
+      "requiredKeys": [
+        "**/.git",
+        "**/.vs",
+        "**/TestResults",
+        "**/packages",
+        "**/node_modules",
+        "**/dist",
+        "**/build",
+        "**/BenchmarkDotNet.Artifacts",
+        "**/.sonarqube",
+        "**/target",
+        "**/bin",
+        "**/obj",
+        "**/coverage",
+        "**/.temp",
+        "**/artifacts",
+        "**/.next",
+        "**/.nuxt",
+        "**/.output",
+        "**/.turbo",
+        "**/.cache",
+        "**/.parcel-cache",
+        "**/.svelte-kit",
+        "**/.venv"
+      ]
+    }
+  },
+  "forbiddenSettings": {
+    "git.openRepositoryInParentFolders": [
+      "always"
+    ]
+  },
+  "recommendedSettings": {
+    "extensions.autoUpdate": false,
+    "github.copilot.nextEditSuggestions.enabled": false,
+    "workbench.startupEditor": "welcomePage",
+    "chat.emptyState.history.enabled": false,
+    "chat.restoreLastPanelSession": false
+  },
+  "recommendedNumericUpperBounds": {
+    "scm.repositories.visible": 4,
+    "chat.agent.maxRequests": 100
+  },
+  "heuristics": {
+    "maxFolderCountWarning": 4,
+    "warnWhenMultipleProductFolders": true,
+    "warnWhenSupportFoldersMixedWithProductFolders": true,
+    "supportFolderPatterns": [
+      "(?i)(?:^|[\\\\/])\\.github$",
+      "(?i)(?:^|[\\\\/])\\.codex$",
+      "(?i)(?:^|[\\\\/])copilot-instructions$",
+      "(?i)AppData[\\\\/]Roaming[\\\\/]Code[\\\\/]User$"
+    ]
+  }
+}

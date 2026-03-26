@@ -1,0 +1,23 @@
+{
+  "id": "release-governance-baseline",
+  "description": "Required release governance files and validation scripts.",
+  "requiredFiles": [
+    "CHANGELOG.md",
+    "CODEOWNERS",
+    "CONTRIBUTING.md",
+    ".github/PULL_REQUEST_TEMPLATE.md",
+    ".github/ISSUE_TEMPLATE/config.yml",
+    ".github/ISSUE_TEMPLATE/bug-instructions.yml",
+    ".github/ISSUE_TEMPLATE/new-skill-request.yml",
+    ".github/ISSUE_TEMPLATE/runtime-sync-problem.yml",
+    ".github/ISSUE_TEMPLATE/validation-gap.yml",
+    ".github/governance/release-governance.md",
+    "scripts/validation/validate-release-governance.ps1",
+    ".github/workflows/validate-release-governance.yml",
+    "scripts/runtime/install.ps1"
+  ],
+  "requiredDirectories": [
+    ".github/governance",
+    ".github/ISSUE_TEMPLATE"
+  ]
+}

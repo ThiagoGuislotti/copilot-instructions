@@ -1,0 +1,44 @@
+{
+  "traceId": "run-20260322-0001",
+  "pipelineId": "default-dev-flow",
+  "startedAt": "2026-03-22T00:00:00Z",
+  "updatedAt": "2026-03-22T00:05:00Z",
+  "status": "success",
+  "stages": [
+    {
+      "stageId": "intake",
+      "agentId": "super-agent",
+      "status": "success",
+      "startedAt": "2026-03-22T00:00:00Z",
+      "finishedAt": "2026-03-22T00:01:00Z",
+      "durationMs": 60000,
+      "model": {
+        "effectiveModel": "gpt-5",
+        "source": "catalog-rule",
+        "ruleId": "planning-stages-default",
+        "reason": "High-context planning stages stay on the strongest repository baseline."
+      },
+      "policy": {
+        "warningCount": 0,
+        "blockCount": 0,
+        "evaluationCount": 0
+      },
+      "dispatch": {
+        "backend": "codex-exec",
+        "dispatchMode": "codex-exec",
+        "dispatchCount": 1
+      },
+      "checkpoint": {
+        "eligible": true,
+        "resumableFromStageId": "spec"
+      }
+    }
+  ],
+  "summary": {
+    "stageCount": 1,
+    "blockedPolicyCount": 0,
+    "warningPolicyCount": 0,
+    "totalDispatchCount": 1,
+    "totalDurationMs": 60000
+  }
+}

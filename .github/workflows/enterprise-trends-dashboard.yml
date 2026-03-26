@@ -1,0 +1,73 @@
+name: Enterprise Trends Dashboard
+
+on:
+  schedule:
+    - cron: "30 10 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: enterprise-trends-dashboard-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trends:
+    name: Export Enterprise Trends
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run validate-all (warning-only)
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -File ./scripts/validation/validate-all.ps1 `
+            -RepoRoot $PWD `
+            -ValidationProfile release `
+            -WarningOnly:$true `
+            -OutputPath ./.temp/audit/validate-all.latest.json
+
+      - name: Run pre-build security gate snapshot (warning-only)
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          pwsh -NoLogo -NoProfile -File ./scripts/security/Invoke-CiPreBuildSecuritySnapshot.ps1 `
+            -RepoRoot $PWD `
+            -WarningOnly:$true `
+            -AllowMissingCargoAudit
+
+      - name: Export trends artifacts
+        shell: pwsh
+        run: |
+          pwsh -NoLogo -NoProfile -File ./scripts/validation/export-enterprise-trends.ps1 `
+            -RepoRoot $PWD `
+            -WarningOnly:$true `
+            -OutputPath ./.temp/audit/enterprise-trends.latest.json `
+            -SummaryPath ./.temp/audit/enterprise-trends.latest.md
+
+      - name: Add trends summary to workflow run
+        if: always()
+        shell: bash
+        run: |
+          if [[ -f ".temp/audit/enterprise-trends.latest.md" ]]; then
+            cat .temp/audit/enterprise-trends.latest.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Enterprise trends summary file not found." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload trends artifacts
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: enterprise-trends-${{ github.run_id }}
+          path: |
+            .temp/audit/validate-all.latest.json
+            .temp/audit/enterprise-trends.latest.json
+            .temp/audit/enterprise-trends.latest.md
+            .temp/vulnerability-audit/
+          if-no-files-found: warn
+          retention-days: 30

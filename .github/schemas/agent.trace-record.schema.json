@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/agent.trace-record.schema.json",
+  "title": "Agent Trace Record",
+  "type": "object",
+  "required": ["traceId", "pipelineId", "startedAt", "updatedAt", "status", "stages", "summary"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "traceId": { "type": "string", "pattern": "^[a-zA-Z0-9-]{8,128}$" },
+    "pipelineId": { "type": "string", "pattern": "^[a-z0-9-]{2,64}$" },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "status": { "type": "string", "enum": ["running", "success", "failed", "partial"] },
+    "stages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["stageId", "agentId", "status", "durationMs", "model", "policy", "dispatch"],
+        "additionalProperties": false,
+        "properties": {
+          "stageId": { "type": "string", "pattern": "^[a-z0-9-]{2,64}$" },
+          "agentId": { "type": "string", "pattern": "^[a-z0-9-]{2,64}$" },
+          "status": { "type": "string", "enum": ["success", "failed", "skipped", "partial"] },
+          "startedAt": { "type": "string", "format": "date-time" },
+          "finishedAt": { "type": "string", "format": "date-time" },
+          "durationMs": { "type": "integer", "minimum": 0 },
+          "model": {
+            "type": "object",
+            "required": ["effectiveModel", "source"],
+            "additionalProperties": false,
+            "properties": {
+              "effectiveModel": { "type": "string", "minLength": 1 },
+              "source": { "type": "string", "minLength": 1 },
+              "ruleId": { "type": "string" },
+              "reason": { "type": "string" }
+            }
+          },
+          "policy": {
+            "type": "object",
+            "required": ["warningCount", "blockCount", "evaluationCount"],
+            "additionalProperties": false,
+            "properties": {
+              "warningCount": { "type": "integer", "minimum": 0 },
+              "blockCount": { "type": "integer", "minimum": 0 },
+              "evaluationCount": { "type": "integer", "minimum": 0 }
+            }
+          },
+          "dispatch": {
+            "type": "object",
+            "required": ["backend", "dispatchMode", "dispatchCount"],
+            "additionalProperties": false,
+            "properties": {
+              "backend": { "type": "string", "minLength": 1 },
+              "dispatchMode": { "type": "string", "minLength": 1 },
+              "dispatchCount": { "type": "integer", "minimum": 0 }
+            }
+          },
+          "checkpoint": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "eligible": { "type": "boolean" },
+              "resumableFromStageId": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["stageCount", "blockedPolicyCount", "warningPolicyCount", "totalDispatchCount", "totalDurationMs"],
+      "additionalProperties": false,
+      "properties": {
+        "stageCount": { "type": "integer", "minimum": 0 },
+        "blockedPolicyCount": { "type": "integer", "minimum": 0 },
+        "warningPolicyCount": { "type": "integer", "minimum": 0 },
+        "totalDispatchCount": { "type": "integer", "minimum": 0 },
+        "totalDurationMs": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

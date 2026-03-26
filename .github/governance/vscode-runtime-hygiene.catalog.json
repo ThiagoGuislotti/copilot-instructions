@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "description": "Safe VS Code user-runtime hygiene defaults that limit runaway Copilot Chat workspace state without trimming required execution context.",
+  "defaults": {
+    "workspaceStorageRetentionDays": 30,
+    "chatSessionRetentionDays": 14,
+    "chatEditingSessionRetentionDays": 7,
+    "transcriptRetentionDays": 14,
+    "historyRetentionDays": 30,
+    "settingsBackupRetentionDays": 30,
+    "maxChatSessionFileSizeMB": 128,
+    "maxCopilotWorkspaceIndexSizeMB": 1024,
+    "oversizedFileGraceHours": 12,
+    "recentRunWindowHours": 12
+  }
+}
