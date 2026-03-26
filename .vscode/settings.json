@@ -1,0 +1,485 @@
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+// VS CODE WORKSPACE SETTINGS
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+//
+// This file consolidates ALL VS Code workspace settings including:
+//   - Editor, terminal, workbench, and UI configurations
+//   - Git/SCM, GitHub, and remote development settings
+//   - Language-specific formatters and behaviors
+//   - Extensions and development tools
+//   - GitHub Copilot and AI Chat configurations
+//   - File references for Copilot instructions and custom modes
+//
+// Structure:
+//   Lines 1-320:   Core VS Code settings (editor, terminal, languages, etc.)
+//   Lines 321-490: GitHub Copilot & AI Chat (enable, chat modes, MCP, file references)
+//   Lines 491-end: Terminal auto-approve, telemetry, and extension-specific settings
+//
+// Copilot File References:
+//   Update paths to point to your %USERPROFILE%\.github folder structure:
+//   %USERPROFILE%\.github\
+//   ├── AGENTS.md
+//   ├── copilot-instructions.md
+//   ├── chatmodes\*.chatmode.md
+//   └── instructions\*.instructions.md
+//
+// ═══════════════════════════════════════════════════════════════════════════════════════════════
+{
+    // EDITOR - Basic editor settings
+    // https://code.visualstudio.com/docs/getstarted/settings#_editor
+    "editor.fontFamily": "'Cascadia Code PL', Consolas, 'Courier New', monospace",
+    "editor.fontSize": 13,
+    "editor.formatOnSave": false,
+    "editor.stickyScroll.enabled": false,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.renderWhitespace": "none",
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": true,
+    "editor.minimap.enabled": true,
+    "editor.minimap.maxColumn": 120,
+    "editor.rulers": [
+        {
+            "column": 100,
+            "color": "#09ff0033",
+            "lineStyle": "dashed"
+        },
+        {
+            "column": 170,
+            "color": "#ff00004d",
+            "lineStyle": "dashed"
+        },
+        {
+            "column": 175,
+            "color": "#ffee0050",
+            "lineStyle": "dashed"
+        }
+    ],
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.wordWrapColumn": 160,
+    "editor.trimAutoWhitespace": true,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": true,
+    "editor.suggestSelection": "first",
+    "editor.acceptSuggestionOnCommitCharacter": false,
+    "editor.acceptSuggestionOnEnter": "on",
+    "editor.tabCompletion": "on",
+    "editor.parameterHints.enabled": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    },
+
+    // DIFF EDITOR - File diff editor
+    // https://code.visualstudio.com/docs/editor/versioncontrol#_viewing-diffs
+    "diffEditor.codeLens": true,
+    "diffEditor.ignoreTrimWhitespace": false,
+
+    // INTEGRATED TERMINAL - Internal terminal settings
+    // https://code.visualstudio.com/docs/terminal/basics
+    "terminal.integrated.shellIntegration.enabled": true,
+    "terminal.integrated.shellIntegration.decorationsEnabled": "both",
+    "terminal.integrated.shellIntegration.showCommandGuide": true,
+    "terminal.integrated.gpuAcceleration": "auto",
+    "terminal.integrated.cursorStyle": "block",
+    "terminal.integrated.fontSize": 12,
+    "terminal.integrated.fontFamily": "MesloLGM Nerd Font",
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "terminal.integrated.profiles.windows": {},
+    "terminal.integrated.defaultProfile.osx": "zsh",
+    "terminal.integrated.defaultProfile.linux": "zsh",
+    "terminal.integrated.profiles.linux": {
+        "zsh": {
+            "path": "/usr/bin/zsh",
+            "args": ["-l"]
+        }
+    },
+    "terminal.integrated.ignoreProcessNames": ["oh-my-posh", "bash", "zsh"],
+
+    // WORKBENCH - General VS Code interface
+    // https://code.visualstudio.com/docs/getstarted/userinterface
+    "workbench.editor.pinnedTabsOnSeparateRow": true,
+    "workbench.iconTheme": "material-icon-theme",
+    "workbench.activityBar.location": "default",
+    "workbench.settings.enableNaturalLanguageSearch": true,
+    "workbench.tree.renderIndentGuides": "always",
+    "workbench.tree.indent": 20,
+
+    // EXPLORER & FILES - File management and explorer
+    // https://code.visualstudio.com/docs/getstarted/userinterface#_explorer
+    "explorer.compactFolders": false,
+    "explorer.confirmDelete": false,
+    "explorer.confirmDragAndDrop": false,
+    "explorer.sortOrder": "type",
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.expand": false,
+    "files.encoding": "utf8",
+    "files.autoGuessEncoding": false,
+    "files.eol": "\n",
+    "files.insertFinalNewline": false,
+    "files.associations": {
+        // Makefiles
+        "Makefile.*": "makefile",
+        // Markdown
+        "*.md*": "markdown",
+        // Configuration Files
+        "*.jsonc": "jsonc",
+        "*.json5": "jsonc",
+        "*.yml": "yaml",
+        "*.yaml": "yaml",
+        "*.toml": "toml",
+        // Programming Languages
+        "*.js": "javascript",
+        "*.jsx": "javascriptreact",
+        "*.ts": "typescript",
+        "*.tsx": "typescriptreact",
+        "*.go": "go",
+        "*.cs": "csharp",
+        "*.html": "html",
+        "*.css": "css",
+        "*.scss": "scss",
+        "*.less": "less",
+        "*.py": "python",
+        "*.rb": "ruby",
+        "*.java": "java",
+        "*.php": "php",
+        "*.rs": "rust",
+        "*.cpp": "cpp",
+        "*.c": "c",
+        "*.h": "cpp",
+        "*.hpp": "cpp",
+        "*.swift": "swift"
+    },
+    "files.exclude": {
+        "**/.git": false
+    },
+
+    // PERFORMANCE - Performance optimizations and exclusions
+    // https://code.visualstudio.com/docs/setup/setup-overview#_advanced-functionality
+    "files.watcherExclude": {
+        "**/node_modules/**": true,
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/dist/**": true,
+        "**/build/**": true,
+        "**/.bloop": true,
+        "**/.metals": true,
+        "**/target/**": true,
+        "**/.next/**": true,
+        "**/bin/**": true,
+        "**/obj/**": true,
+        "**/.venv/**": true
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/build": true,
+        "**/.next": true,
+        "**/coverage": true,
+        "**/bin/**": true,
+        "**/obj/**": true,
+        "**/.venv/**": true
+    },
+
+    // VERSION CONTROL (GIT) - Integrated Git settings
+    // https://code.visualstudio.com/docs/sourcecontrol/overview
+    "git.enableSmartCommit": true,
+    "git.autofetch": true,
+    "git.openRepositoryInParentFolders": "always",
+    "git.confirmSync": false,
+    "git.decorations.enabled": true,
+    "git.showPushSuccessNotification": true,
+    "git.allowForcePush": false,
+    "git.branchProtection": ["main", "master", "develop"],
+    "git.detectWorktrees": true,
+    "git.enabled": true,
+    "git.autorefresh": true,
+    "git.detectSubmodules": true,
+    "git.detectSubmodulesLimit": 10,
+    "scm.repositories.visible": 10,
+    "scm.defaultViewMode": "tree",
+    "scm.defaultViewSortKey": "name",
+    "scm.repositories.sortOrder": "discovery time",
+
+    // GITHUB - GitHub integration
+    // https://code.visualstudio.com/docs/sourcecontrol/github
+    "github.gitProtocol": "ssh",
+
+    // REMOTE DEVELOPMENT - SSH, WSL and Remote Development
+    // https://code.visualstudio.com/docs/remote/remote-overview
+    "remote.WSL.useShellEnvironment": true,
+    "remote.autoForwardPortsSource": "hybrid",
+    "remote.extensionKind": {
+        "alefragnani.project-manager": ["workspace", "ui"],
+        "GitHub.copilot": ["workspace", "ui"],
+        "GitHub.copilot-chat": ["workspace", "ui"],
+        "GitHub.vscode-pull-request-github": ["workspace", "ui"],
+        "ms-vscode-remote.remote-ssh": ["ui"],
+        "esbenp.prettier-vscode": ["workspace"],
+        "ms-dotnettools.csharp": ["workspace"],
+        "golang.go": ["workspace"]
+    },
+
+    // EXTENSIONS - Extension management
+    // https://code.visualstudio.com/docs/editor/extension-marketplace
+    "extensions.autoUpdate": true,
+    "extensions.ignoreRecommendations": false,
+
+    // FORMATTERS - Specific formatter settings
+    // https://prettier.io/docs/en/configuration.html
+    "prettier.endOfLine": "lf",
+    "prettier.trailingComma": "es5",
+
+    // LANGUAGE SETTINGS - Formatters and specific behaviors
+    // https://code.visualstudio.com/docs/languages/overview
+
+    // Go
+    "[go]": {
+        "editor.insertSpaces": false,
+        "editor.formatOnSave": true,
+        "editor.tabSize": 4,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "always"
+        }
+    },
+
+    // C#
+    "csharp.preview.improvedLaunchExperience": true,
+    "[csharp]": {
+        "files.encoding": "utf8",
+        "editor.defaultFormatter": "ms-dotnettools.csharp"
+    },
+
+    // JavaScript / TypeScript
+    "[javascript]": {
+        "files.encoding": "utf8",
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescript]": {
+        "files.encoding": "utf8",
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+
+    // Web Technologies
+    "[html]": {
+        "files.encoding": "utf8",
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[css]": {
+        "files.encoding": "utf8",
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[scss]": {
+        "files.encoding": "utf8",
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[vue]": {
+        "files.encoding": "utf8",
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+
+    // Configuration Files
+    "[json]": {
+        "files.encoding": "utf8",
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[yaml]": {
+        "files.encoding": "utf8",
+        "editor.defaultFormatter": "redhat.vscode-yaml",
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2
+    },
+
+    // Documentation
+    "[markdown]": {
+        "files.encoding": "utf8",
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.wordWrap": "wordWrapColumn",
+        "editor.wordWrapColumn": 160,
+        "files.insertFinalNewline": false,
+        "editor.formatOnSave": false
+    },
+
+    // DEVELOPMENT TOOLS - ESLint, Copilot, Makefile and other tools
+    // https://code.visualstudio.com/docs/languages/javascript#_linters
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact",
+        "typescript",
+        "typescriptreact",
+        "vue",
+        "html"
+    ],
+
+    // ═══════════════════════════════════════════════════════════════════════════════════════════════
+    // COPILOT & AI CHAT CONFIGURATION
+    // ═══════════════════════════════════════════════════════════════════════════════════════════════
+    // Consolidated GitHub Copilot, AI Chat, and file reference settings.
+    // Update paths below to point to your %USERPROFILE%\.github folder structure.
+    // ═══════════════════════════════════════════════════════════════════════════════════════════════
+
+    // Copilot Enable Settings
+    // https://code.visualstudio.com/docs/copilot/overview
+    "github.copilot.enable": {
+        "*": true,
+        "plaintext": false,
+        "markdown": true,
+        "scminput": false
+    },
+    "github.copilot.advanced": {},
+    "github.copilot.chat.localeOverride": "pt-br",
+    "github.copilot.nextEditSuggestions.enabled": true,
+    "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+
+    // Chat & AI Configuration
+    "chat.agent.maxRequests": 1000,
+    "chat.useAgentsMdFile": true,
+    "chat.useNestedAgentsMdFiles": false,
+    "chat.mcp.gallery.enabled": true,
+
+    // Chat instruction file locations - Folders containing .md instruction files
+    // https://code.visualstudio.com/docs/copilot/customization
+    "chat.instructionsFilesLocations": {
+        "C:\\Users\\tguis\\.github": true,
+        "C:\\Users\\tguis\\.github\\instructions": true,
+        "C:\\Users\\tguis\\.github\\templates": true,
+        "C:\\Users\\tguis\\.github\\chatmodes": true,
+        "C:\\Users\\tguis\\.github\\prompts": true,
+        "C:\\Users\\tguis\\.github\\scripts": true,
+        "C:\\Users\\tguis\\.aitk\\instructions\\": true
+    },
+
+    // Copilot Custom Instructions - File references for code review, commits, and PRs
+    // https://code.visualstudio.com/docs/copilot/customization/custom-instructions
+    "github.copilot.chat.reviewSelection.instructions": [
+        { "file": "C:\\Users\\tguis\\.github\\AGENTS.md" },
+        { "file": "C:\\Users\\tguis\\.github\\copilot-instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\workflow-optimization.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\ai-orchestration.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\powershell-execution.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\dotnet-csharp.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\clean-architecture-code.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\backend.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\frontend.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\vue-quasar.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\vue-quasar-architecture.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\ui-ux.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\database.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\orm.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\microservices-performance.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\static-analysis-sonarqube.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\docker.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\k8s.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\ci-cd-devops.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\e2e-testing.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\rust-code-organization.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\rust-testing.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\readme.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\feedback-changelog.instructions.md" },
+        { "text": "Code suggestions must follow Clean Architecture: separation of concerns, dependency inversion, maintainability, readability and simplicity." }
+    ],
+    "github.copilot.chat.commitMessageGeneration.instructions": [
+        { "file": "C:\\Users\\tguis\\.github\\AGENTS.md" },
+        { "file": "C:\\Users\\tguis\\.github\\copilot-instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\pr.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\prompt-templates.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\readme.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\feedback-changelog.instructions.md" },
+        { "text": "Commit messages: Conventional Commits (feat, fix, docs, refactor, test, chore), English, imperative mood, max 72 chars." }
+    ],
+    "github.copilot.chat.pullRequestDescriptionGeneration.instructions": [
+        { "file": "C:\\Users\\tguis\\.github\\AGENTS.md" },
+        { "file": "C:\\Users\\tguis\\.github\\copilot-instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\pr.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\readme.instructions.md" },
+        { "file": "C:\\Users\\tguis\\.github\\instructions\\feedback-changelog.instructions.md" },
+        { "text": "PR description must include: Context, Changes, Rationale, Risks, Testing, Docs, Breaking Changes, Migration." }
+    ],
+
+    // ═══════════════════════════════════════════════════════════════════════════════════════════════
+    // END COPILOT & AI CHAT CONFIGURATION
+    // ═══════════════════════════════════════════════════════════════════════════════════════════════
+
+    // Terminal Auto-Approve - Safe commands for multi-language development
+    "chat.tools.terminal.autoApprove": {
+        // .NET Commands
+        "dotnet build": true,
+        "dotnet restore": true,
+        "dotnet test": true,
+        "dotnet run": true,
+        "dotnet clean": true,
+        
+        // Node.js / npm / pnpm / yarn
+        "npm install": true,
+        "npm i": true,
+        "npm init": true,
+        "npm run dev": true,
+        "npm run build": true,
+        "npm run test": true,
+        "npm run test:run": true,
+        "npm run test:coverage": true,
+        "npm run lint": true,
+        "npm run format": true,
+        "pnpm install": true,
+        "pnpm dev": true,
+        "pnpm build": true,
+        "pnpm test": true,
+        "yarn install": true,
+        "yarn dev": true,
+        "yarn build": true,
+        "yarn test": true,
+        "npx": true,
+        
+        // Vue / Quasar / Vite
+        "vite": true,
+        "vite build": true,
+        "vite preview": true,
+        "quasar dev": true,
+        "quasar build": true,
+        "quasar clean": true,
+        "quasar inspect": true,
+        "vue-cli-service serve": true,
+        "vue-cli-service build": true,
+        
+        // Rust Commands
+        "cargo build": true,
+        "cargo run": true,
+        "cargo test": true,
+        "cargo check": true,
+        "cargo clean": true,
+        "cargo clippy": true,
+        "cargo fmt": true,
+        
+        // Clojure Commands
+        "clojure": true,
+        "clj": true,
+        "lein test": true,
+        "lein run": true,
+        
+        // PowerShell Cmdlets
+        "Copy-Item": true,
+        "Move-Item": true,
+        "mv": true,
+        "New-Item": true,
+        "Out-File": true,
+        "Out-Null": true,
+        "Test-Path": true,
+        "Push-Location": true,
+        "Pop-Location": true,
+        "ForEach-Object": true,
+        "Set-Content": true,
+        "Get-Content": true,
+        "Remove-Item": true,
+        "rm": true,
+        "taskkill": true,
+        "$null": true,
+        "$content": true,
+        "Expression={[math]::Round($_.Length/1MB,2)}}": true
+    },
+
+    // TELEMETRY & PRIVACY - Privacy and data collection settings
+    // https://code.visualstudio.com/docs/getstarted/telemetry
+    "telemetry.telemetryLevel": "off",
+    "redhat.telemetry.enabled": false,
+
+    // SPECIFIC EXTENSIONS - Installed extension settings
+    // https://code.visualstudio.com/docs/editor/extension-marketplace#_extension-details
+}
