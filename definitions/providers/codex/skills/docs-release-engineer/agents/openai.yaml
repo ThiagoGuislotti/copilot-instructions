@@ -1,0 +1,6 @@
+interface:
+  display_name: "Docs Release Engineer"
+  short_description: "Create release-ready docs and changelog artifacts."
+  default_prompt: "Use $docs-release-engineer to produce this documentation update with correct repository structure."
+policy:
+  allow_implicit_invocation: true

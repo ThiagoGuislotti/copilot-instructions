@@ -1,0 +1,48 @@
+{
+  "permissions": {
+    "allow": [
+      "Edit(/.claude/skills/core-runtime-sync/**)",
+      "Edit(/.claude/skills/worktree-isolation-engineer/**)",
+      "Bash(grep -E '\\\\.\\(js|ts\\)$')"
+    ]
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "checkpoint|compress context|update plan|show status|show progress|resume from summary",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoLogo -NoProfile -Command \"Write-Host '--- Context Economy Command Detected ---' -ForegroundColor Cyan; Write-Host 'Execute: .github/instructions/context-economy-checkpoint.instructions.md' -ForegroundColor Yellow\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoLogo -NoProfile -Command \"Write-Host '--- Super Agent Closeout Reminder ---' -ForegroundColor Cyan; Write-Host 'If this session was change-bearing:' -ForegroundColor Yellow; Write-Host '  1. Suggest a commit message' -ForegroundColor White; Write-Host '  2. Update planning/active/ plan status' -ForegroundColor White; Write-Host '  3. Update CHANGELOG.md if release-worthy' -ForegroundColor White; Write-Host '  4. Move spec/plan to completed/ when materially finished' -ForegroundColor White\""
+          },
+          {
+            "type": "command",
+            "command": "pwsh -NoLogo -NoProfile -Command \"$exportScript = Join-Path $PWD 'scripts/runtime/export-planning-summary.ps1'; $activePlans = @(Get-ChildItem 'planning/active/*.md' -ErrorAction SilentlyContinue | Where-Object { $_.Name -notmatch 'README' }); if ((Test-Path $exportScript -PathType Leaf) -and $activePlans.Count -gt 0) { Write-Host '' ; Write-Host '--- Active Planning Context ---' -ForegroundColor Cyan; & $exportScript -PrintOnly }\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoLogo -NoProfile -Command \"$input = $env:CLAUDE_TOOL_INPUT; if ($input -match 'git commit') { Write-Host '--- Post-Commit Reminder ---' -ForegroundColor Cyan; Write-Host 'Run post-commit sync if runtime assets changed:' -ForegroundColor Yellow; Write-Host '  pwsh -File scripts/runtime/install.ps1 -Profile github' -ForegroundColor White }\""
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,57 @@
+# Docker Compose template following NetToolsKit patterns
+# Use: [SERVICE_NAME] = service name (ex: rent-service)
+# Use: [PROJECT_NAME] = project name (ex: Rent.Service)
+# Use: [DATABASE_TYPE] = postgres, sqlserver, mongo, etc.
+# Use: [DOCUMENTATION_LINK] = URL or comment with service documentation
+# Use: [SERVICE_HEALTHCHECK] = specific command to check service health
+# Use: [VOLUME_PATH] = internal container path for volume (ex: /app/logs, /data)
+# Use: [NETWORK_NAME] = Docker network name (ex: app-network, rent-network)
+# Use: [CONNECTION_STRING] = complete database connection string
+# Use: [DEPENDENCY_SERVICE_NAME] = dependent service name
+
+version: '3.8'
+
+services:
+
+  [SERVICE_NAME]:
+    # [DOCUMENTATION_LINK]
+    image: [SERVICE_NAME]:latest
+    hostname: [SERVICE_NAME]
+    container_name: [SERVICE_NAME]-${COMPOSE_PROJECT_NAME}
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: "1GB"
+        reservations:
+          cpus: "0.5"
+          memory: "256MB"
+    networks:
+      - [NETWORK_NAME]
+    healthcheck:
+      test: [SERVICE_HEALTHCHECK]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    ports:
+      - "8080:8080"
+    volumes:
+      - [SERVICE_NAME]-data:[VOLUME_PATH]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "[CONNECTION_STRING]"
+    depends_on:
+      [DEPENDENCY_SERVICE_NAME]:
+        condition: service_healthy
+
+networks:
+  [NETWORK_NAME]:
+    name: [NETWORK_NAME]
+    driver: bridge
+
+volumes:
+  # Application volumes
+  [SERVICE_NAME]-data:
+    name: [SERVICE_NAME]-data

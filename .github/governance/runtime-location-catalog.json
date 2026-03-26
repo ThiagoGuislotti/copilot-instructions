@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "settings": {
+    "userOverrideRelativePath": ".codex/runtime-location-settings.json"
+  },
+  "paths": {
+    "githubRuntimeRoot": "${HOME}/.github",
+    "codexRuntimeRoot": "${HOME}/.codex",
+    "agentsSkillsRoot": "${HOME}/.agents/skills",
+    "copilotSkillsRoot": "${HOME}/.copilot/skills",
+    "codexGitHooksRoot": "${HOME}/.codex/git-hooks",
+    "claudeRuntimeRoot": "${HOME}/.claude"
+  }
+}

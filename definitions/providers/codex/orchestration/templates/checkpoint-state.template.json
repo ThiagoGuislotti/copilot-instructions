@@ -1,0 +1,32 @@
+{
+  "traceId": "run-20260322-0001",
+  "pipelineId": "default-dev-flow",
+  "startedAt": "2026-03-22T00:00:00Z",
+  "updatedAt": "2026-03-22T00:04:00Z",
+  "status": "running",
+  "lastSuccessfulStageId": "plan",
+  "resumableFromStageId": "route",
+  "stages": [
+    {
+      "stageId": "intake",
+      "stageIndex": 0,
+      "status": "success",
+      "checkpointEligible": true,
+      "updatedAt": "2026-03-22T00:01:00Z"
+    },
+    {
+      "stageId": "spec",
+      "stageIndex": 1,
+      "status": "success",
+      "checkpointEligible": true,
+      "updatedAt": "2026-03-22T00:02:00Z"
+    },
+    {
+      "stageId": "plan",
+      "stageIndex": 2,
+      "status": "success",
+      "checkpointEligible": true,
+      "updatedAt": "2026-03-22T00:04:00Z"
+    }
+  ]
+}

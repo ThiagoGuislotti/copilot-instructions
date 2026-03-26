@@ -1,0 +1,271 @@
+{
+  "cases": [
+    {
+      "id": "dotnet-backend-route",
+      "request": "Create a new ASP.NET API endpoint using CQRS and MediatR.",
+      "expected_route_ids": [
+        "dotnet-backend"
+      ],
+      "expected_selected_paths": [
+        "instructions/dotnet-csharp.instructions.md",
+        "instructions/clean-architecture-code.instructions.md",
+        "instructions/backend.instructions.md"
+      ]
+    },
+    {
+      "id": "dotnet-unit-tests-route",
+      "request": "Generate xunit unit tests with AAA and nsubstitute for this handler.",
+      "expected_route_ids": [
+        "dotnet-testing-unit"
+      ],
+      "expected_selected_paths": [
+        "instructions/dotnet-csharp.instructions.md",
+        "instructions/backend.instructions.md"
+      ]
+    },
+    {
+      "id": "frontend-vue-route",
+      "request": "Build a Vue Quasar frontend component with responsive UI and i18n support.",
+      "expected_route_ids": [
+        "frontend-vue"
+      ],
+      "expected_selected_paths": [
+        "instructions/frontend.instructions.md",
+        "instructions/vue-quasar.instructions.md",
+        "instructions/vue-quasar-architecture.instructions.md",
+        "instructions/ui-ux.instructions.md"
+      ]
+    },
+    {
+      "id": "powershell-route",
+      "request": "Refactor this pwsh script and keep .ps1 execution safety.",
+      "expected_route_ids": [
+        "powershell"
+      ],
+      "expected_selected_paths": [
+        "instructions/powershell-execution.instructions.md",
+        "instructions/powershell-script-creation.instructions.md"
+      ]
+    },
+    {
+      "id": "github-meta-route",
+      "request": "Update .github instruction prompt template for repository guidance.",
+      "expected_route_ids": [
+        "github-meta"
+      ],
+      "expected_selected_paths": [
+        "instructions/copilot-instruction-creation.instructions.md",
+        "instructions/prompt-templates.instructions.md"
+      ]
+    },
+    {
+      "id": "changelog-route",
+      "request": "Generate changelog release notes with semver versioning.",
+      "expected_route_ids": [
+        "changelog"
+      ],
+      "expected_selected_paths": [
+        "instructions/feedback-changelog.instructions.md"
+      ]
+    },
+    {
+      "id": "database-orm-route",
+      "request": "Design database migration using ef core dbcontext and repository.",
+      "expected_route_ids": [
+        "database-orm"
+      ],
+      "expected_selected_paths": [
+        "instructions/database.instructions.md",
+        "instructions/orm.instructions.md",
+        "instructions/database-configuration-operations.instructions.md"
+      ]
+    },
+    {
+      "id": "devops-containers-route",
+      "request": "Create dockerfile kubernetes helm and pipeline workflow baseline.",
+      "expected_route_ids": [
+        "devops-containers"
+      ],
+      "expected_selected_paths": [
+        "instructions/workflow-generation.instructions.md",
+        "instructions/docker.instructions.md",
+        "instructions/k8s.instructions.md",
+        "instructions/ci-cd-devops.instructions.md"
+      ]
+    },
+    {
+      "id": "dotnet-solution-build-route",
+      "request": "Run dotnet build dotnet test for solution sln with net8 and net9 target frameworks.",
+      "expected_route_ids": [
+        "dotnet-solution-build"
+      ],
+      "expected_selected_paths": [
+        "instructions/dotnet-csharp.instructions.md"
+      ]
+    },
+    {
+      "id": "dotnet-integration-e2e-route",
+      "request": "Create integration test with testcontainers and playwright for end-to-end validation.",
+      "expected_route_ids": [
+        "dotnet-testing-integration-e2e"
+      ],
+      "expected_selected_paths": [
+        "instructions/e2e-testing.instructions.md",
+        "instructions/backend.instructions.md"
+      ]
+    },
+    {
+      "id": "quality-static-analysis-route",
+      "request": "Run sonarqube static analysis lint and enforce quality gate.",
+      "expected_route_ids": [
+        "quality-static-analysis"
+      ],
+      "expected_selected_paths": [
+        "instructions/static-analysis-sonarqube.instructions.md"
+      ]
+    },
+    {
+      "id": "security-vulnerabilities-route",
+      "request": "Review API, frontend, backend, and database vulnerabilities using OWASP and modern security standards.",
+      "expected_route_ids": [
+        "security-vulnerabilities"
+      ],
+      "expected_selected_paths": [
+        "instructions/security-vulnerabilities.instructions.md"
+      ]
+    },
+    {
+      "id": "observability-sre-route",
+      "request": "Define SLO and SLI with OpenTelemetry and burn rate alerts for incident response.",
+      "expected_route_ids": [
+        "observability-sre"
+      ],
+      "expected_selected_paths": [
+        "instructions/observability-sre.instructions.md",
+        "instructions/backend.instructions.md",
+        "instructions/microservices-performance.instructions.md"
+      ]
+    },
+    {
+      "id": "api-high-performance-security-route",
+      "request": "Tune p99 latency budget with rate limit throttling, throughput targets, and idempotency key controls.",
+      "expected_route_ids": [
+        "api-high-performance-security"
+      ],
+      "expected_selected_paths": [
+        "instructions/api-high-performance-security.instructions.md",
+        "instructions/backend.instructions.md",
+        "instructions/security-vulnerabilities.instructions.md",
+        "instructions/dotnet-csharp.instructions.md"
+      ]
+    },
+    {
+      "id": "data-privacy-compliance-route",
+      "request": "Apply privacy by design with LGPD, GDPR, PII masking, and data retention controls.",
+      "expected_route_ids": [
+        "data-privacy-compliance"
+      ],
+      "expected_selected_paths": [
+        "instructions/data-privacy-compliance.instructions.md",
+        "instructions/security-vulnerabilities.instructions.md",
+        "instructions/database.instructions.md",
+        "instructions/backend.instructions.md"
+      ]
+    },
+    {
+      "id": "platform-reliability-resilience-route",
+      "request": "Plan resilience with chaos engineering, fault injection, graceful degradation, and RTO RPO validation.",
+      "expected_route_ids": [
+        "platform-reliability-resilience"
+      ],
+      "expected_selected_paths": [
+        "instructions/platform-reliability-resilience.instructions.md",
+        "instructions/microservices-performance.instructions.md",
+        "instructions/ci-cd-devops.instructions.md",
+        "instructions/k8s.instructions.md"
+      ]
+    },
+    {
+      "id": "rust-route",
+      "request": "Run cargo test and improve rust crate organization.",
+      "expected_route_ids": [
+        "rust"
+      ],
+      "expected_selected_paths": [
+        "instructions/rust-code-organization.instructions.md",
+        "instructions/rust-testing.instructions.md"
+      ]
+    },
+    {
+      "id": "docs-nuget-route",
+      "request": "Create a README for NuGet package installation with quick start and API reference.",
+      "expected_route_ids": [
+        "docs-readme-nuget-library",
+        "docs-readme",
+        "docs-readme-app-sample"
+      ],
+      "expected_selected_paths": [
+        "instructions/readme.instructions.md",
+        "instructions/nettoolskit-rules.instructions.md"
+      ]
+    },
+    {
+      "id": "developer-workspace-route",
+      "request": "Create an efficient VS Code workspace for Codex and Copilot with optimized workspace settings.",
+      "expected_route_ids": [
+        "developer-workspace"
+      ],
+      "expected_selected_paths": [
+        "instructions/vscode-workspace-efficiency.instructions.md"
+      ]
+    },
+    {
+      "id": "planning-spec-route",
+      "request": "Brainstorm the design decisions and create a versioned planning spec for this workstream before implementation.",
+      "expected_route_ids": [
+        "planning-spec"
+      ],
+      "expected_selected_paths": [
+        "instructions/brainstorm-spec-workflow.instructions.md",
+        "instructions/subagent-planning-workflow.instructions.md"
+      ]
+    },
+    {
+      "id": "super-agent-workflow-route",
+      "request": "Create an isolated worktree, use TDD, and verify before completion while preparing safe parallel dispatch.",
+      "expected_route_ids": [
+        "super-agent-workflow"
+      ],
+      "expected_selected_paths": [
+        "instructions/worktree-isolation.instructions.md",
+        "instructions/tdd-verification.instructions.md"
+      ]
+    },
+    {
+      "id": "artifact-layout-route",
+      "request": "Standardize build artifact hygiene and move generated outputs into .build and deployment-ready publish outputs into .deployment.",
+      "expected_route_ids": [
+        "artifact-layout"
+      ],
+      "expected_selected_paths": [
+        "instructions/artifact-layout.instructions.md"
+      ]
+    },
+    {
+      "id": "context-economy-route",
+      "request": "Update plan, show progress, and resume from summary after compress context.",
+      "expected_route_ids": [
+        "context-economy"
+      ],
+      "expected_selected_paths": [
+        "instructions/context-economy-checkpoint.instructions.md"
+      ]
+    },
+    {
+      "id": "no-match-route",
+      "request": "Tell me a random joke.",
+      "expected_route_ids": [],
+      "expected_selected_paths": []
+    }
+  ]
+}

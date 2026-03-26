@@ -1,0 +1,394 @@
+{
+  "$schema": "../schemas/provider-surface-projection.catalog.schema.json",
+  "version": 1,
+  "renderers": [
+    {
+      "id": "github-instruction-surfaces",
+      "scriptPath": "scripts/runtime/render-github-instruction-surfaces.ps1",
+      "description": "Render the repository-managed GitHub instruction/runtime surface from definitions.",
+      "consumers": {
+        "bootstrap": { "enabled": true, "order": 10, "condition": "always" },
+        "direct": { "enabled": true, "order": 10 }
+      }
+    },
+    {
+      "id": "vscode-profile-surfaces",
+      "scriptPath": "scripts/runtime/render-vscode-profile-surfaces.ps1",
+      "description": "Render the repository-managed VS Code profile surface from definitions.",
+      "consumers": {
+        "bootstrap": { "enabled": true, "order": 20, "condition": "always" },
+        "direct": { "enabled": true, "order": 20 }
+      }
+    },
+    {
+      "id": "vscode-workspace-surfaces",
+      "scriptPath": "scripts/runtime/render-vscode-workspace-surfaces.ps1",
+      "description": "Render the repository-managed VS Code workspace-authored surface from definitions.",
+      "consumers": {
+        "bootstrap": { "enabled": true, "order": 30, "condition": "always" },
+        "direct": { "enabled": true, "order": 30 }
+      }
+    },
+    {
+      "id": "codex-compatibility-surfaces",
+      "scriptPath": "scripts/runtime/render-codex-compatibility-surfaces.ps1",
+      "description": "Render authored Codex compatibility docs/templates/wrappers from definitions.",
+      "consumers": {
+        "bootstrap": { "enabled": true, "order": 40, "condition": "codex" },
+        "direct": { "enabled": true, "order": 40 }
+      }
+    },
+    {
+      "id": "codex-skill-surfaces",
+      "scriptPath": "scripts/runtime/render-provider-skill-surfaces.ps1",
+      "description": "Render Codex skill surfaces from definitions.",
+      "defaultArgs": {
+        "Provider": ["codex"]
+      },
+      "consumers": {
+        "bootstrap": { "enabled": true, "order": 50, "condition": "codex" },
+        "direct": { "enabled": true, "order": 50 }
+      }
+    },
+    {
+      "id": "codex-orchestration-surfaces",
+      "scriptPath": "scripts/runtime/render-codex-orchestration-surfaces.ps1",
+      "description": "Render Codex orchestration surfaces from definitions.",
+      "consumers": {
+        "bootstrap": { "enabled": true, "order": 60, "condition": "codex" },
+        "direct": { "enabled": true, "order": 60 }
+      }
+    },
+    {
+      "id": "claude-runtime-surfaces",
+      "scriptPath": "scripts/runtime/render-claude-runtime-surfaces.ps1",
+      "description": "Render Claude runtime settings from definitions.",
+      "consumers": {
+        "bootstrap": { "enabled": true, "order": 70, "condition": "claude" },
+        "direct": { "enabled": true, "order": 70 }
+      }
+    },
+    {
+      "id": "claude-skill-surfaces",
+      "scriptPath": "scripts/runtime/render-provider-skill-surfaces.ps1",
+      "description": "Render Claude skill surfaces from definitions for the dedicated Claude sync flow.",
+      "defaultArgs": {
+        "Provider": ["claude"]
+      },
+      "consumers": {
+        "bootstrap": { "enabled": false, "order": 80, "condition": "claude" },
+        "direct": { "enabled": true, "order": 80 },
+        "claudeSkillSync": { "enabled": true, "order": 10 }
+      }
+    },
+    {
+      "id": "mcp-runtime-artifacts",
+      "scriptPath": "scripts/runtime/render-mcp-runtime-artifacts.ps1",
+      "description": "Render catalog-driven MCP projections that intentionally stay outside definitions.",
+      "consumers": {
+        "bootstrap": { "enabled": false, "order": 90, "condition": "never" },
+        "direct": { "enabled": true, "order": 90 }
+      }
+    }
+  ],
+  "surfaces": [
+    {
+      "id": "github-root-files",
+      "provider": "github",
+      "authority": "definitions",
+      "sourcePath": "definitions/providers/github/root",
+      "projectedPath": ".github",
+      "rendererId": "github-instruction-surfaces",
+      "validation": {
+        "enabled": true,
+        "mode": "selectedFiles",
+        "fileNames": ["AGENTS.md", "COMMANDS.md", "copilot-instructions.md", "instruction-routing.catalog.yml"]
+      },
+      "description": "GitHub root instruction files.",
+      "repoTracked": true
+    },
+    {
+      "id": "github-agents",
+      "provider": "github",
+      "authority": "definitions",
+      "sourcePath": "definitions/providers/github/agents",
+      "projectedPath": ".github/agents",
+      "rendererId": "github-instruction-surfaces",
+      "validation": {
+        "enabled": true,
+        "mode": "directory"
+      },
+      "description": "GitHub agent profiles.",
+      "repoTracked": true
+    },
+    {
+      "id": "github-chatmodes",
+      "provider": "github",
+      "authority": "definitions",
+      "sourcePath": "definitions/providers/github/chatmodes",
+      "projectedPath": ".github/chatmodes",
+      "rendererId": "github-instruction-surfaces",
+      "validation": {
+        "enabled": true,
+        "mode": "directory"
+      },
+      "description": "GitHub chatmode surfaces.",
+      "repoTracked": true
+    },
+    {
+      "id": "github-instructions",
+      "provider": "github",
+      "authority": "definitions",
+      "sourcePath": "definitions/shared/instructions",
+      "projectedPath": ".github/instructions",
+      "rendererId": "github-instruction-surfaces",
+      "validation": {
+        "enabled": true,
+        "mode": "directory"
+      },
+      "description": "Shared instruction files projected into the GitHub/Copilot surface.",
+      "repoTracked": true
+    },
+    {
+      "id": "github-prompt-entrypoints",
+      "provider": "github",
+      "authority": "definitions",
+      "sourcePath": "definitions/providers/github/prompts",
+      "projectedPath": ".github/prompts",
+      "rendererId": "github-instruction-surfaces",
+      "validation": {
+        "enabled": true,
+        "mode": "selectedFiles",
+        "fileNames": [
+          "create-api-endpoint.prompt.md",
+          "create-docker-setup.prompt.md",
+          "create-dotnet-class.prompt.md",
+          "create-ef-migration.prompt.md",
+          "create-powershell-script.prompt.md",
+          "create-rust-module.prompt.md",
+          "create-vue-component.prompt.md",
+          "generate-changelog.prompt.md",
+          "generate-pr-description.prompt.md",
+          "generate-unit-tests.prompt.md",
+          "refactor-to-clean-architecture.prompt.md",
+          "route-instructions.prompt.md"
+        ]
+      },
+      "description": "GitHub prompt entrypoint files.",
+      "repoTracked": true
+    },
+    {
+      "id": "github-shared-poml",
+      "provider": "github",
+      "authority": "definitions",
+      "sourcePath": "definitions/shared/prompts/poml",
+      "projectedPath": ".github/prompts/poml",
+      "rendererId": "github-instruction-surfaces",
+      "validation": {
+        "enabled": true,
+        "mode": "directory"
+      },
+      "description": "Shared POML prompt library projected into the GitHub prompt surface.",
+      "repoTracked": true
+    },
+    {
+      "id": "github-hooks",
+      "provider": "github",
+      "authority": "definitions",
+      "sourcePath": "definitions/providers/github/hooks",
+      "projectedPath": ".github/hooks",
+      "rendererId": "github-instruction-surfaces",
+      "validation": {
+        "enabled": true,
+        "mode": "directory"
+      },
+      "description": "GitHub hook bootstrap assets.",
+      "repoTracked": true
+    },
+    {
+      "id": "github-templates",
+      "provider": "github",
+      "authority": "definitions",
+      "sourcePath": "definitions/shared/templates",
+      "projectedPath": ".github/templates",
+      "rendererId": "github-instruction-surfaces",
+      "validation": {
+        "enabled": true,
+        "mode": "directory"
+      },
+      "description": "Shared reusable template assets projected into the GitHub surface.",
+      "repoTracked": true
+    },
+    {
+      "id": "codex-skills",
+      "provider": "codex",
+      "authority": "definitions",
+      "sourcePath": "definitions/providers/codex/skills",
+      "projectedPath": ".codex/skills",
+      "rendererId": "codex-skill-surfaces",
+      "validation": {
+        "enabled": true,
+        "mode": "directory"
+      },
+      "description": "Codex skill surfaces.",
+      "repoTracked": true
+    },
+    {
+      "id": "codex-compatibility-scripts",
+      "provider": "codex",
+      "authority": "definitions",
+      "sourcePath": "definitions/providers/codex/scripts",
+      "projectedPath": ".codex/scripts",
+      "rendererId": "codex-compatibility-surfaces",
+      "validation": {
+        "enabled": true,
+        "mode": "directory"
+      },
+      "description": "Codex compatibility wrappers and docs.",
+      "repoTracked": true
+    },
+    {
+      "id": "codex-compatibility-mcp-support",
+      "provider": "codex",
+      "authority": "definitions",
+      "sourcePath": "definitions/providers/codex/mcp",
+      "projectedPath": ".codex/mcp",
+      "rendererId": "codex-compatibility-surfaces",
+      "validation": {
+        "enabled": true,
+        "mode": "selectedFiles",
+        "fileNames": ["README.md", "codex.config.template.toml", "vscode.mcp.template.json"]
+      },
+      "description": "Authored Codex MCP support files.",
+      "repoTracked": true
+    },
+    {
+      "id": "codex-orchestration",
+      "provider": "codex",
+      "authority": "definitions",
+      "sourcePath": "definitions/providers/codex/orchestration",
+      "projectedPath": ".codex/orchestration",
+      "rendererId": "codex-orchestration-surfaces",
+      "validation": {
+        "enabled": true,
+        "mode": "directory"
+      },
+      "description": "Codex orchestration assets.",
+      "repoTracked": true
+    },
+    {
+      "id": "claude-skills",
+      "provider": "claude",
+      "authority": "definitions",
+      "sourcePath": "definitions/providers/claude/skills",
+      "projectedPath": ".claude/skills",
+      "rendererId": "claude-skill-surfaces",
+      "validation": {
+        "enabled": true,
+        "mode": "directory"
+      },
+      "description": "Claude skill surfaces.",
+      "repoTracked": true
+    },
+    {
+      "id": "claude-runtime-settings",
+      "provider": "claude",
+      "authority": "definitions",
+      "sourcePath": "definitions/providers/claude/runtime",
+      "projectedPath": ".claude",
+      "rendererId": "claude-runtime-surfaces",
+      "validation": {
+        "enabled": true,
+        "mode": "selectedFiles",
+        "fileNames": ["settings.json"]
+      },
+      "description": "Claude runtime settings surface.",
+      "repoTracked": true
+    },
+    {
+      "id": "vscode-profiles",
+      "provider": "vscode",
+      "authority": "definitions",
+      "sourcePath": "definitions/providers/vscode/profiles",
+      "projectedPath": ".vscode/profiles",
+      "rendererId": "vscode-profile-surfaces",
+      "validation": {
+        "enabled": true,
+        "mode": "directory"
+      },
+      "description": "VS Code profile baselines.",
+      "repoTracked": true
+    },
+    {
+      "id": "vscode-workspace-root",
+      "provider": "vscode",
+      "authority": "definitions",
+      "sourcePath": "definitions/providers/vscode/workspace",
+      "projectedPath": ".vscode",
+      "rendererId": "vscode-workspace-surfaces",
+      "validation": {
+        "enabled": true,
+        "mode": "selectedFiles",
+        "fileNames": ["README.md", "base.code-workspace", "settings.tamplate.jsonc"]
+      },
+      "description": "Tracked VS Code workspace-authored root files.",
+      "repoTracked": true
+    },
+    {
+      "id": "vscode-workspace-snippets",
+      "provider": "vscode",
+      "authority": "definitions",
+      "sourcePath": "definitions/providers/vscode/workspace/snippets",
+      "projectedPath": ".vscode/snippets",
+      "rendererId": "vscode-workspace-surfaces",
+      "validation": {
+        "enabled": true,
+        "mode": "directory"
+      },
+      "description": "Tracked VS Code snippet projections.",
+      "repoTracked": true
+    },
+    {
+      "id": "vscode-mcp-template",
+      "provider": "vscode",
+      "authority": "generated",
+      "sourcePath": ".github/governance/mcp-runtime.catalog.json",
+      "projectedPath": ".vscode/mcp.tamplate.jsonc",
+      "rendererId": "mcp-runtime-artifacts",
+      "validation": {
+        "enabled": true,
+        "mode": "generatedCatalogMcp"
+      },
+      "description": "Catalog-generated tracked VS Code MCP template.",
+      "repoTracked": true
+    },
+    {
+      "id": "vscode-mcp-global-helper",
+      "provider": "vscode",
+      "authority": "generated",
+      "sourcePath": ".github/governance/mcp-runtime.catalog.json",
+      "projectedPath": ".vscode/mcp-vscode-global.json",
+      "rendererId": "mcp-runtime-artifacts",
+      "validation": {
+        "enabled": false,
+        "mode": "skip"
+      },
+      "description": "Machine-local rendered VS Code MCP helper mirror.",
+      "repoTracked": false
+    },
+    {
+      "id": "codex-mcp-manifest",
+      "provider": "codex",
+      "authority": "generated",
+      "sourcePath": ".github/governance/mcp-runtime.catalog.json",
+      "projectedPath": ".codex/mcp/servers.manifest.json",
+      "rendererId": "mcp-runtime-artifacts",
+      "validation": {
+        "enabled": true,
+        "mode": "generatedCatalogMcp"
+      },
+      "description": "Catalog-generated Codex MCP manifest.",
+      "repoTracked": true
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "defaults": {
+    "mode": "enforced"
+  },
+  "rules": [
+    {
+      "id": "warn-request-prompt-injection-language",
+      "phase": "pre-stage",
+      "kind": "request-pattern",
+      "stageIds": ["implement", "closeout"],
+      "action": "warn",
+      "pattern": "ignore\\s+(all|any|the)\\s+(previous|prior)\\s+instructions|disable\\s+guardrails|bypass\\s+(policy|guardrails)|exfiltrat(e|ion)|override\\s+approval",
+      "message": "Request text contains instruction-bypass or prompt-injection indicators that should be reviewed before sensitive execution."
+    },
+    {
+      "id": "block-planned-network-shell-commands",
+      "phase": "pre-stage",
+      "kind": "planned-command-pattern",
+      "stageIds": ["implement", "validate"],
+      "action": "block",
+      "pattern": "\\b(curl|wget|Invoke-WebRequest|iwr|Invoke-RestMethod|irm|scp|ssh|ftp|telnet|nc|ncat)\\b",
+      "message": "Planned commands must not introduce unsanctioned network-capable shell steps."
+    },
+    {
+      "id": "block-planned-command-chaining",
+      "phase": "pre-stage",
+      "kind": "planned-command-pattern",
+      "stageIds": ["implement", "validate"],
+      "action": "block",
+      "pattern": "(&&|\\|\\|)",
+      "message": "Planned commands must stay single-purpose and deterministic."
+    },
+    {
+      "id": "warn-unsatisfied-sensitive-approval",
+      "phase": "pre-stage",
+      "kind": "approval-state",
+      "stageIds": ["implement", "closeout"],
+      "action": "warn",
+      "values": ["required-unsatisfied"],
+      "message": "Sensitive execution reached policy evaluation without approval satisfaction."
+    }
+  ]
+}

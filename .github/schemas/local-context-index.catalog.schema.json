@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/local-context-index.catalog.schema.json",
+  "title": "Local Context Index Catalog",
+  "type": "object",
+  "required": [
+    "version",
+    "indexRoot",
+    "maxFileSizeKb",
+    "chunking",
+    "queryDefaults",
+    "includeGlobs",
+    "excludeGlobs"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "indexRoot": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maxFileSizeKb": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "chunking": {
+      "type": "object",
+      "required": [
+        "maxChars",
+        "maxLines"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "maxChars": {
+          "type": "integer",
+          "minimum": 256
+        },
+        "maxLines": {
+          "type": "integer",
+          "minimum": 8
+        }
+      }
+    },
+    "queryDefaults": {
+      "type": "object",
+      "required": [
+        "top"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "top": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        }
+      }
+    },
+    "includeGlobs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "excludeGlobs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

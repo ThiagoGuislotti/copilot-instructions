@@ -1,0 +1,25 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "pwsh -NoLogo -NoProfile -File \"$HOME/.github/hooks/scripts/session-start.ps1\"",
+        "timeout": 10
+      }
+    ],
+    "PreToolUse": [
+      {
+        "type": "command",
+        "command": "pwsh -NoLogo -NoProfile -File \"$HOME/.github/hooks/scripts/pre-tool-use.ps1\"",
+        "timeout": 10
+      }
+    ],
+    "SubagentStart": [
+      {
+        "type": "command",
+        "command": "pwsh -NoLogo -NoProfile -File \"$HOME/.github/hooks/scripts/subagent-start.ps1\"",
+        "timeout": 10
+      }
+    ]
+  }
+}

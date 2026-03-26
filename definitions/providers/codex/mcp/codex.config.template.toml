@@ -1,0 +1,9 @@
+# Shared template for local ~/.codex/config.toml
+# Keep runtime-specific values (model, trust levels, auth) in local machine config.
+
+[features]
+experimental_windows_sandbox = true
+
+# MCP servers are generated from .codex/mcp/servers.manifest.json
+# Use:
+#   pwsh -File scripts/runtime/sync-codex-mcp-config.ps1

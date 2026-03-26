@@ -1,0 +1,17 @@
+{
+  "traceId": "run-20260322-0001",
+  "evaluations": [
+    {
+      "traceId": "run-20260322-0001",
+      "stageId": "implement",
+      "agentId": "specialist",
+      "phase": "pre-stage",
+      "ruleId": "warn-request-prompt-injection-language",
+      "kind": "request-pattern",
+      "action": "warn",
+      "message": "Request text contains instruction-bypass or prompt-injection indicators that should be reviewed before sensitive execution.",
+      "matchedValues": ["request-text"],
+      "evaluatedAt": "2026-03-22T00:03:00Z"
+    }
+  ]
+}

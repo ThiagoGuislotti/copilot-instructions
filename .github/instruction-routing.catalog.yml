@@ -1,0 +1,542 @@
+# yaml-language-server: $schema=./schemas/instruction-routing.catalog.schema.json
+# Instruction Routing Catalog
+# Purpose: static tagging for instruction selection (static RAGs routing)
+# Notes: keep this file as the single source of truth for routing; do not duplicate rules from copilot-instructions.md.
+
+version: 1
+owner: repo
+
+# How this works (static RAGs routing)
+# 1) A router prompt reads this file and selects the minimum instruction set for the task.
+# 2) The execution prompt/agent then runs with ONLY the selected files (+ mandatory ones).
+#
+# Design principles:
+# - Keep mandatory context small and stable.
+# - Prefer 2–5 domain instruction files per task.
+# - Use more specific files first; avoid pulling unrelated guidance.
+# - This catalog describes selection only; it does not duplicate instruction content.
+
+always:
+  # Mandatory context files (load first)
+  - path: AGENTS.md
+    reason: Mandatory context policy
+  - path: copilot-instructions.md
+    reason: Global rules and domain mapping
+
+  # Mandatory instruction files (always applied)
+  - path: instructions/super-agent.instructions.md
+    reason: Repository-owned Super Agent lifecycle for intake, planning, specialist routing, validation, review, and closeout
+  - path: instructions/repository-operating-model.instructions.md
+    reason: Repository topology, build/test/run commands, style, and domain instruction map
+  - path: instructions/artifact-layout.instructions.md
+    reason: Canonical non-versioned artifact layout for build, generated, and deployment outputs
+  - path: instructions/subagent-planning-workflow.instructions.md
+    reason: Mandatory planning lifecycle and sub-agent chain for non-trivial work
+  - path: instructions/workflow-optimization.instructions.md
+    reason: Task breakdown and token efficiency
+  - path: instructions/authoritative-sources.instructions.md
+    reason: Resolve external technical behavior with repository context first and official docs second
+  - path: instructions/powershell-execution.instructions.md
+    reason: When running or writing PowerShell
+  - path: instructions/feedback-changelog.instructions.md
+    reason: When changing CHANGELOG/feedback
+
+routing:
+  - id: github-meta
+    tags: [github, instructions, prompts, templates]
+    triggers:
+      - ".github"
+      - "copilot instructions"
+      - "instruction"
+      - "prompt"
+      - "chatmode"
+      - "template"
+    include:
+      - path: instructions/copilot-instruction-creation.instructions.md
+        when: editing instructions/*
+      - path: instructions/prompt-templates.instructions.md
+        when: editing prompts or authoring prompts
+      - path: instructions/pr.instructions.md
+        when: creating/updating PR-related content
+
+  - id: planning-spec
+    tags: [planning, brainstorm, spec, architecture, workflow]
+    triggers:
+      - "planning"
+      - "plan"
+      - "brainstorm"
+      - "spec"
+      - "specification"
+      - "design"
+      - "design decision"
+      - "architecture decision"
+      - "workstream"
+    include:
+      - path: instructions/brainstorm-spec-workflow.instructions.md
+        reason: Brainstorming and versioned specification workflow before execution planning
+      - path: instructions/subagent-planning-workflow.instructions.md
+        reason: Planning chain and active/completed workstream lifecycle
+
+  - id: super-agent-workflow
+    tags: [workflow, worktree, tdd, verification, parallel-dispatch]
+    triggers:
+      - "super agent"
+      - "super-agent"
+      - "worktree"
+      - "parallel dispatch"
+      - "parallel tasks"
+      - "tdd"
+      - "verification"
+      - "verify before completion"
+    include:
+      - path: instructions/worktree-isolation.instructions.md
+        reason: Isolated worktree guidance for risky or broad-scope execution
+      - path: instructions/tdd-verification.instructions.md
+        reason: Stronger verification and evidence requirements for code-bearing work
+
+  - id: docs-readme
+    tags: [docs, readme]
+    triggers:
+      - "readme"
+      - "documentation"
+      - "docs"
+      - "getting started"
+      - "quick start"
+      - "usage examples"
+    include:
+      - path: instructions/readme.instructions.md
+        reason: README structure, required sections, formatting
+      - path: instructions/nettoolskit-rules.instructions.md
+        reason: Repo-specific README rules
+
+  - id: artifact-layout
+    tags: [build, deployment, artifacts, generated, publish]
+    triggers:
+      - ".build"
+      - ".deployment"
+      - "build artifact"
+      - "deployment artifact"
+      - "generated output"
+      - "publish output"
+      - "artifact hygiene"
+      - "artifact layout"
+    include:
+      - path: instructions/artifact-layout.instructions.md
+        reason: Canonical layout for generated, build, publish, and deployment-ready outputs
+
+  - id: docs-readme-nuget-library
+    tags: [docs, readme, nuget, library]
+    triggers:
+      - "nuget"
+      - "package"
+      - "library"
+      - "pack"
+      - "package reference"
+      - "installation"
+    include:
+      - path: instructions/readme.instructions.md
+        reason: README structure for packages
+      - path: instructions/nettoolskit-rules.instructions.md
+        reason: Repo-specific README rules
+    notes:
+      - Focus README on package installation, minimal quick start, API reference, and build/test commands.
+
+  - id: docs-readme-app-sample
+    tags: [docs, readme, app, sample]
+    triggers:
+      - "readme"
+      - "sample"
+      - "demo"
+      - "worker"
+      - "quick start"
+      - "getting started"
+      - "how to run"
+      - "run locally"
+    include:
+      - path: instructions/readme.instructions.md
+        reason: README structure for runnable apps/samples
+      - path: instructions/nettoolskit-rules.instructions.md
+        reason: Repo-specific README rules
+    notes:
+      - Focus README on prerequisites, run commands, environment variables, and troubleshooting.
+
+  - id: changelog
+    tags: [docs, changelog]
+    triggers:
+      - "changelog"
+      - "release notes"
+      - "version"
+      - "semver"
+    include:
+      - path: instructions/feedback-changelog.instructions.md
+        reason: CHANGELOG process and versioning rules
+
+  - id: context-economy
+    tags: [context, token-economy, checkpoint, compression, continuity, session]
+    triggers:
+      - "checkpoint"
+      - "compress context"
+      - "update plan"
+      - "show status"
+      - "show progress"
+      - "resume from summary"
+    include:
+      - path: instructions/context-economy-checkpoint.instructions.md
+        reason: Full context economy, compression triggers, CHECKPOINT format, and command vocabulary
+
+  - id: dotnet-backend
+    tags: [dotnet, csharp, backend, api, clean-architecture, cqrs]
+    triggers:
+      - "dotnet"
+      - "c#"
+      - "asp.net"
+      - "api"
+      - "controller"
+      - "endpoint"
+      - "clean architecture"
+      - "cqrs"
+      - "mediatr"
+      - "minimal api"
+      - "swagger"
+      - "openapi"
+    include:
+      - path: instructions/dotnet-csharp.instructions.md
+        reason: C# conventions, XML docs, namespaces, TFMs
+      - path: instructions/clean-architecture-code.instructions.md
+        reason: Layering and dependency rules
+      - path: instructions/backend.instructions.md
+        reason: API conventions, errors, resilience, security
+
+  - id: dotnet-testing-unit
+    tags: [dotnet, testing, unit, xunit, nunit, aaa, mocking, nsubstitute]
+    triggers:
+      - "unit test"
+      - "unit tests"
+      - "xunit"
+      - "nunit"
+      - "trait"
+      - "category"
+      - "aaa"
+      - "mock"
+      - "nsubstitute"
+      - "substitute"
+      - "fake"
+      - "assert"
+      - "theory"
+      - "fact"
+    include:
+      - path: instructions/dotnet-csharp.instructions.md
+        reason: C# conventions used in tests
+      - path: instructions/backend.instructions.md
+        reason: Testing strategy notes (when relevant)
+    notes:
+      - Prefer prompt prompts/generate-unit-tests.prompt.md for test generation.
+      - Prefer AAA and fast/deterministic tests; use clear naming Method_Scenario_Expected.
+      - Prefer [Trait("Category","Unit")] for xUnit and consistent categories.
+
+  - id: dotnet-testing-integration-e2e
+    tags: [testing, integration, e2e, playwright, testcontainers]
+    triggers:
+      - "integration test"
+      - "integration tests"
+      - "e2e"
+      - "end-to-end"
+      - "playwright"
+      - "testcontainers"
+    include:
+      - path: instructions/e2e-testing.instructions.md
+        reason: E2E testing guidance
+      - path: instructions/backend.instructions.md
+        reason: Testing strategy patterns
+    notes:
+      - Keep integration tests focused; prefer testcontainers for realistic dependencies when available.
+
+  - id: dotnet-solution-build
+    tags: [dotnet, build, test, tooling]
+    triggers:
+      - "dotnet build"
+      - "dotnet test"
+      - "solution"
+      - "sln"
+      - "msbuild"
+      - "target frameworks"
+      - "net8"
+      - "net9"
+    include:
+      - path: instructions/dotnet-csharp.instructions.md
+        reason: Multi-target guidance and conventions
+      - path: instructions/ci-cd-devops.instructions.md
+        when: changes include pipelines/workflows
+
+  - id: database-orm
+    tags: [database, orm, ef-core, migrations, sql, db-config, pooling, failover]
+    triggers:
+      - "database"
+      - "sql"
+      - "ef core"
+      - "migration"
+      - "dbcontext"
+      - "repository"
+      - "entity framework"
+      - "index"
+      - "db config"
+      - "database configuration"
+      - "connection string"
+      - "pooling"
+      - "max pool size"
+      - "min pool size"
+      - "command timeout"
+      - "failover"
+      - "read replica"
+    include:
+      - path: instructions/database.instructions.md
+        reason: Database patterns and schema guidance
+      - path: instructions/orm.instructions.md
+        reason: ORM patterns and repository/context conventions
+      - path: instructions/database-configuration-operations.instructions.md
+        reason: Runtime database configuration, pooling, failover, and recovery operations baseline
+
+  - id: devops-containers
+    tags: [devops, docker, containers, k8s, kubernetes, pipeline, cicd]
+    triggers:
+      - "docker"
+      - "dockerfile"
+      - "k8s"
+      - "kubernetes"
+      - "helm"
+      - "pipeline"
+      - "workflow"
+      - "github actions"
+      - "azure devops"
+    include:
+      - path: instructions/workflow-generation.instructions.md
+        reason: GitHub Actions workflow generation baseline (security, tests, vulnerabilities, quality)
+      - path: instructions/docker.instructions.md
+        reason: Dockerfile conventions
+      - path: instructions/k8s.instructions.md
+        reason: Kubernetes manifests guidance
+      - path: instructions/ci-cd-devops.instructions.md
+        reason: CI/CD conventions and gates
+
+  - id: developer-workspace
+    tags: [vscode, workspace, code-workspace, copilot, codex, performance]
+    triggers:
+      - "workspace"
+      - "code-workspace"
+      - "vs code workspace"
+      - "workspace performance"
+      - "copilot workspace"
+      - "codex workspace"
+      - "workspace settings"
+      - "workspace efficiency"
+    include:
+      - path: instructions/vscode-workspace-efficiency.instructions.md
+        reason: Efficient VS Code workspace composition and settings for multi-window AI usage
+
+  - id: quality-static-analysis
+    tags: [quality, lint, static-analysis, sonar]
+    triggers:
+      - "sonar"
+      - "sonarqube"
+      - "static analysis"
+      - "lint"
+      - "quality gate"
+    include:
+      - path: instructions/static-analysis-sonarqube.instructions.md
+        reason: Static analysis and quality gate conventions
+
+  - id: security-vulnerabilities
+    tags: [security, vulnerabilities, owasp, api, frontend, backend, database]
+    triggers:
+      - "security"
+      - "vulnerability"
+      - "dependency vulnerability"
+      - "package vulnerability"
+      - "sca"
+      - "npm audit"
+      - "pnpm audit"
+      - "yarn audit"
+      - "cargo audit"
+      - "dotnet list package --vulnerable"
+      - "owasp"
+      - "asvs"
+      - "xss"
+      - "sql injection"
+      - "csrf"
+      - "ssrf"
+      - "authentication"
+      - "authorization"
+      - "hardening"
+    include:
+      - path: instructions/security-vulnerabilities.instructions.md
+        reason: Cross-layer vulnerability prevention and security hardening baseline
+
+  - id: observability-sre
+    tags: [observability, sre, telemetry, slo, sli, o11y]
+    triggers:
+      - "observability"
+      - "sre"
+      - "sli"
+      - "slo"
+      - "error budget"
+      - "burn rate"
+      - "opentelemetry"
+      - "golden signals"
+      - "incident response"
+      - "runbook"
+    include:
+      - path: instructions/observability-sre.instructions.md
+        reason: SLO/SLI, telemetry design, alerting, dashboards, and incident-readiness baseline
+      - path: instructions/backend.instructions.md
+        reason: API and backend runtime observability integration
+      - path: instructions/microservices-performance.instructions.md
+        reason: Distributed runtime performance and operational scaling considerations
+
+  - id: api-high-performance-security
+    tags: [api, performance, security, rate-limit, resilience]
+    triggers:
+      - "rate limit"
+      - "throttling"
+      - "p99 latency"
+      - "latency budget"
+      - "throughput"
+      - "idempotency key"
+      - "abuse protection"
+      - "request size limit"
+      - "performance api"
+    include:
+      - path: instructions/api-high-performance-security.instructions.md
+        reason: High-performance and secure API implementation baseline
+      - path: instructions/backend.instructions.md
+        reason: Backend API conventions and resilience patterns
+      - path: instructions/security-vulnerabilities.instructions.md
+        reason: Cross-layer vulnerability prevention and hardening controls
+      - path: instructions/dotnet-csharp.instructions.md
+        reason: .NET/C# implementation conventions when API is in C#
+
+  - id: data-privacy-compliance
+    tags: [privacy, compliance, lgpd, gdpr, pii, data-protection]
+    triggers:
+      - "privacy"
+      - "lgpd"
+      - "gdpr"
+      - "pii"
+      - "data minimization"
+      - "data retention"
+      - "consent management"
+      - "data subject request"
+      - "privacy by design"
+    include:
+      - path: instructions/data-privacy-compliance.instructions.md
+        reason: Privacy-by-design and data protection lifecycle controls
+      - path: instructions/security-vulnerabilities.instructions.md
+        reason: Security controls that protect confidentiality and integrity
+      - path: instructions/database.instructions.md
+        reason: Data-layer enforcement for retention, masking, and access control
+      - path: instructions/backend.instructions.md
+        reason: API/service enforcement for privacy policies and data handling
+
+  - id: platform-reliability-resilience
+    tags: [reliability, resilience, chaos, dr, rto, rpo]
+    triggers:
+      - "chaos engineering"
+      - "fault injection"
+      - "resilience"
+      - "rto"
+      - "rpo"
+      - "graceful degradation"
+      - "disaster recovery"
+      - "error budget burn"
+      - "reliability"
+    include:
+      - path: instructions/platform-reliability-resilience.instructions.md
+        reason: Reliability objectives, resilience patterns, chaos, and DR baseline
+      - path: instructions/microservices-performance.instructions.md
+        reason: Runtime scaling and performance behavior under stress
+      - path: instructions/ci-cd-devops.instructions.md
+        reason: Progressive delivery, rollback, and reliability gates in pipelines
+      - path: instructions/k8s.instructions.md
+        reason: Platform-level reliability controls for orchestrated workloads
+
+  - id: frontend-vue
+    tags: [frontend, vue, quasar, ui, ux]
+    triggers:
+      - "frontend"
+      - "vue"
+      - "quasar"
+      - "component"
+      - "ui"
+      - "ux"
+      - "i18n"
+    include:
+      - path: instructions/frontend.instructions.md
+        reason: Frontend conventions
+      - path: instructions/vue-quasar.instructions.md
+        reason: Vue/Quasar specifics
+      - path: instructions/vue-quasar-architecture.instructions.md
+        reason: Vue/Quasar architecture
+      - path: instructions/ui-ux.instructions.md
+        reason: UI/UX constraints
+
+  - id: rust
+    tags: [rust, cargo, tests]
+    triggers:
+      - "rust"
+      - "cargo"
+      - "crate"
+      - "cargo test"
+    include:
+      - path: instructions/rust-code-organization.instructions.md
+        reason: Rust project organization
+      - path: instructions/rust-testing.instructions.md
+        reason: Rust testing patterns
+
+  - id: powershell
+    tags: [powershell, scripts]
+    triggers:
+      - "powershell"
+      - "pwsh"
+      - ".ps1"
+    include:
+      - path: instructions/powershell-execution.instructions.md
+        reason: PowerShell execution safety and conventions
+      - path: instructions/powershell-script-creation.instructions.md
+        reason: PowerShell script authoring standards for scripts/*
+    notes:
+      - Prefer prompt prompts/create-powershell-script.prompt.md for script scaffolding.
+
+prompts:
+  - id: route-instructions
+    path: prompts/route-instructions.prompt.md
+    tags: [rag, routing, instructions]
+    purpose: Generate a Context Pack (which instruction files to load)
+
+  - id: powershell-create-script
+    path: prompts/create-powershell-script.prompt.md
+    tags: [powershell, scripts, automation]
+    purpose: Generate scripts/* PowerShell scripts with template-driven safe defaults
+
+  - id: dotnet-create-class
+    path: prompts/create-dotnet-class.prompt.md
+    tags: [dotnet, csharp, generation]
+    purpose: Generate a new C# class following templates and architecture rules
+
+  - id: dotnet-generate-unit-tests
+    path: prompts/generate-unit-tests.prompt.md
+    tags: [dotnet, testing, unit]
+    purpose: Generate unit tests (AAA, traits/categories, mocking)
+
+  - id: dotnet-create-api-endpoint
+    path: prompts/create-api-endpoint.prompt.md
+    tags: [dotnet, backend, api]
+    purpose: Generate an API endpoint pattern (controller/handler, validation)
+
+  - id: dotnet-create-ef-migration
+    path: prompts/create-ef-migration.prompt.md
+    tags: [dotnet, database, ef-core, migrations]
+    purpose: Create EF Core migration and related guidance
+
+  - id: generate-changelog
+    path: prompts/generate-changelog.prompt.md
+    tags: [docs, changelog]
+    purpose: Generate semantic versioned changelog entries

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Super Agent"
+  short_description: "Bootstrap every change-bearing repository request into the super-agent planning, routing, execution, test, review, and closeout lifecycle."
+  default_prompt: "Use $super-agent first to normalize the request, register planning, choose the specialist chain, and enforce test-review-closeout before any implementation or completion claim."
+policy:
+  allow_implicit_invocation: true

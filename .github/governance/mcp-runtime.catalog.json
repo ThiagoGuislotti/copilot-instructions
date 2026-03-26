@@ -1,0 +1,263 @@
+{
+  "$schema": "../schemas/mcp-runtime.catalog.schema.json",
+  "version": 1,
+  "inputs": [
+    {
+      "id": "Authorization",
+      "type": "promptString",
+      "description": "GitHub MCP authentication token (PAT or App token). VS Code stores this securely after the first prompt.",
+      "password": true
+    },
+    {
+      "id": "PostmanAuthorization",
+      "type": "promptString",
+      "description": "Postman MCP authorization value. VS Code stores this securely after the first prompt.",
+      "password": true
+    },
+    {
+      "id": "ado_org",
+      "type": "promptString",
+      "description": "Azure DevOps organization name (for example: contoso).",
+      "password": false
+    },
+    {
+      "id": "ado_domain",
+      "type": "promptString",
+      "description": "Repeat to enable specific Azure DevOps domains: core, work, work-items, search, test-plans, repositories, wiki, pipelines, advanced-security.",
+      "password": false
+    },
+    {
+      "id": "unity_mcp_server_src",
+      "type": "promptString",
+      "description": "Absolute path to the Unity MCP Server src folder installed by the Unity package.",
+      "password": false
+    },
+    {
+      "id": "SONARQUBE_TOKEN",
+      "type": "promptString",
+      "description": "SonarQube user token.",
+      "password": true
+    },
+    {
+      "id": "SONARQUBE_ORG",
+      "type": "promptString",
+      "description": "SonarQube Cloud organization key.",
+      "password": false
+    },
+    {
+      "id": "SONARQUBE_URL",
+      "type": "promptString",
+      "description": "SonarQube Server URL.",
+      "password": false
+    }
+  ],
+  "servers": [
+    {
+      "id": "microsoft/playwright-mcp",
+      "codexName": "playwright",
+      "targets": {
+        "vscode": { "include": true, "enabledByDefault": true },
+        "codex": { "include": true }
+      },
+      "definition": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["@playwright/mcp@latest"],
+        "gallery": "https://api.mcp.github.com",
+        "version": "0.0.1-seed"
+      }
+    },
+    {
+      "id": "io.github.github/github-mcp-server",
+      "targets": {
+        "vscode": { "include": true, "enabledByDefault": true }
+      },
+      "definition": {
+        "type": "http",
+        "url": "https://api.githubcopilot.com/mcp/",
+        "headers": {
+          "Authorization": "${input:Authorization}"
+        },
+        "gallery": "https://api.mcp.github.com",
+        "version": "0.24.0"
+      }
+    },
+    {
+      "id": "com.microsoft/azure",
+      "targets": {
+        "vscode": { "include": true, "enabledByDefault": true }
+      },
+      "definition": {
+        "type": "stdio",
+        "command": "dnx",
+        "args": ["Azure.Mcp@2.0.0-beta.6", "--yes", "--", "server", "start"],
+        "gallery": "https://api.mcp.github.com",
+        "version": "2.0.0-beta.6"
+      }
+    },
+    {
+      "id": "microsoftdocs/mcp",
+      "codexName": "microsoftdocs",
+      "targets": {
+        "vscode": { "include": true, "enabledByDefault": true },
+        "codex": { "include": true }
+      },
+      "definition": {
+        "type": "http",
+        "url": "https://learn.microsoft.com/api/mcp",
+        "gallery": "https://api.mcp.github.com",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "io.github.ChromeDevTools/chrome-devtools-mcp",
+      "codexName": "chrome-devtools",
+      "targets": {
+        "vscode": { "include": true, "enabledByDefault": true },
+        "codex": { "include": true }
+      },
+      "definition": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["chrome-devtools-mcp@0.11.0"],
+        "gallery": "https://api.mcp.github.com",
+        "version": "0.11.0"
+      }
+    },
+    {
+      "id": "microsoft/markitdown",
+      "targets": {
+        "vscode": { "include": true, "enabledByDefault": true }
+      },
+      "definition": {
+        "type": "stdio",
+        "command": "uvx",
+        "args": ["markitdown-mcp==0.0.1a4"],
+        "gallery": "https://api.mcp.github.com",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "com.microsoft/nuget",
+      "targets": {
+        "vscode": { "include": true, "enabledByDefault": false }
+      },
+      "definition": {
+        "type": "stdio",
+        "command": "dnx",
+        "args": ["NuGet.Mcp.Server@1.1.43", "--yes", "--source", "https://api.nuget.org/v3/index.json"],
+        "gallery": "https://api.mcp.github.com",
+        "version": "1.1.43"
+      }
+    },
+    {
+      "id": "coplaydev/unity-mcp",
+      "targets": {
+        "vscode": { "include": true, "enabledByDefault": false }
+      },
+      "definition": {
+        "type": "stdio",
+        "command": "other",
+        "args": ["--directory", "${input:unity_mcp_server_src}", "run", "server.py"],
+        "gallery": "https://api.mcp.github.com",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "microsoft/azure-devops-mcp",
+      "targets": {
+        "vscode": { "include": true, "enabledByDefault": false }
+      },
+      "definition": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "@azure-devops/mcp@latest", "${input:ado_org}", "-d", "${input:ado_domain}"],
+        "gallery": "https://api.mcp.github.com",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "id": "com.figma.mcp/mcp",
+      "targets": {
+        "vscode": { "include": true, "enabledByDefault": false }
+      },
+      "definition": {
+        "type": "http",
+        "url": "https://mcp.figma.com/mcp",
+        "gallery": "https://api.mcp.github.com",
+        "version": "1.0.3"
+      }
+    },
+    {
+      "id": "com.stripe/mcp",
+      "targets": {
+        "vscode": { "include": true, "enabledByDefault": false }
+      },
+      "definition": {
+        "type": "http",
+        "url": "https://mcp.stripe.com",
+        "gallery": "https://api.mcp.github.com",
+        "version": "0.2.4"
+      }
+    },
+    {
+      "id": "io.github.SonarSource/sonarqube-mcp-server",
+      "targets": {
+        "vscode": { "include": true, "enabledByDefault": false }
+      },
+      "definition": {
+        "type": "stdio",
+        "command": "docker",
+        "args": ["run", "-i", "--rm", "-e", "SONARQUBE_TOKEN", "-e", "SONARQUBE_ORG", "-e", "SONARQUBE_URL", "docker.io/mcp/sonarqube:latest"],
+        "env": {
+          "SONARQUBE_TOKEN": "${input:SONARQUBE_TOKEN}",
+          "SONARQUBE_ORG": "${input:SONARQUBE_ORG}",
+          "SONARQUBE_URL": "${input:SONARQUBE_URL}"
+        },
+        "gallery": "https://api.mcp.github.com",
+        "version": "1.12.0"
+      }
+    },
+    {
+      "id": "io.github.microsoft/awesome-copilot",
+      "targets": {
+        "vscode": { "include": true, "enabledByDefault": false }
+      },
+      "definition": {
+        "type": "stdio",
+        "command": "docker",
+        "args": ["run", "-i", "--rm", "ghcr.io/microsoft/mcp-dotnet-samples/awesome-copilot:1.0.2026032004"],
+        "gallery": "https://api.mcp.github.com",
+        "version": "1.0.2026032004"
+      }
+    },
+    {
+      "id": "com.postman/postman-mcp-server",
+      "targets": {
+        "vscode": { "include": true, "enabledByDefault": false }
+      },
+      "definition": {
+        "type": "http",
+        "url": "https://mcp.postman.com/mcp",
+        "headers": {
+          "Authorization": "${input:PostmanAuthorization}"
+        },
+        "gallery": "https://api.mcp.github.com",
+        "version": "2.8.4"
+      }
+    },
+    {
+      "id": "io.github.pgEdge/postgres-mcp",
+      "targets": {
+        "vscode": { "include": true, "enabledByDefault": false }
+      },
+      "definition": {
+        "type": "stdio",
+        "command": "docker",
+        "args": ["run", "-i", "--rm", "ghcr.io/pgedge/postgres-mcp:latest"],
+        "gallery": "https://api.mcp.github.com",
+        "version": "1.0.0"
+      }
+    }
+  ]
+}

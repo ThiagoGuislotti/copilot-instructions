@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ops Resilience Chaos Engineer"
+  short_description: "Harden reliability with resilience and chaos testing."
+  default_prompt: "Use $ops-resilience-chaos-engineer to improve reliability and resilience for this change."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "intentionalGlobalExceptions": [
+    {
+      "concern": "Agent selection, mandatory context bootstrap, and instruction precedence must remain globally visible.",
+      "ownedBy": "global-core"
+    },
+    {
+      "concern": "Enterprise-first default behavior and universal execution quality gates must remain globally visible.",
+      "ownedBy": "global-core"
+    },
+    {
+      "concern": "Repository-level routing entry point and minimal-context contract must remain globally visible.",
+      "ownedBy": "global-core"
+    },
+    {
+      "concern": "Super Agent lifecycle orchestration must remain globally visible so change-bearing work cannot bypass planning, testing, review, or closeout.",
+      "ownedBy": "global-core"
+    }
+  ],
+  "architectureConstraints": {
+    "globalCoreMaxChars": {
+      "AGENTS.md": 14000,
+      "copilot-instructions.md": 14000
+    },
+    "routing": {
+      "maxAlwaysFiles": 10,
+      "maxSelectedFiles": 5,
+      "requiredAlwaysPaths": [
+        "AGENTS.md",
+        "copilot-instructions.md",
+        "instructions/super-agent.instructions.md",
+        "instructions/repository-operating-model.instructions.md",
+        "instructions/artifact-layout.instructions.md",
+        "instructions/subagent-planning-workflow.instructions.md",
+        "instructions/workflow-optimization.instructions.md",
+        "instructions/authoritative-sources.instructions.md",
+        "instructions/powershell-execution.instructions.md",
+        "instructions/feedback-changelog.instructions.md"
+      ]
+    }
+  },
+  "layers": [
+    {
+      "id": "global-core",
+      "description": "Thin global context and execution contract loaded first for every task.",
+      "pathPatterns": [
+        ".github/AGENTS.md",
+        ".github/copilot-instructions.md"
+      ],
+      "mustReference": [
+        "instructions/repository-operating-model.instructions.md",
+        "instructions/authoritative-sources.instructions.md",
+        "instructions/artifact-layout.instructions.md"
+      ]
+    },
+    {
+      "id": "repository-operating-model",
+      "description": "Repository-specific operational rules, commands, style, release, and domain instruction map.",
+      "pathPatterns": [
+        ".github/instructions/repository-operating-model.instructions.md"
+      ]
+    },
+    {
+      "id": "cross-cutting-policies",
+      "description": "Policies, maps, and baselines that apply across domains.",
+      "pathPatterns": [
+        ".github/instructions/super-agent.instructions.md",
+        ".github/instructions/authoritative-sources.instructions.md",
+        ".github/governance/*",
+        ".github/policies/*"
+      ]
+    },
+    {
+      "id": "domain-instructions",
+      "description": "Technical stack/domain rules.",
+      "pathPatterns": [
+        ".github/instructions/*.instructions.md"
+      ],
+      "excludePatterns": [
+        ".github/instructions/authoritative-sources.instructions.md",
+        ".github/instructions/super-agent.instructions.md",
+        ".github/instructions/repository-operating-model.instructions.md"
+      ]
+    },
+    {
+      "id": "prompts",
+      "description": "Operational prompt helpers used for routing and generation.",
+      "pathPatterns": [
+        ".github/prompts/*"
+      ],
+      "forbiddenOwnershipMarkers": [
+        "single source of truth",
+        "global rules live here",
+        "always applied"
+      ]
+    },
+    {
+      "id": "templates",
+      "description": "Concrete artifact skeletons that must not become normative policy owners.",
+      "pathPatterns": [
+        ".github/templates/*",
+        ".vscode/base.code-workspace",
+        ".vscode/*.tamplate.jsonc",
+        ".vscode/snippets/*.tamplate.code-snippets",
+        ".codex/mcp/*.template.*"
+      ],
+      "forbiddenOwnershipMarkers": [
+        "single source of truth",
+        "global rules live here",
+        "always applied"
+      ]
+    },
+    {
+      "id": "codex-skills",
+      "description": "Execution-specialized Codex skills that must reference canonical repository policy.",
+      "pathPatterns": [
+        ".codex/skills/*/SKILL.md"
+      ],
+      "forbiddenOwnershipMarkers": [
+        "single source of truth",
+        "global rules live here"
+      ]
+    },
+    {
+      "id": "orchestration",
+      "description": "Pipeline contracts, evals, and handoff artifacts.",
+      "pathPatterns": [
+        ".codex/orchestration/*",
+        "scripts/orchestration/*"
+      ]
+    },
+    {
+      "id": "runtime-projection",
+      "description": "Scripts that render the versioned source of truth into local runtime locations.",
+      "pathPatterns": [
+        "scripts/runtime/*"
+      ]
+    }
+  ]
+}

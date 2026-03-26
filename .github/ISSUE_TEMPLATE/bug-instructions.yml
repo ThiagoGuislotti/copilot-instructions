@@ -1,0 +1,57 @@
+name: Instruction or Runtime Bug
+description: Report a bug affecting instructions, prompts, runtime sync, templates, or generated behavior.
+title: "[bug] "
+labels:
+  - bug
+  - triage
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Select the primary affected area.
+      options:
+        - .github instructions or prompts
+        - .codex skills or runtime assets
+        - .vscode templates or sync
+        - validation scripts
+        - git hooks or runtime automation
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Problem summary
+      description: Describe the bug and the expected behavior.
+      placeholder: The runtime sync skips a required file after bootstrap...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: List deterministic steps to reproduce the issue.
+      placeholder: |
+        1. Run ...
+        2. Open ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation evidence
+      description: Paste the validation command(s) and the observed result.
+      placeholder: pwsh -File scripts/validation/validate-all.ps1 -ValidationProfile dev
+    validations:
+      required: true
+  - type: textarea
+    id: paths
+    attributes:
+      label: Affected files or runtime paths
+      description: Use repository-relative or parameterized paths only.
+      placeholder: |
+        .github/instructions/readme.instructions.md
+        %USERPROFILE%\.codex\session_index.jsonl
+    validations:
+      required: false

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Privacy Compliance Engineer"
+  short_description: "Apply privacy-by-design and data protection controls."
+  default_prompt: "Use $privacy-compliance-engineer to implement this change with privacy-by-design and compliance controls."
+policy:
+  allow_implicit_invocation: true

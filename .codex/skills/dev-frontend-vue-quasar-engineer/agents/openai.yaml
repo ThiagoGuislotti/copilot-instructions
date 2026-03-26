@@ -1,0 +1,6 @@
+interface:
+  display_name: "Dev Frontend Vue Quasar Engineer"
+  short_description: "Implement Vue/Quasar UI with repo architecture."
+  default_prompt: "Use $dev-frontend-vue-quasar-engineer to build this feature with Vue/Quasar architecture rules."
+policy:
+  allow_implicit_invocation: true

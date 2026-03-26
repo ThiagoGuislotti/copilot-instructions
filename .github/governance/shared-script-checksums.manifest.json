@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "sourceRepository": "https://github.com/ThiagoGuislotti/copilot-instructions",
+  "hashAlgorithm": "SHA256",
+  "includedRoots": [
+    "scripts/common",
+    "scripts/security"
+  ],
+  "entries": [
+    {
+      "path": "scripts/common/agent-runtime-hardening.ps1",
+      "sha256": "17d42d1e7eb145b1401718d339edc12178b204b41c95b5d0cd7f01e6bb549ac3"
+    },
+    {
+      "path": "scripts/security/Invoke-PreBuildSecurityGate.ps1",
+      "sha256": "22735954b413d1609c828fa21863bb6fc71f82038bfce194ebf9c142171a79cc"
+    },
+    {
+      "path": "scripts/security/Invoke-FrontendPackageVulnerabilityAudit.ps1",
+      "sha256": "723c6ed1e9aae204a2d889b21f2fff1fc7a8291a8c2f24e6d6045815cf1300f9"
+    },
+    {
+      "path": "scripts/security/Invoke-CiPreBuildSecuritySnapshot.ps1",
+      "sha256": "67975228023861560c59bf37852d0339f83f11cba99911e38faf2ee7d2eb3991"
+    },
+    {
+      "path": "scripts/security/Install-SecurityAuditPrerequisites.ps1",
+      "sha256": "72297f17960c841386a29c35749af55ce2e396d74b8dbdfe5ed8c3a4a8f8069c"
+    },
+    {
+      "path": "scripts/common/vscode-runtime-hygiene.ps1",
+      "sha256": "ce7a91811425baa2bc1dc18e672ddeb4f3e75f6ac6745ca9b81d1eb34946e33e"
+    },
+    {
+      "path": "scripts/common/validation-logging.ps1",
+      "sha256": "9b634166d3d7424419896082cfa56bdda86291170ddd735715b802735591f718"
+    },
+    {
+      "path": "scripts/common/runtime-paths.ps1",
+      "sha256": "39b5a5542fe95e00e75f5d865330d93c4ae88efff97328c906cd470a8f8e518a"
+    },
+    {
+      "path": "scripts/common/runtime-operation-support.ps1",
+      "sha256": "b300296deb2f0cb315ec32f4771e220fc8093cdeae1b007fc1032fa482346192"
+    },
+    {
+      "path": "scripts/security/Invoke-RustPackageVulnerabilityAudit.ps1",
+      "sha256": "ac00a6dc1860b58bd99b4459e86f3557e5de83a84bd2a10ff8e324d6f61e4932"
+    },
+    {
+      "path": "scripts/common/runtime-install-profiles.ps1",
+      "sha256": "4a44a43481cd796597ede7175a26b7cb47f909fa342f60a4a2ba427dd6c4d950"
+    },
+    {
+      "path": "scripts/common/repository-paths.ps1",
+      "sha256": "0ce88487a1c7465fdae4f737d8757d3955abae366e45ff9e7a6a34ad05c8511f"
+    },
+    {
+      "path": "scripts/common/provider-surface-catalog.ps1",
+      "sha256": "86648d6abe84e4b7b21f7e85cc8b89d5a00d0e74d2693c977bb479d3896dde8c"
+    },
+    {
+      "path": "scripts/common/mcp-runtime-catalog.ps1",
+      "sha256": "85d6fe36399fa176fc332848d93cce179b6b9187eda5403b371b4106205f658a"
+    },
+    {
+      "path": "scripts/common/local-context-index.ps1",
+      "sha256": "e1b92fe3955040072d4121a86081933afcebe5f6b72ff05a44c9f7d10e2ece9a"
+    },
+    {
+      "path": "scripts/common/git-hook-eof-settings.ps1",
+      "sha256": "e9fa7d3de17dc55ffd7477a9eb516db3fe5acc6e4134cbdaa24b17289176d368"
+    },
+    {
+      "path": "scripts/common/console-style.ps1",
+      "sha256": "fcfc3e587abbcc1a3a4ee5c00846dc8a29899bdb1d5b3aca0b40ac2d7c6e5ea6"
+    },
+    {
+      "path": "scripts/common/common-bootstrap.ps1",
+      "sha256": "f955e6990e50fb8fbb176168c46f967ccb43de4c1d900b10c24bb5b856f56444"
+    },
+    {
+      "path": "scripts/common/codex-runtime-hygiene.ps1",
+      "sha256": "e84dac1db623fafdcb78fe71231f740c5bdced6ab06a4bcf5f71636605e15d47"
+    },
+    {
+      "path": "scripts/common/runtime-execution-context.ps1",
+      "sha256": "96ce307d6e00f29d3d11230ba100b3bdb17aec6f7599c852446a35b0dde0a5e2"
+    },
+    {
+      "path": "scripts/security/Invoke-VulnerabilityAudit.ps1",
+      "sha256": "e6a2511f86c6ce8d87927d1c2882d547f3e5bab8bc15c91ad67f9d0fa522ae65"
+    }
+  ]
+}

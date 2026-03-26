@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "sbomOutputPath": ".temp/audit/sbom.latest.json",
+  "licenseEvidencePath": ".temp/audit/licenses.latest.json",
+  "requireLicenseEvidence": false,
+  "warnOnMissingLicenseEvidence": false,
+  "warnOnEmptyDependencySet": false,
+  "excludedPathGlobs": [
+    ".git/**",
+    ".temp/**",
+    "**/bin/**",
+    "**/obj/**",
+    "**/.vs/**"
+  ],
+  "manifestFileNames": [
+    "package.json",
+    "package-lock.json",
+    "pnpm-lock.yaml",
+    "yarn.lock",
+    "Cargo.toml",
+    "Cargo.lock",
+    "Directory.Packages.props"
+  ],
+  "dependencyFilePatterns": [
+    "**/*.csproj",
+    "**/package.json",
+    "**/Cargo.toml",
+    "**/Directory.Packages.props"
+  ],
+  "blockedDependencyPatterns": [
+    "(?i)^event-stream$",
+    "(?i)^left-pad$",
+    "(?i)^node-ipc$"
+  ],
+  "sensitiveDependencyPatterns": [
+    "(?i)^log4j(?:-.*)?$",
+    "(?i)^ua-parser-js$",
+    "(?i)^xz$",
+    "(?i)^minimist$"
+  ],
+  "allowedLicenseIds": [
+    "MIT",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "MPL-2.0",
+    "LGPL-2.1-only",
+    "LGPL-3.0-only"
+  ]
+}

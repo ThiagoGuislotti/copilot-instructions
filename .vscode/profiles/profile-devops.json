@@ -1,0 +1,43 @@
+{
+  "name": "DevOps",
+  "description": "Docker, Kubernetes, Azure, CI/CD, GitHub Actions, SSH remoto.",
+  "extends": "Base",
+  "extensions": [
+    "ms-vscode-remote.remote-containers",
+    "ms-vscode-remote.remote-ssh",
+    "ms-vscode-remote.remote-ssh-edit",
+    "ms-vscode.remote-explorer",
+    "docker.docker",
+    "ms-vscode-remote.remote-containers",
+    "ms-kubernetes-tools.vscode-kubernetes-tools",
+    "ms-azuretools.azure-dev",
+    "ms-azuretools.vscode-azure-github-copilot",
+    "ms-azuretools.vscode-azure-mcp-server",
+    "ms-azuretools.vscode-azureappservice",
+    "ms-azuretools.vscode-azurecontainerapps",
+    "ms-azuretools.vscode-azurefunctions",
+    "ms-azuretools.vscode-azureresourcegroups",
+    "ms-azuretools.vscode-azurestaticwebapps",
+    "ms-azuretools.vscode-azurestorage",
+    "ms-azuretools.vscode-azurevirtualmachines",
+    "ms-azuretools.vscode-containers",
+    "ms-azuretools.vscode-cosmosdb",
+    "ms-azuretools.vscode-docker",
+    "ms-azure-load-testing.microsoft-testing",
+    "ms-vscode.vscode-node-azure-pack",
+    "vscjava.migrate-java-to-azure",
+    "github.vscode-github-actions",
+    "ms-vscode.powershell",
+    "redhat.vscode-yaml"
+  ],
+  "mcp": {
+    "servers": {
+      "io.github.github/github-mcp-server": { "enabled": true },
+      "microsoftdocs/mcp":                  { "enabled": true },
+      "com.microsoft/azure":                { "enabled": true },
+      "microsoft/azure-devops-mcp":         { "enabled": true },
+      "com.microsoft/nuget":                { "enabled": false },
+      "microsoft/playwright-mcp":           { "enabled": false }
+    }
+  }
+}

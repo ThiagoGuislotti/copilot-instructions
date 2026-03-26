@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Repository Guidance
+    url: https://github.com/ThiagoGuislotti/copilot-instructions/blob/main/CONTRIBUTING.md
+    about: Read the contribution guide before opening a new issue.

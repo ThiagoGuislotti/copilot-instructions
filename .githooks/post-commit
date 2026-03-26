@@ -1,0 +1,377 @@
+#!/usr/bin/env sh
+set -u
+
+# Resolve repository root and local home folder once.
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$REPO_ROOT"
+CODEX_HOME="${HOME:-${USERPROFILE:-}}"
+CHANGED_FILES="$(git diff-tree --no-commit-id --name-only -r HEAD 2>/dev/null || true)"
+
+# Emergency bypass for troubleshooting sessions.
+if [ "${CODEX_SKIP_POST_COMMIT_SYNC:-0}" = "1" ]; then
+  echo "[post-commit] Sync skipped (CODEX_SKIP_POST_COMMIT_SYNC=1)."
+  exit 0
+fi
+
+# Resolve PowerShell runtime (pwsh first, then Windows PowerShell).
+resolve_ps_cmd() {
+  if command -v pwsh >/dev/null 2>&1; then
+    echo "pwsh"
+    return 0
+  fi
+
+  if command -v powershell >/dev/null 2>&1; then
+    echo "powershell"
+    return 0
+  fi
+
+  echo ""
+  return 0
+}
+
+# Runs a PowerShell script with cross-platform flags.
+run_ps_file() {
+  cmd="$1"
+  script_path="$2"
+  shift 2
+
+  if [ "$cmd" = "powershell" ]; then
+    "$cmd" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$script_path" "$@"
+    return $?
+  fi
+
+  "$cmd" -NoLogo -NoProfile -File "$script_path" "$@"
+  return $?
+}
+
+# Runs a PowerShell script detached so slow hygiene jobs do not block commit flow.
+run_ps_file_background() {
+  cmd="$1"
+  script_path="$2"
+  shift 2
+
+  if [ "$cmd" = "powershell" ]; then
+    "$cmd" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$script_path" "$@" >/dev/null 2>&1 &
+    return 0
+  fi
+
+  "$cmd" -NoLogo -NoProfile -File "$script_path" "$@" >/dev/null 2>&1 &
+  return 0
+}
+
+# Checks whether the current commit touched a path relevant to one runtime action.
+commit_touched_path() {
+  pattern="$1"
+  if [ -z "$CHANGED_FILES" ]; then
+    return 1
+  fi
+
+  printf '%s\n' "$CHANGED_FILES" | grep -Eq "$pattern"
+}
+
+# Returns true when the current commit touched runtime-managed source assets.
+should_run_runtime_sync() {
+  commit_touched_path '^(definitions/|\.github/|\.codex/|scripts/)'
+}
+
+# Returns true when the current commit touched VS Code global alignment inputs.
+should_run_vscode_global_check() {
+  commit_touched_path '^(\.vscode/|scripts/runtime/(sync-vscode-global-settings|sync-vscode-global-snippets|validate-vscode-global-alignment)\.ps1)$'
+}
+
+# Resolves the effective Codex runtime root so hooks can honor machine-local overrides.
+resolve_codex_runtime_root() {
+  cmd="$1"
+
+  if [ -n "${CODEX_CODEX_RUNTIME_PATH:-}" ]; then
+    printf '%s\n' "$CODEX_CODEX_RUNTIME_PATH"
+    return 0
+  fi
+
+  resolved_path="$(
+    if [ "$cmd" = "powershell" ]; then
+      "$cmd" -NoLogo -NoProfile -ExecutionPolicy Bypass -Command ". '$REPO_ROOT/scripts/common/common-bootstrap.ps1' -CallerScriptRoot '$REPO_ROOT/scripts/runtime' -Helpers @('runtime-paths'); Resolve-CodexRuntimePath" 2>/dev/null
+    else
+      "$cmd" -NoLogo -NoProfile -Command ". '$REPO_ROOT/scripts/common/common-bootstrap.ps1' -CallerScriptRoot '$REPO_ROOT/scripts/runtime' -Helpers @('runtime-paths'); Resolve-CodexRuntimePath" 2>/dev/null
+    fi
+  )"
+
+  if [ -n "$resolved_path" ]; then
+    printf '%s\n' "$resolved_path"
+    return 0
+  fi
+
+  if [ -n "$CODEX_HOME" ]; then
+    printf '%s\n' "$CODEX_HOME/.codex"
+    return 0
+  fi
+
+  return 1
+}
+
+# Keep local runtime folders aligned with repo source-of-truth.
+run_sync() {
+  cmd="$1"
+  if ! should_run_runtime_sync; then
+    echo "[post-commit] Runtime sync skipped; HEAD did not change runtime-managed source assets."
+    return 0
+  fi
+
+  echo "[post-commit] Syncing managed runtime assets from repository..."
+  mirror_mode="${CODEX_POST_COMMIT_MIRROR:-1}"
+  if [ "$mirror_mode" = "0" ]; then
+    sync_args=""
+  else
+    sync_args="-Mirror"
+  fi
+
+  if ! run_ps_file "$cmd" ./scripts/runtime/bootstrap.ps1 $sync_args; then
+    echo "[post-commit] Warning: sync failed." >&2
+    return 0
+  fi
+  echo "[post-commit] Sync complete."
+  return 0
+}
+
+# Reapply safe Codex runtime preferences when runtime-managed source changed.
+# Controlled by:
+# - CODEX_SKIP_RUNTIME_PREFERENCES_APPLY=1
+run_runtime_preferences_apply() {
+  cmd="$1"
+
+  if [ "${CODEX_SKIP_RUNTIME_PREFERENCES_APPLY:-0}" = "1" ]; then
+    echo "[post-commit] Runtime preferences apply skipped (CODEX_SKIP_RUNTIME_PREFERENCES_APPLY=1)."
+    return 0
+  fi
+
+  if ! should_run_runtime_sync; then
+    echo "[post-commit] Runtime preferences apply skipped; HEAD did not change runtime-managed source assets."
+    return 0
+  fi
+
+  echo "[post-commit] Applying safe Codex runtime preferences..."
+  if ! run_ps_file "$cmd" ./scripts/runtime/set-codex-runtime-preferences.ps1; then
+    echo "[post-commit] Warning: runtime preferences apply failed." >&2
+    return 0
+  fi
+
+  echo "[post-commit] Runtime preferences apply complete."
+  return 0
+}
+
+# Clean local Codex runtime garbage and keep only recent logs.
+# Controlled by:
+# - CODEX_SKIP_RUNTIME_CLEANUP=1
+# - CODEX_LOG_RETENTION_DAYS=<days> (catalog default when omitted)
+# - CODEX_INCLUDE_SESSIONS_CLEANUP=0|1 (default 1)
+# - CODEX_SESSION_RETENTION_DAYS=<days> (catalog default when omitted)
+# - CODEX_MAX_SESSION_FILE_SIZE_MB=<mb> (optional emergency override; disabled by default)
+# - CODEX_OVERSIZED_SESSION_GRACE_HOURS=<hours> (optional emergency override; disabled by default)
+# - CODEX_MAX_SESSION_STORAGE_GB=<gb> (optional emergency override; disabled by default)
+# - CODEX_SESSION_STORAGE_GRACE_HOURS=<hours> (optional emergency override; disabled by default)
+run_runtime_cleanup() {
+  cmd="$1"
+
+  if [ "${CODEX_SKIP_RUNTIME_CLEANUP:-0}" = "1" ]; then
+    echo "[post-commit] Runtime cleanup skipped (CODEX_SKIP_RUNTIME_CLEANUP=1)."
+    return 0
+  fi
+
+  include_sessions_cleanup="${CODEX_INCLUDE_SESSIONS_CLEANUP:-1}"
+  echo "[post-commit] Running runtime cleanup..."
+
+  cleanup_args="-Apply"
+  if [ "$include_sessions_cleanup" = "1" ]; then
+    cleanup_args="$cleanup_args -IncludeSessions"
+  fi
+
+  if ! run_ps_file "$cmd" ./scripts/runtime/clean-codex-runtime.ps1 $cleanup_args; then
+    echo "[post-commit] Warning: runtime cleanup failed." >&2
+    return 0
+  fi
+
+  echo "[post-commit] Runtime cleanup complete."
+  return 0
+}
+
+# Cleans stale VS Code user-runtime artifacts on a throttled window so the
+# hook does not rescan workspaceStorage on every commit.
+# Controlled by:
+# - CODEX_SKIP_VSCODE_RUNTIME_CLEANUP=1
+# - CODEX_VSCODE_RECENT_RUN_WINDOW_HOURS=<hours> (default 12)
+# - CODEX_VSCODE_WORKSPACE_STORAGE_RETENTION_DAYS=<days>
+# - CODEX_VSCODE_CHAT_SESSION_RETENTION_DAYS=<days>
+# - CODEX_VSCODE_CHAT_EDITING_RETENTION_DAYS=<days>
+# - CODEX_VSCODE_TRANSCRIPT_RETENTION_DAYS=<days>
+# - CODEX_VSCODE_HISTORY_RETENTION_DAYS=<days>
+# - CODEX_VSCODE_SETTINGS_BACKUP_RETENTION_DAYS=<days>
+# - CODEX_VSCODE_MAX_CHAT_SESSION_FILE_SIZE_MB=<mb>
+# - CODEX_VSCODE_MAX_WORKSPACE_INDEX_SIZE_MB=<mb>
+# - CODEX_VSCODE_OVERSIZED_FILE_GRACE_HOURS=<hours>
+# - CODEX_VSCODE_RUNTIME_CLEANUP_BACKGROUND=0|1 (default 1)
+run_vscode_user_runtime_cleanup() {
+  cmd="$1"
+
+  if [ "${CODEX_SKIP_VSCODE_RUNTIME_CLEANUP:-0}" = "1" ]; then
+    echo "[post-commit] VS Code user runtime cleanup skipped (CODEX_SKIP_VSCODE_RUNTIME_CLEANUP=1)."
+    return 0
+  fi
+
+  echo "[post-commit] Running VS Code user runtime cleanup..."
+  recent_window_hours="${CODEX_VSCODE_RECENT_RUN_WINDOW_HOURS:-12}"
+  background_mode="${CODEX_VSCODE_RUNTIME_CLEANUP_BACKGROUND:-1}"
+
+  if [ "$background_mode" = "1" ]; then
+    if ! run_ps_file_background "$cmd" ./scripts/runtime/clean-vscode-user-runtime.ps1 -Apply -RecentRunWindowHours "$recent_window_hours"; then
+      echo "[post-commit] Warning: VS Code user runtime cleanup could not be scheduled." >&2
+      return 0
+    fi
+
+    echo "[post-commit] VS Code user runtime cleanup scheduled in background."
+    return 0
+  fi
+
+  if ! run_ps_file "$cmd" ./scripts/runtime/clean-vscode-user-runtime.ps1 -Apply -RecentRunWindowHours "$recent_window_hours"; then
+    echo "[post-commit] Warning: VS Code user runtime cleanup failed." >&2
+    return 0
+  fi
+
+  echo "[post-commit] VS Code user runtime cleanup complete."
+  return 0
+}
+
+# Optionally apply MCP config when the canonical catalog or generated manifest changed in last commit.
+# Controlled by:
+# - CODEX_APPLY_MCP_ON_POST_COMMIT=1
+# - CODEX_BACKUP_MCP_CONFIG=1|0 (default 1)
+run_optional_mcp_apply() {
+  cmd="$1"
+  changed_files="$(git diff-tree --no-commit-id --name-only -r HEAD 2>/dev/null || true)"
+  mcp_surface_changed=0
+
+  if printf '%s\n' "$changed_files" | grep -Eq '^(\.github/governance/mcp-runtime\.catalog\.json|\.codex/mcp/servers\.manifest\.json|\.vscode/mcp\.tamplate\.jsonc)$'; then
+    mcp_surface_changed=1
+  fi
+
+  if [ "$mcp_surface_changed" -ne 1 ]; then
+    return 0
+  fi
+
+  if [ "${CODEX_APPLY_MCP_ON_POST_COMMIT:-0}" != "1" ]; then
+    echo "[post-commit] MCP runtime surface changed; apply is disabled (set CODEX_APPLY_MCP_ON_POST_COMMIT=1)."
+    return 0
+  fi
+
+  codex_runtime_root="$(resolve_codex_runtime_root "$cmd" || true)"
+  if [ -z "$codex_runtime_root" ]; then
+    echo "[post-commit] Warning: Codex runtime root could not be resolved; MCP apply skipped." >&2
+    return 0
+  fi
+
+  target_config="$codex_runtime_root/config.toml"
+  echo "[post-commit] MCP runtime surface changed. Applying mcp_servers to $target_config ..."
+
+  if [ "${CODEX_BACKUP_MCP_CONFIG:-1}" = "1" ]; then
+    if ! run_ps_file "$cmd" ./.codex/scripts/sync-mcp-to-codex-config.ps1 -CatalogPath ./.github/governance/mcp-runtime.catalog.json -TargetConfigPath "$target_config" -CreateBackup; then
+      echo "[post-commit] Warning: MCP apply failed." >&2
+      return 0
+    fi
+  else
+    if ! run_ps_file "$cmd" ./.codex/scripts/sync-mcp-to-codex-config.ps1 -CatalogPath ./.github/governance/mcp-runtime.catalog.json -TargetConfigPath "$target_config"; then
+      echo "[post-commit] Warning: MCP apply failed." >&2
+      return 0
+    fi
+  fi
+
+  echo "[post-commit] MCP apply complete."
+  return 0
+}
+
+# Validates repository .vscode templates against global VS Code user files.
+# Controlled by:
+# - CODEX_SKIP_VSCODE_GLOBAL_CHECK=1
+# - CODEX_VSCODE_GLOBAL_USER_PATH=<absolute path>
+# - CODEX_SKIP_VSCODE_SNIPPET_CHECK=1
+run_vscode_global_check() {
+  cmd="$1"
+
+  if [ "${CODEX_SKIP_VSCODE_GLOBAL_CHECK:-0}" = "1" ]; then
+    echo "[post-commit] VS Code global check skipped (CODEX_SKIP_VSCODE_GLOBAL_CHECK=1)."
+    return 0
+  fi
+
+  if ! should_run_vscode_global_check; then
+    echo "[post-commit] VS Code global check skipped; HEAD did not change VS Code template inputs."
+    return 0
+  fi
+
+  echo "[post-commit] Validating .vscode templates against global VS Code User settings..."
+
+  if [ -n "${CODEX_VSCODE_GLOBAL_USER_PATH:-}" ]; then
+    if [ "${CODEX_SKIP_VSCODE_SNIPPET_CHECK:-0}" = "1" ]; then
+      if ! run_ps_file "$cmd" ./scripts/runtime/validate-vscode-global-alignment.ps1 -GlobalVscodeUserPath "$CODEX_VSCODE_GLOBAL_USER_PATH" -SkipSnippets; then
+        echo "[post-commit] Warning: VS Code global check failed." >&2
+        return 0
+      fi
+    else
+      if ! run_ps_file "$cmd" ./scripts/runtime/validate-vscode-global-alignment.ps1 -GlobalVscodeUserPath "$CODEX_VSCODE_GLOBAL_USER_PATH"; then
+        echo "[post-commit] Warning: VS Code global check failed." >&2
+        return 0
+      fi
+    fi
+  else
+    if [ "${CODEX_SKIP_VSCODE_SNIPPET_CHECK:-0}" = "1" ]; then
+      if ! run_ps_file "$cmd" ./scripts/runtime/validate-vscode-global-alignment.ps1 -SkipSnippets; then
+        echo "[post-commit] Warning: VS Code global check failed." >&2
+        return 0
+      fi
+    else
+      if ! run_ps_file "$cmd" ./scripts/runtime/validate-vscode-global-alignment.ps1; then
+        echo "[post-commit] Warning: VS Code global check failed." >&2
+        return 0
+      fi
+    fi
+  fi
+
+  echo "[post-commit] VS Code global check complete."
+  return 0
+}
+
+# Runs runtime cleanup in the background while the slower VS Code alignment
+# validation stays on the foreground path. Cleanup output is replayed after
+# validation completes so the hook log remains readable.
+run_runtime_cleanup_concurrent() {
+  cmd="$1"
+  temp_root="${TMPDIR:-${TMP:-${TEMP:-/tmp}}}"
+  cleanup_log="${temp_root}/post-commit-cleanup-$$.log"
+  cleanup_pid=""
+
+  (
+    run_runtime_cleanup "$cmd"
+    run_vscode_user_runtime_cleanup "$cmd"
+  ) >"$cleanup_log" 2>&1 &
+  cleanup_pid=$!
+
+  run_vscode_global_check "$cmd"
+  wait "$cleanup_pid" || true
+
+  if [ -f "$cleanup_log" ]; then
+    cat "$cleanup_log"
+    rm -f "$cleanup_log"
+  fi
+
+  return 0
+}
+
+# Hook is best-effort: no hard failure if PowerShell is unavailable.
+PS_CMD="$(resolve_ps_cmd)"
+if [ -z "$PS_CMD" ]; then
+  echo "[post-commit] Warning: PowerShell not found. Sync skipped." >&2
+  exit 0
+fi
+
+run_sync "$PS_CMD"
+run_runtime_preferences_apply "$PS_CMD"
+run_optional_mcp_apply "$PS_CMD"
+run_runtime_cleanup_concurrent "$PS_CMD"
+exit 0

@@ -1,0 +1,153 @@
+{
+  "traceId": "run-20260226-0001",
+  "pipelineId": "default-dev-flow",
+  "status": "success",
+  "startedAt": "2026-02-26T00:00:00Z",
+  "finishedAt": "2026-02-26T00:12:00Z",
+  "stages": [
+    {
+      "stageId": "intake",
+      "agentId": "super-agent",
+      "status": "success",
+      "startedAt": "2026-02-26T00:00:00Z",
+      "finishedAt": "2026-02-26T00:01:00Z",
+      "durationMs": 60000,
+      "inputArtifacts": ["request"],
+      "outputArtifacts": ["normalized-request", "intake-report"],
+      "validation": { "warnings": 0, "failures": 0 },
+      "execution": {
+        "backend": "scripted",
+        "attempts": 1,
+        "dispatchMode": "codex-exec",
+        "promptTemplatePath": ".codex/orchestration/prompts/super-agent-intake-stage.prompt.md",
+        "responseSchemaPath": ".github/schemas/agent.stage-intake-result.schema.json",
+        "dispatchCount": 1,
+        "workItemCount": 1,
+        "changedFileCount": 0,
+        "stageStatePath": ".temp/runs/run-20260226-0001/stages/intake-state.json",
+        "clarificationRequired": false,
+        "canProceedSafely": true,
+        "clarificationReason": null,
+        "clarificationQuestions": []
+      }
+    },
+    {
+      "stageId": "spec",
+      "agentId": "brainstormer",
+      "status": "success",
+      "startedAt": "2026-02-26T00:01:00Z",
+      "finishedAt": "2026-02-26T00:02:00Z",
+      "durationMs": 60000,
+      "inputArtifacts": ["request", "normalized-request", "intake-report"],
+      "outputArtifacts": ["spec-summary", "active-spec"],
+      "validation": { "warnings": 0, "failures": 0 },
+      "execution": {
+        "backend": "scripted",
+        "attempts": 1,
+        "dispatchMode": "codex-exec",
+        "promptTemplatePath": ".codex/orchestration/prompts/spec-stage.prompt.md",
+        "responseSchemaPath": ".github/schemas/agent.stage-spec-result.schema.json",
+        "dispatchCount": 1,
+        "workItemCount": 1,
+        "changedFileCount": 0,
+        "stageStatePath": ".temp/runs/run-20260226-0001/stages/spec-state.json"
+      }
+    },
+    {
+      "stageId": "plan",
+      "agentId": "planner",
+      "status": "success",
+      "startedAt": "2026-02-26T00:02:00Z",
+      "finishedAt": "2026-02-26T00:04:00Z",
+      "durationMs": 120000,
+      "inputArtifacts": ["request", "normalized-request", "intake-report", "spec-summary", "active-spec"],
+      "outputArtifacts": ["task-plan", "task-plan-data", "context-pack", "active-plan"],
+      "validation": { "warnings": 0, "failures": 0 },
+      "execution": {
+        "backend": "scripted",
+        "attempts": 1,
+        "dispatchMode": "codex-exec",
+        "promptTemplatePath": ".codex/orchestration/prompts/planner-stage.prompt.md",
+        "responseSchemaPath": ".github/schemas/agent.stage-plan-result.schema.json",
+        "dispatchCount": 1,
+        "workItemCount": 2,
+        "changedFileCount": 0,
+        "stageStatePath": ".temp/runs/run-20260226-0001/stages/plan-state.json"
+      }
+    },
+    {
+      "stageId": "route",
+      "agentId": "router",
+      "status": "success",
+      "startedAt": "2026-02-26T00:04:00Z",
+      "finishedAt": "2026-02-26T00:05:00Z",
+      "durationMs": 60000,
+      "inputArtifacts": ["request", "normalized-request", "intake-report", "spec-summary", "active-spec", "task-plan-data", "context-pack", "active-plan"],
+      "outputArtifacts": ["route-selection", "specialist-context-pack"],
+      "validation": { "warnings": 0, "failures": 0 }
+    },
+    {
+      "stageId": "implement",
+      "agentId": "specialist",
+      "status": "success",
+      "startedAt": "2026-02-26T00:05:00Z",
+      "finishedAt": "2026-02-26T00:09:00Z",
+      "durationMs": 240000,
+      "inputArtifacts": ["request", "normalized-request", "intake-report", "spec-summary", "active-spec", "task-plan", "task-plan-data", "context-pack", "route-selection", "specialist-context-pack", "active-plan"],
+      "outputArtifacts": ["changeset", "implementation-log", "implementation-dispatches", "task-review-report"],
+      "validation": { "warnings": 1, "failures": 0 }
+    },
+    {
+      "stageId": "validate",
+      "agentId": "tester",
+      "status": "success",
+      "startedAt": "2026-02-26T00:09:00Z",
+      "finishedAt": "2026-02-26T00:11:00Z",
+      "durationMs": 120000,
+      "inputArtifacts": ["changeset", "implementation-log", "route-selection", "task-plan-data", "task-review-report"],
+      "outputArtifacts": ["validation-report"],
+      "validation": { "warnings": 0, "failures": 0 }
+    },
+    {
+      "stageId": "review",
+      "agentId": "reviewer",
+      "status": "success",
+      "startedAt": "2026-02-26T00:11:00Z",
+      "finishedAt": "2026-02-26T00:12:00Z",
+      "durationMs": 60000,
+      "inputArtifacts": ["request", "normalized-request", "intake-report", "spec-summary", "active-spec", "changeset", "validation-report", "route-selection", "task-review-report", "active-plan"],
+      "outputArtifacts": ["review-report", "decision-log"],
+      "validation": { "warnings": 0, "failures": 0 }
+    },
+    {
+      "stageId": "closeout",
+      "agentId": "release-engineer",
+      "status": "success",
+      "startedAt": "2026-02-26T00:12:00Z",
+      "finishedAt": "2026-02-26T00:14:00Z",
+      "durationMs": 120000,
+      "inputArtifacts": ["request", "normalized-request", "intake-report", "spec-summary", "active-spec", "route-selection", "changeset", "validation-report", "task-review-report", "review-report", "decision-log", "active-plan"],
+      "outputArtifacts": ["closeout-report", "release-summary", "completed-plan", "readme-updates", "changelog-update"],
+      "validation": { "warnings": 0, "failures": 0 }
+    }
+  ],
+  "summary": {
+    "stageCount": 8,
+    "failedStages": 0,
+    "warningCount": 1,
+    "policyWarningCount": 0,
+    "policyBlockCount": 0,
+    "estimatedCostUsd": 0.48,
+    "totalDurationMs": 840000,
+    "notes": "Reference template for run artifact shape."
+  }
+  ,
+  "traceRecordPath": ".temp/runs/run-20260226-0001/trace-record.json",
+  "policyEvaluationsPath": ".temp/runs/run-20260226-0001/policy-evaluations.json",
+  "checkpointStatePath": ".temp/runs/run-20260226-0001/checkpoint-state.json",
+  "resume": {
+    "resumed": false,
+    "sourceRunDirectory": null,
+    "startStageId": null
+  }
+}

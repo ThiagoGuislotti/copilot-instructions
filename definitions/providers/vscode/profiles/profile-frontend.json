@@ -1,0 +1,28 @@
+{
+  "name": "Frontend",
+  "description": "Vue/TS/React + CSS + testes browser. Sem Python, Java, Azure, .NET server.",
+  "extends": "Base",
+  "extensions": [
+    "vue.volar",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "biomejs.biome",
+    "ecmel.vscode-html-css",
+    "zignd.html-css-class-completion",
+    "hossaini.bootstrap-intellisense",
+    "naumovs.color-highlight",
+    "ms-playwright.playwright",
+    "ritwickdey.liveserver",
+    "github.vscode-github-actions"
+  ],
+  "mcp": {
+    "servers": {
+      "io.github.github/github-mcp-server": { "enabled": true },
+      "microsoftdocs/mcp":                  { "enabled": true },
+      "microsoft/playwright-mcp":           { "enabled": true },
+      "com.microsoft/nuget":                { "enabled": false },
+      "com.microsoft/azure":                { "enabled": false },
+      "microsoft/azure-devops-mcp":         { "enabled": false }
+    }
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "version": 1,
+  "requiredFiles": [
+    "CODEOWNERS",
+    "CHANGELOG.md",
+    ".github/AGENTS.md",
+    ".github/copilot-instructions.md",
+    ".github/policies/instruction-system.policy.json",
+    ".github/governance/validation-profiles.json",
+    ".github/governance/agent-skill-permissions.matrix.json",
+    ".github/governance/supply-chain.baseline.json",
+    ".github/governance/warning-baseline.json",
+    ".github/governance/shared-script-checksums.manifest.json",
+    ".github/runbooks/README.md",
+    ".github/hooks/super-agent.bootstrap.json",
+    ".github/hooks/scripts/common.ps1",
+    ".github/hooks/scripts/session-start.ps1",
+    ".github/hooks/scripts/subagent-start.ps1",
+    ".githooks/pre-commit",
+    ".githooks/post-commit",
+    ".githooks/post-merge",
+    ".githooks/post-checkout",
+    "scripts/validation/validate-agent-permissions.ps1",
+    "scripts/validation/validate-supply-chain.ps1",
+    "scripts/validation/validate-shared-script-checksums.ps1",
+    "scripts/validation/validate-template-standards.ps1",
+    "scripts/validation/validate-workspace-efficiency.ps1",
+    "scripts/validation/validate-agent-hooks.ps1",
+    "scripts/validation/validate-shell-hooks.ps1",
+    "scripts/validation/validate-runtime-script-tests.ps1",
+    "scripts/validation/validate-warning-baseline.ps1",
+    "scripts/validation/validate-audit-ledger.ps1",
+    "scripts/tests/runtime/runtime-scripts.tests.ps1",
+    "scripts/tests/runtime/compatibility-lifecycle.tests.ps1",
+    "scripts/tests/runtime/template-standards.tests.ps1"
+    ,
+    "scripts/tests/runtime/workspace-efficiency.tests.ps1"
+  ],
+  "requiredDirectories": [
+    ".github/hooks",
+    ".github/policies",
+    ".github/governance",
+    "scripts/validation"
+  ],
+  "scanExtensions": [
+    ".md",
+    ".txt",
+    ".json",
+    ".jsonc",
+    ".yml",
+    ".yaml",
+    ".toml",
+    ".ps1",
+    ".psm1",
+    ".cs",
+    ".props",
+    ".targets",
+    ".xml",
+    ".ts",
+    ".tsx",
+    ".js",
+    ".jsx",
+    ".cmd",
+    ".bat",
+    ".sh"
+  ],
+  "excludedPathGlobs": [
+    ".git/**",
+    ".temp/**",
+    "**/bin/**",
+    "**/obj/**",
+    "**/.vs/**",
+    "**/.vscode-test/**",
+    "**/*.sln"
+  ],
+  "forbiddenPathGlobs": [
+    "**/*.pfx",
+    "**/*.p12",
+    "**/*.key",
+    "**/*.pem",
+    "**/id_rsa",
+    "**/id_ed25519"
+  ],
+  "forbiddenContentPatterns": [
+    {
+      "id": "github-classic-pat",
+      "pattern": "ghp_[A-Za-z0-9]{36}",
+      "severity": "failure"
+    },
+    {
+      "id": "github-fine-grained-pat",
+      "pattern": "github_pat_[A-Za-z0-9_]{80,}",
+      "severity": "failure"
+    },
+    {
+      "id": "aws-access-key-id",
+      "pattern": "AKIA[0-9A-Z]{16}",
+      "severity": "failure"
+    },
+    {
+      "id": "private-key-block",
+      "pattern": "-----BEGIN (?:RSA|EC|DSA|OPENSSH|PRIVATE) KEY-----",
+      "severity": "failure"
+    },
+    {
+      "id": "hardcoded-password-assignment",
+      "pattern": "(?i)(password|passwd|pwd)\\s*[:=]\\s*[\"'](?!\\*{3}|changeme|password|example|your-password)[^\"']{8,}[\"']",
+      "severity": "warning"
+    },
+    {
+      "id": "inline-bearer-token",
+      "pattern": "(?i)authorization\\s*[:=]\\s*[\"']?bearer\\s+[A-Za-z0-9\\-_.]{20,}",
+      "severity": "warning"
+    }
+  ],
+  "allowedContentPatterns": [
+    "(?i)example-token",
+    "(?i)example-password",
+    "(?i)sample-secret"
+  ]
+}

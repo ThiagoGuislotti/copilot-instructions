@@ -1,0 +1,43 @@
+{
+  "$schema": "../schemas/local-context-index.catalog.schema.json",
+  "version": 1,
+  "indexRoot": ".temp/context-index",
+  "maxFileSizeKb": 256,
+  "chunking": {
+    "maxChars": 1600,
+    "maxLines": 40
+  },
+  "queryDefaults": {
+    "top": 5
+  },
+  "includeGlobs": [
+    "README.md",
+    "CHANGELOG.md",
+    "CLAUDE.md",
+    ".github/**/*.md",
+    ".github/**/*.json",
+    ".github/**/*.jsonc",
+    ".github/**/*.yml",
+    ".github/**/*.yaml",
+    ".claude/**/*.md",
+    ".claude/**/*.json",
+    ".codex/**/*.md",
+    ".codex/**/*.json",
+    ".codex/**/*.toml",
+    ".vscode/**/*.md",
+    ".vscode/**/*.json",
+    ".vscode/**/*.jsonc",
+    "planning/**/*.md",
+    "scripts/**/*.ps1"
+  ],
+  "excludeGlobs": [
+    ".build/**",
+    ".deployment/**",
+    ".temp/**",
+    "**/bin/**",
+    "**/obj/**",
+    "**/node_modules/**",
+    "**/*.bak",
+    ".vscode/mcp-vscode-global.json"
+  ]
+}

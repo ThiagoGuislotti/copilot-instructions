@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "defaultProfile": "none",
+  "profiles": {
+    "none": {
+      "description": "Do not project runtime assets or configure editor/git integrations.",
+      "install": {
+        "bootstrap": false,
+        "globalVscodeSettings": false,
+        "globalVscodeSnippets": false,
+        "localGitHooks": false,
+        "globalGitAliases": false,
+        "healthcheck": false
+      },
+      "runtime": {
+        "github": false,
+        "codex": false,
+        "claude": false
+      }
+    },
+    "github": {
+      "description": "Project only the GitHub/Copilot runtime surface (.github and mirrored scripts) while keeping the shared `super-agent` controller canonical in `agentsSkillsRoot` and cleaning legacy duplicate starters from `githubRuntimeRoot/skills` plus `copilotSkillsRoot`.",
+      "install": {
+        "bootstrap": true,
+        "globalVscodeSettings": false,
+        "globalVscodeSnippets": false,
+        "localGitHooks": false,
+        "globalGitAliases": false,
+        "healthcheck": true
+      },
+      "runtime": {
+        "github": true,
+        "codex": false,
+        "claude": false
+      }
+    },
+    "codex": {
+      "description": "Project only the Codex runtime surface (.agents skills, shared scripts, MCP, and orchestration assets).",
+      "install": {
+        "bootstrap": true,
+        "globalVscodeSettings": false,
+        "globalVscodeSnippets": false,
+        "localGitHooks": false,
+        "globalGitAliases": false,
+        "healthcheck": true
+      },
+      "runtime": {
+        "github": false,
+        "codex": true,
+        "claude": false
+      }
+    },
+    "claude": {
+      "description": "Project only the Claude Code runtime surface (.claude skills to ~/.claude/skills).",
+      "install": {
+        "bootstrap": false,
+        "globalVscodeSettings": false,
+        "globalVscodeSnippets": false,
+        "localGitHooks": false,
+        "globalGitAliases": false,
+        "healthcheck": true
+      },
+      "runtime": {
+        "github": false,
+        "codex": false,
+        "claude": true
+      }
+    },
+    "all": {
+      "description": "Project all runtime surfaces and apply opt-in editor/git integrations.",
+      "install": {
+        "bootstrap": true,
+        "globalVscodeSettings": true,
+        "globalVscodeSnippets": true,
+        "localGitHooks": true,
+        "globalGitAliases": true,
+        "healthcheck": true
+      },
+      "runtime": {
+        "github": true,
+        "codex": true,
+        "claude": true
+      }
+    }
+  }
+}

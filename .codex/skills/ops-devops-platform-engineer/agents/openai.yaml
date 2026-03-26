@@ -1,0 +1,6 @@
+interface:
+  display_name: "Ops DevOps Platform Engineer"
+  short_description: "Build secure CI/CD and deployment workflows."
+  default_prompt: "Use $ops-devops-platform-engineer to implement this pipeline or deployment change with safe defaults."
+policy:
+  allow_implicit_invocation: true

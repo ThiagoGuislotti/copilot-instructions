@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/agent.stage-implementation-result.schema.json",
+  "title": "Executor Task Result",
+  "type": "object",
+  "required": [
+    "taskId",
+    "status",
+    "summary",
+    "changedFiles",
+    "validationsPerformed",
+    "residualRisks",
+    "notes",
+    "commitReady"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "taskId": { "type": "string", "pattern": "^[a-z0-9-]{2,64}$" },
+    "status": {
+      "type": "string",
+      "enum": ["completed", "blocked", "skipped"]
+    },
+    "summary": { "type": "string", "minLength": 1 },
+    "changedFiles": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "validationsPerformed": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "residualRisks": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "commitReady": { "type": "boolean" }
+  }
+}

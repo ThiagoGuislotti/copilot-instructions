@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "defaultWarningOnly": true,
+  "globalRules": {
+    "requiredBlockedCommandPrefixes": ["git reset --hard", "git checkout --"],
+    "allowedStageScriptPrefixes": ["scripts/orchestration/stages/"]
+  },
+  "agents": [
+    {
+      "agentId": "super-agent",
+      "role": "planner",
+      "skill": "super-agent",
+      "allowedPathGlobs": [".github/**", ".codex/**", "planning/**", "scripts/**", "README.md", "CHANGELOG.md", "CONTRIBUTING.md"],
+      "allowedStageScriptGlobs": ["scripts/orchestration/stages/intake-stage.ps1"],
+      "requiredBudget": { "maxSteps": 16, "maxDurationMinutes": 15, "maxFileEdits": 8, "maxTokens": 45000 }
+    },
+    {
+      "agentId": "brainstormer",
+      "role": "planner",
+      "skill": "brainstorm-spec-architect",
+      "allowedPathGlobs": [".github/**", ".codex/**", "planning/**", "scripts/**", "README.md", "CHANGELOG.md", "CONTRIBUTING.md"],
+      "allowedStageScriptGlobs": ["scripts/orchestration/stages/spec-stage.ps1"],
+      "requiredBudget": { "maxSteps": 18, "maxDurationMinutes": 20, "maxFileEdits": 10, "maxTokens": 55000 }
+    },
+    {
+      "agentId": "planner",
+      "role": "planner",
+      "skill": "plan-active-work-planner",
+      "allowedPathGlobs": [".github/**", ".codex/**", "planning/**", "scripts/**", ".temp/**", "README.md", "CHANGELOG.md"],
+      "allowedStageScriptGlobs": ["scripts/orchestration/stages/plan-stage.ps1"],
+      "requiredBudget": { "maxSteps": 20, "maxDurationMinutes": 20, "maxFileEdits": 12, "maxTokens": 70000 }
+    },
+    {
+      "agentId": "router",
+      "role": "router",
+      "skill": "context-token-optimizer",
+      "allowedPathGlobs": [".github/**", ".codex/**", "planning/**", "scripts/**", ".temp/**", "README.md", "CHANGELOG.md"],
+      "allowedStageScriptGlobs": ["scripts/orchestration/stages/route-stage.ps1"],
+      "requiredBudget": { "maxSteps": 15, "maxDurationMinutes": 15, "maxFileEdits": 8, "maxTokens": 50000 }
+    },
+    {
+      "agentId": "specialist",
+      "role": "specialist",
+      "skill": "dev-software-engineer",
+      "allowedPathGlobs": ["src/**", "modules/**", "samples/**", "tests/**", "scripts/**", ".github/**", ".codex/**", ".temp/**", "README.md", "CHANGELOG.md"],
+      "allowedStageScriptGlobs": ["scripts/orchestration/stages/implement-stage.ps1"],
+      "requiredBudget": { "maxSteps": 45, "maxDurationMinutes": 50, "maxFileEdits": 40, "maxTokens": 180000 }
+    },
+    {
+      "agentId": "tester",
+      "role": "tester",
+      "skill": "test-engineer",
+      "allowedPathGlobs": ["tests/**", "src/**", "modules/**", "samples/**", "scripts/**", ".github/**", ".temp/**"],
+      "allowedStageScriptGlobs": ["scripts/orchestration/stages/validate-stage.ps1"],
+      "requiredBudget": { "maxSteps": 25, "maxDurationMinutes": 30, "maxFileEdits": 20, "maxTokens": 120000 }
+    },
+    {
+      "agentId": "reviewer",
+      "role": "reviewer",
+      "skill": "review-code-engineer",
+      "allowedPathGlobs": ["src/**", "modules/**", "samples/**", "planning/**", "scripts/**", ".github/**", ".codex/**", ".temp/**", "README.md", "CHANGELOG.md"],
+      "allowedStageScriptGlobs": ["scripts/orchestration/stages/review-stage.ps1"],
+      "requiredBudget": { "maxSteps": 20, "maxDurationMinutes": 25, "maxFileEdits": 10, "maxTokens": 90000 }
+    },
+    {
+      "agentId": "release-engineer",
+      "role": "release",
+      "skill": "release-closeout-engineer",
+      "allowedPathGlobs": [".github/**", ".codex/**", "planning/**", "scripts/**", ".temp/**", "README.md", "CHANGELOG.md", "CONTRIBUTING.md"],
+      "allowedStageScriptGlobs": ["scripts/orchestration/stages/closeout-stage.ps1"],
+      "requiredBudget": { "maxSteps": 20, "maxDurationMinutes": 20, "maxFileEdits": 15, "maxTokens": 80000 }
+    }
+  ]
+}

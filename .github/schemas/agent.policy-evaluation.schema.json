@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/agent.policy-evaluation.schema.json",
+  "title": "Agent Policy Evaluations",
+  "type": "object",
+  "required": ["traceId", "evaluations"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "traceId": { "type": "string", "pattern": "^[a-zA-Z0-9-]{8,128}$" },
+    "evaluations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["traceId", "stageId", "agentId", "phase", "ruleId", "kind", "action", "message", "matchedValues", "evaluatedAt"],
+        "additionalProperties": false,
+        "properties": {
+          "traceId": { "type": "string", "pattern": "^[a-zA-Z0-9-]{8,128}$" },
+          "stageId": { "type": "string", "pattern": "^[a-z0-9-]{2,64}$" },
+          "agentId": { "type": "string", "pattern": "^[a-z0-9-]{2,64}$" },
+          "phase": { "type": "string", "enum": ["pre-stage", "post-stage"] },
+          "ruleId": { "type": "string", "minLength": 1 },
+          "kind": { "type": "string", "enum": ["request-pattern", "planned-command-pattern", "changed-path-pattern", "model-pattern", "approval-state"] },
+          "action": { "type": "string", "enum": ["warn", "block"] },
+          "message": { "type": "string", "minLength": 1 },
+          "matchedValues": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "evaluatedAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}

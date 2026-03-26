@@ -1,0 +1,4 @@
+agent:
+  display_name: "Worktree Isolation Engineer"
+  short_description: "Create safe git worktrees for isolated Super Agent execution."
+  default_prompt: "Use $worktree-isolation-engineer to decide whether this workstream should move into an isolated git worktree and, when appropriate, create it with the repository-owned runtime helper."

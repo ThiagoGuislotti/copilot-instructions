@@ -1,0 +1,29 @@
+# Keep it simple and predictable across editors
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+end_of_line = lf
+insert_final_newline = false
+trim_trailing_whitespace = true
+
+# Rust
+[*.{rs,toml,lock}]
+indent_size = 4
+
+# .NET
+[*.{cs,csproj,props,targets,sln,slnf,resx,config}]
+indent_size = 4
+
+# Frontend (Vue / Quasar)
+[*.{vue,ts,tsx,js,jsx,mjs,cjs,css,scss,sass,less,html}]
+indent_size = 2
+
+# Data/config formats (commonly 2 spaces)
+[*.{json,jsonc,yml,yaml}]
+indent_size = 2
+
+[*.{ps1,bat,cmd}]
+end_of_line = crlf

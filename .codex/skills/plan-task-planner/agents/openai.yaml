@@ -1,0 +1,6 @@
+interface:
+  display_name: "Plan Task Planner"
+  short_description: "Break complex work into executable plans."
+  default_prompt: "Use $plan-task-planner to create an ordered execution plan with validation and risk controls."
+policy:
+  allow_implicit_invocation: true
