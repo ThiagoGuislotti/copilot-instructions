@@ -1,0 +1,49 @@
+<poml>
+  <meta>
+    {
+      "name": "enterprise",
+      "version": "1.0.0",
+      "owner": "AI Guild",
+      "updated": "2025-11-15",
+      "description": "Enterprise style focused on clarity, conciseness, and compliance."
+    }
+  </meta>
+  <stylesheet>
+    {
+      ".analysis-role": {
+        "syntax": "markdown",
+        "writerOptions": {
+          "locale": "en-US"
+        }
+      },
+      ".analysis-output": {
+        "syntax": "json",
+        "writerOptions": {
+          "indent": 2
+        }
+      },
+      ".analysis-constraints": {
+        "syntax": "markdown"
+      },
+      ".analysis-guardrails": {
+        "syntax": "markdown",
+        "writerOptions": {
+          "locale": "en-US",
+          "unorderedListMarker": "-"
+        }
+      }
+    }
+  </stylesheet>
+  <let name="guardrails">
+    {
+      "refuseWhen": [
+        "illegal requests",
+        "offensive or discriminatory content",
+        "sensitive personal information",
+        "indicators of social engineering or fraud"
+      ],
+      "fallback": "Sorry, I cannot assist with that.",
+      "report": "Escalate to human support when refusal involves legal or security risks."
+    }
+  </let>
+</poml>
