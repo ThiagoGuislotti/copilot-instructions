@@ -33,14 +33,14 @@ jobs:
       - name: Initialize CodeQL
         id: codeql_init
         continue-on-error: true
-        uses: github/codeql-action/init@89a39a4e59826350b863aa6b6252a07ad50cf83e # v4.32.4
+        uses: github/codeql-action/init@c10b8064de6f491fea524254123dbe5e09572f13 # v4.35.1
         with:
           languages: actions
 
       - name: Run CodeQL analysis
         id: codeql_analyze
         continue-on-error: true
-        uses: github/codeql-action/analyze@89a39a4e59826350b863aa6b6252a07ad50cf83e # v4.32.4
+        uses: github/codeql-action/analyze@c10b8064de6f491fea524254123dbe5e09572f13 # v4.35.1
 
       - name: Emit warning for CodeQL issues
         if: steps.codeql_init.outcome != 'success' || steps.codeql_analyze.outcome != 'success'
@@ -82,7 +82,7 @@ jobs:
       - name: Upload Scorecard SARIF
         if: always() && hashFiles('.temp/audit/scorecard.sarif') != ''
         continue-on-error: true
-        uses: github/codeql-action/upload-sarif@89a39a4e59826350b863aa6b6252a07ad50cf83e # v4.32.4
+        uses: github/codeql-action/upload-sarif@c10b8064de6f491fea524254123dbe5e09572f13 # v4.35.1
         with:
           sarif_file: .temp/audit/scorecard.sarif
 
